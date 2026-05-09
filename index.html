@@ -684,13 +684,26 @@
             function AdminPanel(props) {
                 var user = props.user, orders = props.orders, setOrders = props.setOrders, couriers = props.couriers, setCouriers = props.setCouriers, onLogout = props.onLogout;
                 var _a = useState("dashboard"), tab = _a[0], setTab = _a[1];
+                var _b = useState(""), syncMsg = _b[0], setSyncMsg = _b[1];
                 var tabs=[{id:"dashboard",label:"📊 الرئيسية"},{id:"orders",label:"📦 الأوردرات"},{id:"couriers",label:"🏍️ المناديب"}];
+                function forceSync() {
+                    setSyncMsg("جاري المزامنة...");
+                    var o = {}; orders.forEach(function(v){o[v.id]=v;});
+                    var c = {}; couriers.forEach(function(v){c['c'+v.id]=v;});
+                    Promise.all([
+                        fetch("https://flash-go-b7d17-default-rtdb.europe-west1.firebasedatabase.app/flashgo/orders.json",{method:"PUT",body:JSON.stringify(o),headers:{"Content-Type":"application/json"}}),
+                        fetch("https://flash-go-b7d17-default-rtdb.europe-west1.firebasedatabase.app/flashgo/couriers.json",{method:"PUT",body:JSON.stringify(c),headers:{"Content-Type":"application/json"}})
+                    ]).then(function() { setSyncMsg("✅ تمت المزامنة مع Firebase"); setTimeout(function(){setSyncMsg("");},3000); })
+                    .catch(function() { setSyncMsg("❌ فشلت المزامنة"); });
+                }
                 return h('div',{style:{display:'flex',flexDirection:'column',minHeight:'100vh'}},
                     h('nav',{className:'nav'},
                         h('div',{className:'logo'},'FLASH ',h('span',null,'GO')),
                         h('div',{className:'nav-user'},
                             h('div',{style:{textAlign:'left'}},h('div',{style:{fontSize:13,fontWeight:700,color:'var(--black)'}},user.name),h('div',{className:'nav-info'},user.role==="chairman"?'رئيس مجلس الإدارة':'المدير العام')),
                             h('div',{className:'avatar'},user.name.charAt(0)),
+                            h('button',{className:'btn btn-sm btn-outline-orange',style:{fontSize:11},onClick:forceSync},'📡 مزامنة'),
+                            syncMsg && h('span',{style:{fontSize:11,color:'var(--green)',fontWeight:600}},syncMsg),
                             h('button',{className:'btn btn-ghost btn-sm',onClick:onLogout},'🚪 خروج')
                         )
                     ),
