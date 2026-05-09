@@ -1010,9 +1010,9 @@
                 );
             }
 
+            var urlMode = new URLSearchParams(window.location.search).get('mode') || "";
+
             function App() {
-                var urlParams = new URLSearchParams(window.location.search);
-                var urlMode = urlParams.get('mode') || "";
                 var _a = useState(null), user = _a[0], setUser = _a[1];
                 var _b = useState([]), orders = _b[0], setOrders = _b[1];
                 var _c = useState([]), couriers = _c[0], setCouriers = _c[1];
@@ -1115,11 +1115,8 @@
                 return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,tracking:tracking,onLogout:function(){setUser(null);}});
             }
 
-            if ('serviceWorker' in navigator) {
-                // Unregister any old service worker first, then register fresh
-                navigator.serviceWorker.getRegistrations().then(function(regs) {
-                    regs.forEach(function(r) { r.unregister(); });
-                });
+            // Register SW only in courier mode
+            if ('serviceWorker' in navigator && urlMode === 'courier') {
                 window.addEventListener('load', function() {
                     navigator.serviceWorker.register('sw.js').catch(function(){});
                 });
