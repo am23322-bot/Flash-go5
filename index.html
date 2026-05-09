@@ -75,6 +75,16 @@
             -moz-osx-font-smoothing: grayscale;
             min-height: 100vh;
         }
+        #root:empty::before {
+            content: "⏳ جاري التحميل...";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-size: 24px;
+            color: var(--text-muted);
+        }
+        .loaded #root:empty::before { display: none; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -262,6 +272,7 @@
     <script>
         (function() {
             'use strict';
+            document.body.classList.add('loaded');
 
             if (!window.React || !window.ReactDOM) {
                 document.getElementById('root').innerHTML =

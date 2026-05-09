@@ -78,6 +78,16 @@
             -moz-osx-font-smoothing: grayscale;
             min-height: 100vh;
         }
+        #root:empty::before {
+            content: "⏳ جاري التحميل...";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-size: 24px;
+            color: var(--text-muted);
+        }
+        .loaded #root:empty::before { display: none; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -256,17 +266,17 @@
 </head>
 <body>
     <div id="root"></div>
-    <div id="diag" style="font-size:20px;padding:40px;text-align:center;font-family:sans-serif">⏳ جاري تحميل التطبيق...</div>
-    <script>document.getElementById('diag').style.display='none';</script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <noscript><div style="font-size:20px;padding:40px;text-align:center;font-family:sans-serif">⚠️ JavaScript غير مفعل. يرجى تفعيل JavaScript لعرض التطبيق.</div></noscript>
 
     <script>
         (function() {
             'use strict';
+            document.body.classList.add('loaded');
 
             if (!window.React || !window.ReactDOM) {
                 document.getElementById('root').innerHTML =
