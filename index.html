@@ -870,7 +870,10 @@
                 var _b = useState([]), orders = _b[0], setOrders = _b[1];
                 var _c = useState([]), couriers = _c[0], setCouriers = _c[1];
                 var _d = useState(true), loading = _d[0], setLoading = _d[1];
-                var firstRender = useRef(true);
+                var ordersSnap = useRef("");
+                var couriersSnap = useRef("");
+                var skipOrders = useRef(false);
+                var skipCouriers = useRef(false);
 
                 useEffect(function() {
                     var ordersRef = db.ref('flashgo/orders');
@@ -878,24 +881,34 @@
 
                     ordersRef.on('value', function(snap) {
                         var val = snap.val();
+                        var json = JSON.stringify(val || {});
+                        if (json === ordersSnap.current) return;
+                        ordersSnap.current = json;
+                        skipOrders.current = true;
                         if (val) {
                             setOrders(Object.keys(val).map(function(k) { return val[k]; }));
                         } else {
                             var seed = {};
                             INITIAL_ORDERS.forEach(function(o) { seed[o.id] = o; });
                             ordersRef.set(seed);
+                            setOrders(INITIAL_ORDERS);
                         }
                         setLoading(false);
                     });
 
                     couriersRef.on('value', function(snap) {
                         var val = snap.val();
+                        var json = JSON.stringify(val || {});
+                        if (json === couriersSnap.current) return;
+                        couriersSnap.current = json;
+                        skipCouriers.current = true;
                         if (val) {
                             setCouriers(Object.keys(val).map(function(k) { return val[k]; }));
                         } else {
                             var seed = {};
                             MOCK_COURIERS.forEach(function(c) { seed[c.id] = c; });
                             couriersRef.set(seed);
+                            setCouriers(MOCK_COURIERS);
                         }
                     });
 
@@ -903,21 +916,25 @@
                 }, []);
 
                 useEffect(function() {
-                    if (firstRender.current) { firstRender.current = false; return; }
-                    if (!loading) {
-                        var obj = {};
-                        orders.forEach(function(o) { obj[o.id] = o; });
-                        db.ref('flashgo/orders').set(obj);
-                    }
+                    if (loading) return;
+                    if (skipOrders.current) { skipOrders.current = false; return; }
+                    var obj = {};
+                    orders.forEach(function(o) { obj[o.id] = o; });
+                    var json = JSON.stringify(obj);
+                    if (json === ordersSnap.current) return;
+                    ordersSnap.current = json;
+                    db.ref('flashgo/orders').set(obj);
                 }, [orders, loading]);
 
                 useEffect(function() {
-                    if (firstRender.current) return;
-                    if (!loading) {
-                        var obj = {};
-                        couriers.forEach(function(c) { obj[c.id] = c; });
-                        db.ref('flashgo/couriers').set(obj);
-                    }
+                    if (loading) return;
+                    if (skipCouriers.current) { skipCouriers.current = false; return; }
+                    var obj = {};
+                    couriers.forEach(function(c) { obj[c.id] = c; });
+                    var json = JSON.stringify(obj);
+                    if (json === couriersSnap.current) return;
+                    couriersSnap.current = json;
+                    db.ref('flashgo/couriers').set(obj);
                 }, [couriers, loading]);
 
                 if (loading) return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)'}},'⏳ جاري التحميل...');
