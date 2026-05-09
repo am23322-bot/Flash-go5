@@ -871,13 +871,16 @@
                 var lastOrdersStr = useRef("");
                 var lastCouriersStr = useRef("");
 
+                var _e = useState(""), fbError = _e[0], setFbError = _e[1];
+
                 function objToArr(obj) { return obj ? Object.keys(obj).map(function(k){return obj[k];}) : []; }
                 function arrToObj(arr) { var o={}; arr.forEach(function(v){o[v.id]=v;}); return o; }
 
                 // Load initial data + seed if empty (BOTH orders AND couriers before ready)
                 useEffect(function() {
                     var loaded = 0;
-                    function checkDone() { loaded++; if (loaded === 2) { ready.current = true; setLoading(false); } }
+                    var failed = false;
+                    function checkDone() { loaded++; if (loaded === 2) { if (!failed) { ready.current = true; } setLoading(false); } }
 
                     fbGet("flashgo/orders").then(function(val) {
                         if (val && Object.keys(val).length > 0) {
@@ -891,7 +894,7 @@
                             setOrders(INITIAL_ORDERS);
                         }
                         checkDone();
-                    });
+                    }).catch(function() { failed=true; setFbError("فشل الاتصال بقاعدة البيانات"); setLoading(false); });
 
                     fbGet("flashgo/couriers").then(function(val) {
                         if (val && Object.keys(val).length > 0) {
@@ -905,7 +908,7 @@
                             setCouriers(MOCK_COURIERS);
                         }
                         checkDone();
-                    });
+                    }).catch(function() { failed=true; setFbError("فشل الاتصال بقاعدة البيانات"); setLoading(false); });
                 }, []);
 
                 // Poll for remote changes every 2 seconds
@@ -918,7 +921,7 @@
                                 lastOrdersStr.current = s;
                                 setOrders(objToArr(val));
                             }
-                        });
+                        }).catch(function(){});
                         fbGet("flashgo/couriers").then(function(val) {
                             if (!val) return;
                             var s = JSON.stringify(val);
@@ -926,7 +929,7 @@
                                 lastCouriersStr.current = s;
                                 setCouriers(objToArr(val));
                             }
-                        });
+                        }).catch(function(){});
                     }, 2000);
                     return function() { clearInterval(timer); };
                 }, []);
@@ -938,7 +941,7 @@
                     var s = JSON.stringify(obj);
                     if (s === lastOrdersStr.current) return;
                     lastOrdersStr.current = s;
-                    fbPut("flashgo/orders", obj);
+                    fbPut("flashgo/orders", obj).catch(function(){});
                 }, [orders, loading]);
 
                 // Save couriers to Firebase when they change locally
@@ -948,10 +951,16 @@
                     var s = JSON.stringify(obj);
                     if (s === lastCouriersStr.current) return;
                     lastCouriersStr.current = s;
-                    fbPut("flashgo/couriers", obj);
+                    fbPut("flashgo/couriers", obj).catch(function(){});
                 }, [couriers, loading]);
 
                 if (loading) return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)'}},'⏳ جاري التحميل...');
+                if (fbError) return h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',padding:20,textAlign:'center'}},
+                    h('div',{style:{fontSize:48,marginBottom:16}},'⚠️'),
+                    h('div',{style:{fontSize:18,fontWeight:700,color:'var(--red)',marginBottom:8}},fbError),
+                    h('div',{style:{fontSize:13,color:'var(--text-muted)',marginBottom:20,maxWidth:400}},'تأكد من اتصالك بالإنترنت وأن الموقع يعمل على HTTPS ثم أعد تحميل الصفحة'),
+                    h('button',{className:'btn btn-primary',onClick:function(){window.location.reload();}},'🔄 إعادة تحميل')
+                );
                 if(!user)return h(LoginScreen,{onLogin:setUser,mode:urlMode});
                 if(user.role==="courier")return h(CourierApp,{user:user,orders:orders,setOrders:setOrders,onLogout:function(){setUser(null);}});
                 return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,onLogout:function(){setUser(null);}});
