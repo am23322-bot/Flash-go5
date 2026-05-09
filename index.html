@@ -957,6 +957,10 @@
             }
 
             if ('serviceWorker' in navigator) {
+                // Unregister any old service worker first, then register fresh
+                navigator.serviceWorker.getRegistrations().then(function(regs) {
+                    regs.forEach(function(r) { r.unregister(); });
+                });
                 window.addEventListener('load', function() {
                     navigator.serviceWorker.register('sw.js').catch(function(){});
                 });

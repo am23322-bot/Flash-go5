@@ -1,4 +1,4 @@
-const CACHE = 'flashgo-v2';
+const CACHE = 'flashgo-v3';
 const URLS = [
   '/',
   '/index.html',
