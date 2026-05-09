@@ -254,14 +254,25 @@
 <body>
     <div id="root"></div>
 
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
         (function() {
             'use strict';
+
+            if (!window.React || !window.ReactDOM) {
+                document.getElementById('root').innerHTML =
+                    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Cairo;flex-direction:column;padding:20px;text-align:center">' +
+                    '<div style="font-size:48px;margin-bottom:16px">⚠️</div>' +
+                    '<div style="font-size:18px;font-weight:700;color:#c62828;margin-bottom:8px">فشل تحميل المكتبات الأساسية</div>' +
+                    '<div style="font-size:13px;color:#999085;margin-bottom:20px;max-width:400px">تأكد من اتصالك بالإنترنت ثم أعد تحميل الصفحة</div>' +
+                    '<button onclick="location.reload()" style="padding:12px 24px;border-radius:8px;border:none;background:#1a1a1a;color:white;font-family:Cairo;font-size:14px;font-weight:700;cursor:pointer">🔄 إعادة تحميل</button>' +
+                    '</div>';
+                return;
+            }
 
             const React = window.React;
             const ReactDOM = window.ReactDOM;
