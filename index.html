@@ -245,7 +245,7 @@
 
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
 
     <script>
         (function() {
@@ -730,7 +730,15 @@
                     if (!scanning) return;
                     var el = document.getElementById("qr-scanner-reader");
                     if (!el) { setError("عنصر المسح غير موجود"); setScanning(false); return; }
-                    if (typeof Html5Qrcode === "undefined") { setError("مكتبة المسح غير متاحة"); setScanning(false); return; }
+                    if (typeof Html5Qrcode === "undefined") {
+                        // Try loading from fallback CDN
+                        var s = document.createElement("script");
+                        s.src = "https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/dist/html5-qrcode.min.js";
+                        s.onload = function() { setError(""); setScanning(true); };
+                        s.onerror = function() { setError("فشل تحميل مكتبة المسح. استخدم البحث اليدوي بالأسفل"); setScanning(false); };
+                        document.head.appendChild(s);
+                        return;
+                    }
                     try {
                         var scanner = new Html5Qrcode("qr-scanner-reader");
                         html5QrRef.current = scanner;
@@ -743,7 +751,7 @@
                                 else { setError("رمز QR غير صالح لهذا النظام"); }
                             },
                             function(err) {}
-                        ).catch(function(err) { setError("تعذر الوصول إلى الكاميرا. استخدم HTTPS"); setScanning(false); });
+                        ).catch(function(err) { setError("تعذر الوصول إلى الكاميرا. تأكد من السماح بالكاميرا في إعدادات المتصفح"); setScanning(false); });
                     } catch(e) { setError("خطأ: " + e.message); setScanning(false); }
                     return function() { stopScan(); };
                 }, [scanning]);
@@ -859,32 +867,45 @@
                 var _b = useState([]), orders = _b[0], setOrders = _b[1];
                 var _c = useState([]), couriers = _c[0], setCouriers = _c[1];
                 var _d = useState(true), loading = _d[0], setLoading = _d[1];
+                var ready = useRef(false);
                 var lastOrdersStr = useRef("");
                 var lastCouriersStr = useRef("");
 
                 function objToArr(obj) { return obj ? Object.keys(obj).map(function(k){return obj[k];}) : []; }
                 function arrToObj(arr) { var o={}; arr.forEach(function(v){o[v.id]=v;}); return o; }
 
-                // Load initial data + seed if empty
+                // Load initial data + seed if empty (BOTH orders AND couriers before ready)
                 useEffect(function() {
+                    var loaded = 0;
+                    function checkDone() { loaded++; if (loaded === 2) { ready.current = true; setLoading(false); } }
+
                     fbGet("flashgo/orders").then(function(val) {
                         if (val && Object.keys(val).length > 0) {
-                            setOrders(objToArr(val));
+                            var arr = objToArr(val);
+                            lastOrdersStr.current = JSON.stringify(val);
+                            setOrders(arr);
                         } else {
                             var seed = arrToObj(INITIAL_ORDERS);
                             fbPut("flashgo/orders", seed);
+                            lastOrdersStr.current = JSON.stringify(seed);
                             setOrders(INITIAL_ORDERS);
                         }
+                        checkDone();
                     });
+
                     fbGet("flashgo/couriers").then(function(val) {
                         if (val && Object.keys(val).length > 0) {
-                            setCouriers(objToArr(val));
+                            var arr = objToArr(val);
+                            lastCouriersStr.current = JSON.stringify(val);
+                            setCouriers(arr);
                         } else {
                             var seed = arrToObj(MOCK_COURIERS);
                             fbPut("flashgo/couriers", seed);
+                            lastCouriersStr.current = JSON.stringify(seed);
                             setCouriers(MOCK_COURIERS);
                         }
-                    }).then(function() { setLoading(false); });
+                        checkDone();
+                    });
                 }, []);
 
                 // Poll for remote changes every 2 seconds
@@ -912,7 +933,7 @@
 
                 // Save orders to Firebase when they change locally
                 useEffect(function() {
-                    if (loading) return;
+                    if (!ready.current) return;
                     var obj = arrToObj(orders);
                     var s = JSON.stringify(obj);
                     if (s === lastOrdersStr.current) return;
@@ -922,7 +943,7 @@
 
                 // Save couriers to Firebase when they change locally
                 useEffect(function() {
-                    if (loading) return;
+                    if (!ready.current) return;
                     var obj = arrToObj(couriers);
                     var s = JSON.stringify(obj);
                     if (s === lastCouriersStr.current) return;
