@@ -13,9 +13,11 @@ self.addEventListener('activate', function(event) {
 self.addEventListener('fetch', function(event) {
   var url = new URL(event.request.url);
   if (url.origin !== location.origin) return;
+  // Don't intercept HTML navigations to avoid serving wrong pages
+  if (event.request.mode === 'navigate') return;
   event.respondWith(
     fetch(event.request).catch(function() {
-      return caches.match(event.request).then(function(c) { return c || caches.match('/index.html'); });
+      return caches.match(event.request);
     })
   );
 });

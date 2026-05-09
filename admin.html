@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Flash Go — نظام إدارة التوصيل</title>
     <script>
-        // Force fresh load - unregister ALL service workers and reload
+        // Unregister all service workers (no reload to avoid infinite loops)
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
-                if (regs.length > 0) {
-                    regs.forEach(function(r) { r.unregister(); });
-                    window.location.reload(true);
-                }
-            });
+                return Promise.all(regs.map(function(r) { return r.unregister(); }));
+            }).catch(function(){});
         }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
