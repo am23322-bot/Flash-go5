@@ -266,7 +266,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
@@ -865,7 +865,7 @@
                     if (typeof Html5Qrcode === "undefined") {
                         // Try loading from fallback CDN
                         var s = document.createElement("script");
-                        s.src = "https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/dist/html5-qrcode.min.js";
+                        s.src = "https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js";
                         s.onload = function() { setError(""); setScanning(true); };
                         s.onerror = function() { setError("فشل تحميل مكتبة المسح. استخدم البحث اليدوي بالأسفل"); setScanning(false); };
                         document.head.appendChild(s);
