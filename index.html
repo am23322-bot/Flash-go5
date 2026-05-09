@@ -871,62 +871,60 @@
                 var _c = useState([]), couriers = _c[0], setCouriers = _c[1];
                 var _d = useState(true), loading = _d[0], setLoading = _d[1];
                 var _e = useState(""), fbError = _e[0], setFbError = _e[1];
-                var lastOrdersStr = useRef("");
-                var lastCouriersStr = useRef("");
+                var pollOrders = useRef(""); // last known Firebase snapshot (for polling)
+                var pollCouriers = useRef("");
 
                 function objToArr(obj) { return obj ? Object.keys(obj).map(function(k){return obj[k];}) : []; }
                 function arrToObj(arr) { var o={}; arr.forEach(function(v){o[v.id]=v;}); return o; }
 
-                // Load initial data
+                // Load initial data + seed
                 useEffect(function() {
                     var loaded = 0;
                     function done() { loaded++; if (loaded === 2) setLoading(false); }
 
                     fbGet("flashgo/orders").then(function(val) {
                         if (val && Object.keys(val).length > 0) {
-                            var arr = objToArr(val);
-                            lastOrdersStr.current = JSON.stringify(val);
-                            setOrders(arr);
+                            pollOrders.current = JSON.stringify(val);
+                            setOrders(objToArr(val));
                         } else {
                             var seed = arrToObj(INITIAL_ORDERS);
                             fbPut("flashgo/orders", seed);
-                            lastOrdersStr.current = JSON.stringify(seed);
+                            pollOrders.current = JSON.stringify(seed);
                             setOrders(INITIAL_ORDERS);
                         }
                         done();
-                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); setLoading(false); });
+                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); });
 
                     fbGet("flashgo/couriers").then(function(val) {
                         if (val && Object.keys(val).length > 0) {
-                            var arr = objToArr(val);
-                            lastCouriersStr.current = JSON.stringify(val);
-                            setCouriers(arr);
+                            pollCouriers.current = JSON.stringify(val);
+                            setCouriers(objToArr(val));
                         } else {
                             var seed = arrToObj(MOCK_COURIERS);
                             fbPut("flashgo/couriers", seed);
-                            lastCouriersStr.current = JSON.stringify(seed);
+                            pollCouriers.current = JSON.stringify(seed);
                             setCouriers(MOCK_COURIERS);
                         }
                         done();
-                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); setLoading(false); });
+                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); });
                 }, []);
 
-                // Poll for remote changes every 2 seconds
+                // Poll for remote changes
                 useEffect(function() {
                     var timer = setInterval(function() {
                         fbGet("flashgo/orders").then(function(val) {
                             if (!val) return;
                             var s = JSON.stringify(val);
-                            if (s !== lastOrdersStr.current) {
-                                lastOrdersStr.current = s;
+                            if (s !== pollOrders.current) {
+                                pollOrders.current = s;
                                 setOrders(objToArr(val));
                             }
                         }).catch(function(){});
                         fbGet("flashgo/couriers").then(function(val) {
                             if (!val) return;
                             var s = JSON.stringify(val);
-                            if (s !== lastCouriersStr.current) {
-                                lastCouriersStr.current = s;
+                            if (s !== pollCouriers.current) {
+                                pollCouriers.current = s;
                                 setCouriers(objToArr(val));
                             }
                         }).catch(function(){});
@@ -934,24 +932,16 @@
                     return function() { clearInterval(timer); };
                 }, []);
 
-                // Save orders to Firebase when they change locally
+                // Save orders to Firebase (always write on change)
                 useEffect(function() {
                     if (loading) return;
-                    var obj = arrToObj(orders);
-                    var s = JSON.stringify(obj);
-                    if (s === lastOrdersStr.current) return;
-                    lastOrdersStr.current = s;
-                    fbPut("flashgo/orders", obj).catch(function(){});
+                    fbPut("flashgo/orders", arrToObj(orders)).catch(function(){});
                 }, [orders]);
 
-                // Save couriers to Firebase when they change locally
+                // Save couriers to Firebase (always write on change)
                 useEffect(function() {
                     if (loading) return;
-                    var obj = arrToObj(couriers);
-                    var s = JSON.stringify(obj);
-                    if (s === lastCouriersStr.current) return;
-                    lastCouriersStr.current = s;
-                    fbPut("flashgo/couriers", obj).catch(function(){});
+                    fbPut("flashgo/couriers", arrToObj(couriers)).catch(function(){});
                 }, [couriers]);
 
                 if (loading) return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)'}},'⏳ جاري التحميل...');
