@@ -875,7 +875,7 @@
                 var pollCouriers = useRef("");
 
                 function objToArr(obj) { return obj ? Object.keys(obj).map(function(k){return obj[k];}) : []; }
-                function arrToObj(arr) { var o={}; arr.forEach(function(v){o[v.id]=v;}); return o; }
+                function arrToObj(arr, prefix) { var o={}; arr.forEach(function(v){o[(prefix||'')+v.id]=v;}); return o; }
 
                 // Load initial data + seed
                 useEffect(function() {
@@ -900,7 +900,7 @@
                             pollCouriers.current = JSON.stringify(val);
                             setCouriers(objToArr(val));
                         } else {
-                            var seed = arrToObj(MOCK_COURIERS);
+                            var seed = arrToObj(MOCK_COURIERS, 'c');
                             fbPut("flashgo/couriers", seed);
                             pollCouriers.current = JSON.stringify(seed);
                             setCouriers(MOCK_COURIERS);
@@ -941,7 +941,7 @@
                 // Save couriers to Firebase (always write on change)
                 useEffect(function() {
                     if (loading) return;
-                    fbPut("flashgo/couriers", arrToObj(couriers)).catch(function(){});
+                    fbPut("flashgo/couriers", arrToObj(couriers, 'c')).catch(function(){});
                 }, [couriers]);
 
                 if (loading) return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)'}},'⏳ جاري التحميل...');
