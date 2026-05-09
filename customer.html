@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flash Go — تتبع الشحنة</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--orange:#e8890c;--green:#2e7d32;--red:#c62828;--blue:#1565c0;--bg:#f5f0eb;--card:#fff;--border:#e8e0d8;--text:#1a1a1a;--muted:#999085;--radius:12px;}
+        body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);direction:rtl;min-height:100vh}
+        .container{max-width:520px;margin:0 auto;padding:16px;}
+        .header{text-align:center;padding:24px 0 16px}
+        .logo{font-family:'Outfit',sans-serif;font-size:32px;font-weight:900;letter-spacing:2px;text-transform:uppercase}
+        .logo span{color:var(--orange)}
+        .sub{font-size:12px;color:var(--muted);margin-top:4px}
+        .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px}
+        .card-title{font-size:15px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+        .status-row{display:flex;align-items:center;gap:12px;padding:10px 0}
+        .status-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+        .status-dot.pending{background:var(--orange)}
+        .status-dot.assigned{background:var(--blue)}
+        .status-dot.delivered{background:var(--green)}
+        .status-dot.returned{background:var(--red)}
+        .status-text{font-size:14px;font-weight:600}
+        .status-time{font-size:11px;color:var(--muted)}
+        .info-row{display:flex;padding:6px 0;font-size:13px;border-bottom:1px solid rgba(0,0,0,0.04)}
+        .info-label{color:var(--muted);min-width:80px;font-weight:600}
+        .info-value{flex:1;font-weight:500}
+        .badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700}
+        .badge-pending{background:rgba(232,137,12,0.1);color:var(--orange)}
+        .badge-assigned{background:rgba(21,101,192,0.1);color:var(--blue)}
+        .badge-delivered{background:rgba(46,125,50,0.1);color:var(--green)}
+        .badge-returned{background:rgba(198,40,40,0.1);color:var(--red)}
+        .map-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-top:12px}
+        #map{height:300px;width:100%}
+        .loading{text-align:center;padding:60px 20px;color:var(--muted);font-size:16px}
+        .error{text-align:center;padding:60px 20px;color:var(--red);font-size:16px;font-weight:700}
+        .refresh-note{font-size:11px;color:var(--muted);text-align:center;padding:8px}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:8px;border:none;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;transition:0.2s}
+        .btn-primary{background:var(--text);color:#fff}
+        .btn-primary:hover{background:#333}
+        .btn-block{width:100%;justify-content:center}
+        .actions{display:flex;gap:8px;margin-top:12px}
+        .actions .btn{flex:1;justify-content:center}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">FLASH <span>GO</span></div>
+            <div class="sub">تتبع الشحنة · Flash-Go5</div>
+        </div>
+        <div id="root"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        (function() {
+            'use strict';
+            var FB_URL = "https://flash-go-b7d17-default-rtdb.europe-west1.firebasedatabase.app";
+            function fbGet(path) { return fetch(FB_URL + "/" + path + ".json").then(function(r){return r.json();}); }
+
+            var statusLabel = {pending:"قيد الانتظار",assigned:"تم التعيين",delivered:"تم التسليم",returned:"مرتجع"};
+            var statusClass = {pending:"badge-pending",assigned:"badge-assigned",delivered:"badge-delivered",returned:"badge-returned"};
+            var statusDot = {pending:"pending",assigned:"assigned",delivered:"delivered",returned:"returned"};
+            var statusIcon = {pending:"⏳",assigned:"🏍️",delivered:"✅",returned:"↩️"};
+
+            var orderId = new URLSearchParams(window.location.search).get('order');
+            var root = document.getElementById('root');
+
+            function renderOrder(order, tracking, couriers) {
+                var courier = order.courierId ? (couriers||[]).find(function(c){return c.id===order.courierId;}) : null;
+                var track = order.courierId && tracking ? tracking['c' + order.courierId] : null;
+
+                // Steps for status timeline
+                var steps = [
+                    {status:"pending",label:"قيد الانتظار",done:true},
+                    {status:"assigned",label:"تم التعيين لمندوب",done:order.status!=="pending"},
+                    {status:"delivered",label:"تم التسليم",done:order.status==="delivered"}
+                ];
+                if (order.status==="returned") {
+                    steps = steps.slice(0,2);
+                    steps.push({status:"returned",label:"مرتجع",done:true});
+                }
+
+                var html = '<div class="card">' +
+                    '<div class="card-title">📦 ' + order.id + '</div>' +
+                    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">' +
+                        '<span class="badge ' + statusClass[order.status] + '">' + statusIcon[order.status] + ' ' + statusLabel[order.status] + '</span>' +
+                        '<span style="font-size:12px;color:var(--muted)">📅 ' + (order.date||'') + '</span>' +
+                        '<span style="font-size:12px;color:var(--muted)">📍 ' + (order.area||'') + '</span>' +
+                    '</div>' +
+                    '<div style="margin:16px 0">' +
+                        steps.map(function(s,i){
+                            var isLast = i === steps.length - 1;
+                            var isActive = s.status === order.status;
+                            return '<div style="display:flex;align-items:flex-start;gap:12px;' + (isLast?'':'margin-bottom:8px') + '">' +
+                                '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">' +
+                                    '<div style="width:16px;height:16px;border-radius:50%;background:' + (s.done?'#1a1a1a':'var(--border)') + ';display:flex;align-items:center;justify-content:center">' +
+                                        (s.done?'<span style="color:white;font-size:10px">✓</span>':'') +
+                                    '</div>' +
+                                    (!isLast ? '<div style="width:2px;flex:1;min-height:20px;background:' + (s.done?'#1a1a1a':'var(--border)') + '"></div>' : '') +
+                                '</div>' +
+                                '<div style="flex:1;padding-bottom:' + (isLast?'0':'8px') + '">' +
+                                    '<div style="font-weight:' + (isActive?'800':'500') + ';font-size:13px;color:' + (isActive?'var(--text)':'var(--muted)') + '">' + s.label + '</div>' +
+                                '</div>' +
+                            '</div>';
+                        }).join('') +
+                    '</div>';
+
+                // Customer info
+                html += '<div class="info-row"><span class="info-label">👤 العميل</span><span class="info-value">' + (order.customer||'') + '</span></div>' +
+                    '<div class="info-row"><span class="info-label">📞 التليفون</span><span class="info-value">' + (order.phone||'') + '</span></div>' +
+                    '<div class="info-row"><span class="info-label">📍 العنوان</span><span class="info-value">' + (order.address||'') + '</span></div>' +
+                    '<div class="info-row"><span class="info-label">📦 الشحنة</span><span class="info-value">' + (order.description||'—') + '</span></div>' +
+                    '<div class="info-row"><span class="info-label">💰 القيمة</span><span class="info-value" style="font-weight:700;color:var(--green)">' + (order.amount?order.amount.toLocaleString()+' ج':'—') + '</span></div>';
+
+                if (order.notes) {
+                    html += '<div style="font-size:12px;color:var(--orange);background:rgba(232,137,12,0.08);padding:8px 12px;border-radius:6px;margin-top:8px;font-weight:600">📝 ' + order.notes + '</div>';
+                }
+
+                html += '</div>';
+
+                // Courier info
+                if (courier) {
+                    html += '<div class="card">' +
+                        '<div class="card-title">🏍️ المندوب</div>' +
+                        '<div class="info-row"><span class="info-label">الاسم</span><span class="info-value" style="font-weight:700">' + courier.name + '</span></div>' +
+                        '<div class="info-row"><span class="info-label">📞 التليفون</span><span class="info-value">' + courier.phone + '</span></div>' +
+                        '<div class="actions">' +
+                            '<a class="btn btn-primary btn-block" href="tel:' + courier.phone + '">📞 اتصال بالمندوب</a>' +
+                        '</div>';
+
+                    // Tracking map
+                    if (track && track.lat && track.lng) {
+                        html += '<div class="map-wrap" id="map-wrap"><div id="map"></div></div>' +
+                            '<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px">🕐 آخر تحديث: ' + (track.updatedAt?new Date(track.updatedAt).toLocaleTimeString('ar-EG'):'') + '</div>';
+                    } else if (order.status==="assigned") {
+                        html += '<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px">⏳ في انتظار تحديث موقع المندوب...</div>';
+                    }
+                    html += '</div>';
+                } else if (order.status==="pending") {
+                    html += '<div class="card" style="text-align:center;color:var(--muted);font-size:14px">⏳ في انتظار تعيين مندوب...</div>';
+                }
+
+                // Actions
+                if (order.lat && order.lng) {
+                    html += '<div class="actions">' +
+                        '<a class="btn btn-primary btn-block" href="https://www.google.com/maps?q=' + order.lat + ',' + order.lng + '" target="_blank">📍 فتح في جوجل مابس</a>' +
+                    '</div>';
+                }
+
+                root.innerHTML = html;
+
+                // Init map if needed
+                if (track && track.lat && track.lng && document.getElementById('map')) {
+                    if (window.L) {
+                        var map = L.map('map', {center:[track.lat, track.lng], zoom:15, zoomControl:true});
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap', maxZoom:19}).addTo(map);
+                        L.marker([track.lat, track.lng]).addTo(map)
+                            .bindPopup('<div style="font-family:Cairo;font-size:13px;direction:rtl;text-align:right"><strong>' + courier.name + '</strong><br/>📍 موقع المندوب</div>')
+                            .openPopup();
+                        // If order has destination, show that too
+                        if (order.lat && order.lng) {
+                            L.marker([order.lat, order.lng], {icon:L.divIcon({className:'',html:'<div style="color:var(--orange);font-size:24px">📍</div>',iconSize:[0,0],iconAnchor:[0,0]})}).addTo(map)
+                                .bindPopup('<div style="font-family:Cairo;font-size:13px;direction:rtl;text-align:right">📍 وجهة التوصيل</div>');
+                            // Fit bounds
+                            var bounds = L.latLngBounds([[track.lat, track.lng], [order.lat, order.lng]]);
+                            map.fitBounds(bounds, {padding: [50, 50]});
+                        }
+                    }
+                }
+
+                html += '<div class="refresh-note">🔄 التحديث التلقائي كل 3 ثوانٍ</div>';
+            }
+
+            function showLoading() {
+                root.innerHTML = '<div class="loading">⏳ جاري البحث عن الشحنة...</div>';
+            }
+
+            function showError(msg) {
+                root.innerHTML = '<div class="error">❌ ' + msg + '</div>';
+            }
+
+            function fetchAndRender() {
+                if (!orderId) {
+                    showError('لم يتم تحديد رقم الشحنة. استخدم ?order=FG-XXXX');
+                    return;
+                }
+                Promise.all([
+                    fbGet("flashgo/orders"),
+                    fbGet("flashgo/tracking"),
+                    fbGet("flashgo/couriers")
+                ]).then(function(results) {
+                    var orders = results[0] ? Object.keys(results[0]).map(function(k){return results[0][k];}) : [];
+                    var tracking = results[1] || {};
+                    var couriers = results[2] ? Object.keys(results[2]).map(function(k){return results[2][k];}) : [];
+                    var order = orders.find(function(o){return o.id===orderId || o.id.indexOf(orderId)!==-1;});
+                    if (!order) {
+                        showError('لم يتم العثور على الشحنة ' + orderId + '. تأكد من الرابط.');
+                        return;
+                    }
+                    renderOrder(order, tracking, couriers);
+                }).catch(function() {
+                    showError('فشل الاتصال بقاعدة البيانات. حاول مرة أخرى.');
+                });
+            }
+
+            showLoading();
+            fetchAndRender();
+            setInterval(fetchAndRender, 3000);
+        })();
+    </script>
+</body>
+</html>

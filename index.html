@@ -17,6 +17,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a1a1a">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -257,6 +258,7 @@
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
         (function() {
@@ -692,11 +694,49 @@
                 );
             }
 
+            function MapView(props) {
+                var orders = props.orders, couriers = props.couriers, tracking = props.tracking;
+                var mapInstance = useRef(null);
+                var markers = useRef({});
+                useEffect(function() {
+                    if (mapInstance.current) return;
+                    if (!window.L) return;
+                    var m = L.map('live-map', {center:[30.044,31.235], zoom:12, zoomControl:true});
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap', maxZoom:19}).addTo(m);
+                    mapInstance.current = m;
+                    return function() { m.remove(); };
+                }, []);
+                useEffect(function() {
+                    if (!mapInstance.current || !window.L) return;
+                    var m = mapInstance.current;
+                    Object.keys(markers.current).forEach(function(k) { m.removeLayer(markers.current[k]); });
+                    markers.current = {};
+                    couriers.forEach(function(c) {
+                        var t = tracking && tracking['c' + c.id];
+                        if (t && t.lat && t.lng) {
+                            var activeOrders = orders.filter(function(o){return o.courierId===c.id && o.status==="assigned";}).length;
+                            var icon = L.divIcon({
+                                className:'',
+                                html:'<div style="background:#1a1a1a;color:white;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🏍️ ' + c.name + ' (' + activeOrders + ')</div>',
+                                iconSize:[0,0], iconAnchor:[0,0]
+                            });
+                            var marker = L.marker([t.lat, t.lng], {icon:icon}).addTo(m);
+                            marker.bindPopup('<div style="font-family:Cairo;direction:rtl;text-align:right;font-size:13px;"><strong>' + c.name + '</strong><br/>📞 ' + c.phone + '<br/>📍 ' + c.area + '<br/>🕐 ' + (t.updatedAt?new Date(t.updatedAt).toLocaleTimeString('ar-EG'):'') + '<br/>📦 أوردرات: ' + activeOrders + ' نشطة</div>');
+                            markers.current['c' + c.id] = marker;
+                        }
+                    });
+                }, [couriers, tracking, orders]);
+                return h('div',{style:{borderRadius:'var(--radius-lg)',overflow:'hidden',border:'1px solid var(--border)'}},
+                    h('div',{id:'live-map',style:{height:'500px',width:'100%'}}),
+                    h('div',{style:{fontSize:11,color:'var(--text-muted)',padding:'6px 12px',textAlign:'center',background:'var(--bg-card)'}},'🏍️ مواقع المناديب الحية · التحديث كل 5 ثوانٍ')
+                );
+            }
+
             function AdminPanel(props) {
-                var user = props.user, orders = props.orders, setOrders = props.setOrders, couriers = props.couriers, setCouriers = props.setCouriers, onLogout = props.onLogout;
+                var user = props.user, orders = props.orders, setOrders = props.setOrders, couriers = props.couriers, setCouriers = props.setCouriers, tracking = props.tracking, onLogout = props.onLogout;
                 var _a = useState("dashboard"), tab = _a[0], setTab = _a[1];
                 var _b = useState(""), syncMsg = _b[0], setSyncMsg = _b[1];
-                var tabs=[{id:"dashboard",label:"📊 الرئيسية"},{id:"orders",label:"📦 الأوردرات"},{id:"couriers",label:"🏍️ المناديب"}];
+                var tabs=[{id:"dashboard",label:"📊 الرئيسية"},{id:"orders",label:"📦 الأوردرات"},{id:"couriers",label:"🏍️ المناديب"},{id:"map",label:"🗺️ الخريطة"}];
                 function forceSync() {
                     setSyncMsg("جاري المزامنة...");
                     var o = {}; orders.forEach(function(v){o[v.id]=v;});
@@ -722,7 +762,8 @@
                     h('div',{className:'main'},
                         tab==="dashboard"&&h(DashboardTab,{orders:orders,couriers:couriers}),
                         tab==="orders"&&h(OrdersTab,{orders:orders,couriers:couriers,setOrders:setOrders}),
-                        tab==="couriers"&&h(CouriersTab,{couriers:couriers,setCouriers:setCouriers,orders:orders})
+                        tab==="couriers"&&h(CouriersTab,{couriers:couriers,setCouriers:setCouriers,orders:orders}),
+                        tab==="map"&&h(MapView,{orders:orders,couriers:couriers,tracking:tracking})
                     )
                 );
             }
@@ -830,12 +871,24 @@
                 var user = props.user, orders = props.orders, setOrders = props.setOrders, onLogout = props.onLogout;
                 var _a = useState("active"), screen = _a[0], setScreen = _a[1];
                 var _b = useState(null), returnOrder = _b[0], setReturnOrder = _b[1];
+                var _c = useState(false), gpsActive = _c[0], setGpsActive = _c[1];
                 var courier = MOCK_COURIERS.find(function(c){return c.id===user.courierId;});
                 var myOrders=orders.filter(function(o){return o.courierId===user.courierId;});
                 var activeOrders=myOrders.filter(function(o){return o.status==="assigned";});
                 var doneOrders=myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";});
                 function markDelivered(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="delivered";return c;});}); }
                 function markReturn(id,reason) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="returned";c.returnReason=reason;return c;});}); }
+                // GPS tracking
+                useEffect(function() {
+                    if (!user || !user.courierId) return;
+                    if (!navigator.geolocation) return;
+                    var watch = navigator.geolocation.watchPosition(function(pos) {
+                        setGpsActive(true);
+                        var data = {lat:pos.coords.latitude, lng:pos.coords.longitude, updatedAt:new Date().toISOString(), courierId:user.courierId};
+                        fetch(FB_URL + "/flashgo/tracking/c" + user.courierId + ".json", {method:"PUT",body:JSON.stringify(data),headers:{"Content-Type":"application/json"}}).catch(function(){});
+                    }, function() { setGpsActive(false); }, {enableHighAccuracy:true, timeout:5000, maximumAge:10000});
+                    return function() { navigator.geolocation.clearWatch(watch); };
+                }, [user]);
                 var totalToCollect=activeOrders.reduce(function(s,o){return s+o.amount;},0);
                 var totalCollected=myOrders.filter(function(o){return o.status==="delivered";}).reduce(function(s,o){return s+o.amount;},0);
                 var displayOrders=screen==="active"?activeOrders:doneOrders;
@@ -846,6 +899,7 @@
                         h('div',{className:'courier-logo'},'FLASH ',h('span',null,'GO')),
                         h('div',{style:{display:'flex',alignItems:'center',gap:10}},
                             h('div',{style:{textAlign:'left'}},h('div',{style:{fontSize:13,fontWeight:700}},user.name),h('div',{style:{fontSize:11,color:'var(--text-muted)'}},'🏍️ ',(courier&&courier.area)||'')),
+                            h('span',{style:{fontSize:10,fontWeight:600,color:gpsActive?'var(--green)':'var(--red)'}},gpsActive?'📍 GPS':'📍 لا GPS'),
                             h('button',{className:'btn btn-ghost btn-sm',onClick:onLogout},'🚪 خروج')
                         )
                     ),
@@ -895,6 +949,7 @@
                 var _c = useState([]), couriers = _c[0], setCouriers = _c[1];
                 var _d = useState(true), loading = _d[0], setLoading = _d[1];
                 var _e = useState(""), fbError = _e[0], setFbError = _e[1];
+                var _f = useState({}), tracking = _f[0], setTracking = _f[1];
                 var pollOrders = useRef(""); // last known Firebase snapshot (for polling)
                 var pollCouriers = useRef("");
 
@@ -956,6 +1011,17 @@
                     return function() { clearInterval(timer); };
                 }, []);
 
+                // Poll for tracking data
+                useEffect(function() {
+                    var timer = setInterval(function() {
+                        fbGet("flashgo/tracking").then(function(val) {
+                            if (!val) return;
+                            setTracking(val);
+                        }).catch(function(){});
+                    }, 5000);
+                    return function() { clearInterval(timer); };
+                }, []);
+
                 // Save orders to Firebase (always write on change)
                 useEffect(function() {
                     if (loading) return;
@@ -977,7 +1043,7 @@
                 );
                 if(!user)return h(LoginScreen,{onLogin:setUser,mode:urlMode});
                 if(user.role==="courier")return h(CourierApp,{user:user,orders:orders,setOrders:setOrders,onLogout:function(){setUser(null);}});
-                return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,onLogout:function(){setUser(null);}});
+                return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,tracking:tracking,onLogout:function(){setUser(null);}});
             }
 
             if ('serviceWorker' in navigator) {
