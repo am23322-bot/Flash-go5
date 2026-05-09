@@ -281,23 +281,14 @@
                 "تأجيل التسليم","أخرى",
             ];
             const AREAS = ["المعادي","مدينة نصر","الزيتون","شبرا","الهرم","الدقي","العباسية","التجمع"];
+            const DELIVERY_WINDOWS = ["بدون موعد","9-12 صباحاً","12-3 مساءً","3-6 مساءً","6-9 مساءً"];
 
             function cloneOrder(o) {
                 return {
-                    id: o.id,
-                    customer: o.customer,
-                    phone: o.phone,
-                    address: o.address,
-                    area: o.area,
-                    description: o.description,
-                    amount: o.amount,
-                    courierId: o.courierId,
-                    status: o.status,
-                    date: o.date,
-                    notes: o.notes || "",
-                    returnReason: o.returnReason || "",
-                    lat: o.lat || null,
-                    lng: o.lng || null
+                    id: o.id, customer: o.customer, phone: o.phone, address: o.address, area: o.area,
+                    description: o.description, amount: o.amount, courierId: o.courierId, status: o.status,
+                    date: o.date, notes: o.notes || "", returnReason: o.returnReason || "",
+                    lat: o.lat || null, lng: o.lng || null, deliveryWindow: o.deliveryWindow || ""
                 };
             }
 
@@ -307,17 +298,17 @@
                 {id:3,name:"كريم سامي",phone:"01223456789",area:"الزيتون",active:false},
                 {id:4,name:"عمر خالد",phone:"01534567890",area:"شبرا",active:true},
             ];
-            function makeOrder(id,customer,phone,address,area,desc,amount,courierId,status,date,notes,returnReason,lat,lng) {
-                return {id: id, customer: customer, phone: phone, address: address, area: area, description: desc, amount: amount, courierId: courierId, status: status, date: date, notes: notes || "", returnReason: returnReason || "", lat: lat || null, lng: lng || null};
+            function makeOrder(id,customer,phone,address,area,desc,amount,courierId,status,date,notes,returnReason,lat,lng,deliveryWindow) {
+                return {id:id, customer:customer, phone:phone, address:address, area:area, description:desc, amount:amount, courierId:courierId, status:status, date:date, notes:notes||"", returnReason:returnReason||"", lat:lat||null, lng:lng||null, deliveryWindow:deliveryWindow||""};
             }
             var _d = new Date().toISOString().slice(0,10);
             const INITIAL_ORDERS = [
-                makeOrder("FG-1001","سارة حسن","01001111111","15 شارع النيل، المعادي","المعادي","طرد صغير - ملابس",350,1,"assigned",_d,"الاستلام بعد 5م - جرس الباب لا يعمل","",29.958,31.250),
-                makeOrder("FG-1002","محمد فريد","01002222222","22 شارع مكرم عبيد، مدينة نصر","مدينة نصر","طرد متوسط - إلكترونيات",1200,2,"delivered",_d,"","",30.056,31.324),
-                makeOrder("FG-1003","نورا إبراهيم","01003333333","8 شارع الهرم، الجيزة","الهرم","طرد صغير - كتب",180,null,"pending",_d,"توصيل للمكتب - الدور الرابع","",29.987,31.213),
-                makeOrder("FG-1004","يوسف طارق","01004444444","5 شارع ترعة الزمر، الزيتون","الزيتون","طرد كبير - أدوات منزلية",650,3,"returned",_d,"","العميل رفض الاستلام",30.106,31.305),
-                makeOrder("FG-1005","دينا رمضان","01005555555","3 شارع الجلاء، شبرا","شبرا","طرد صغير - عطور",420,4,"assigned",_d,"الاتصال قبل الوصول بـ 10 دقائق","",30.113,31.241),
-                makeOrder("FG-1006","هاني سعد","01006666666","11 شارع مصطفى النحاس، مدينة نصر","مدينة نصر","طرد متوسط - أحذية",780,null,"pending",_d,"","",30.059,31.330),
+                makeOrder("FG-1001","سارة حسن","01001111111","15 شارع النيل، المعادي","المعادي","طرد صغير - ملابس",350,1,"assigned",_d,"الاستلام بعد 5م - جرس الباب لا يعمل","",29.958,31.250,"3-6 مساءً"),
+                makeOrder("FG-1002","محمد فريد","01002222222","22 شارع مكرم عبيد، مدينة نصر","مدينة نصر","طرد متوسط - إلكترونيات",1200,2,"delivered",_d,"","",30.056,31.324,"9-12 صباحاً"),
+                makeOrder("FG-1003","نورا إبراهيم","01003333333","8 شارع الهرم، الجيزة","الهرم","طرد صغير - كتب",180,null,"pending",_d,"توصيل للمكتب - الدور الرابع","",29.987,31.213,""),
+                makeOrder("FG-1004","يوسف طارق","01004444444","5 شارع ترعة الزمر، الزيتون","الزيتون","طرد كبير - أدوات منزلية",650,3,"returned",_d,"","العميل رفض الاستلام",30.106,31.305,"12-3 مساءً"),
+                makeOrder("FG-1005","دينا رمضان","01005555555","3 شارع الجلاء، شبرا","شبرا","طرد صغير - عطور",420,4,"assigned",_d,"الاتصال قبل الوصول بـ 10 دقائق","",30.113,31.241,"6-9 مساءً"),
+                makeOrder("FG-1006","هاني سعد","01006666666","11 شارع مصطفى النحاس، مدينة نصر","مدينة نصر","طرد متوسط - أحذية",780,null,"pending",_d,"","",30.059,31.330,"9-12 صباحاً"),
             ];
 
             const statusLabel = {pending:"معلق",assigned:"تم التعيين",delivered:"تم التسليم",returned:"مرتجع"};
@@ -343,10 +334,10 @@
             function downloadCSV(orders, couriers) {
                 var cm = {};
                 couriers.forEach(function(c) { cm[c.id]=c.name; });
-                var rows = [["رقم الأوردر","العميل","التليفون","المنطقة","العنوان","الشحنة","القيمة","المندوب","الحالة","التاريخ","ملاحظات","الإحداثيات","سبب المرتجع"]];
+                var rows = [["رقم الأوردر","العميل","التليفون","المنطقة","الموعد","العنوان","الشحنة","القيمة","المندوب","الحالة","التاريخ","ملاحظات","الإحداثيات","سبب المرتجع"]];
                 orders.forEach(function(o) {
                     var loc = (o.lat&&o.lng) ? o.lat+","+o.lng : "";
-                    rows.push([o.id,o.customer,o.phone,o.area,o.address,o.description,o.amount,o.courierId?cm[o.courierId]||"":"",statusLabel[o.status],o.date,o.notes||"",loc,o.returnReason||""]);
+                    rows.push([o.id,o.customer,o.phone,o.area,o.deliveryWindow||"",o.address,o.description,o.amount,o.courierId?cm[o.courierId]||"":"",statusLabel[o.status],o.date,o.notes||"",loc,o.returnReason||""]);
                 });
                 var csv="\uFEFF"+rows.map(function(r){return r.map(function(v){return '"'+v+'"'}).join(",")}).join("\n");
                 var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
@@ -484,7 +475,7 @@
             }
 
             function AddOrderModal(props) {
-                var _a = useState({customer:"",phone:"",address:"",area:AREAS[0],description:"",amount:"",notes:"",location:""}), form = _a[0], setForm = _a[1];
+                var _a = useState({customer:"",phone:"",address:"",area:AREAS[0],description:"",amount:"",notes:"",location:"",deliveryWindow:DELIVERY_WINDOWS[0]}), form = _a[0], setForm = _a[1];
                 function set(k,v) { setForm(function(f){var o={};for(var x in f)o[x]=f[x];o[k]=v;return o;}); }
                 function handleSave() {
                     if(!form.customer||!form.phone||!form.address||!form.amount)return;
@@ -494,7 +485,8 @@
                         customer:form.customer,phone:form.phone,address:form.address,area:form.area,
                         description:form.description,amount:Number(form.amount),
                         courierId:null,status:"pending",date:new Date().toISOString().slice(0,10),
-                        notes:form.notes||"",lat:loc.lat,lng:loc.lng
+                        notes:form.notes||"",lat:loc.lat,lng:loc.lng,
+                        deliveryWindow:form.deliveryWindow
                     });
                     props.onClose();
                 }
@@ -506,6 +498,7 @@
                             return h('div',{className:'form-group',key:k},h('label',{className:'form-label'},l),h('input',{className:'form-input',type:t,value:form[k],onChange:function(e){set(k,e.target.value);}}));
                         }),
                         h('div',{className:'form-group'},h('label',{className:'form-label'},'المنطقة'),h('select',{className:'form-select',value:form.area,onChange:function(e){set("area",e.target.value);}},AREAS.map(function(a){return h('option',{key:a},a);}))),
+                        h('div',{className:'form-group'},h('label',{className:'form-label'},'⏰ موعد التوصيل'),h('select',{className:'form-select',value:form.deliveryWindow,onChange:function(e){set("deliveryWindow",e.target.value);}},DELIVERY_WINDOWS.map(function(w){return h('option',{key:w},w);}))),
                         h('div',{className:'form-group'},h('label',{className:'form-label'},'وصف الشحنة'),h('textarea',{className:'form-textarea',value:form.description,onChange:function(e){set("description",e.target.value);}})),
                         h('div',{className:'form-group'},h('label',{className:'form-label'},'📝 ملاحظات التوصيل'),h('textarea',{className:'form-textarea',value:form.notes,onChange:function(e){set("notes",e.target.value);},placeholder:'الاستلام بعد 5م، جرس الباب لا يعمل...'})),
                         h('div',{className:'form-group'},
@@ -575,9 +568,22 @@
                 var delivered=orders.filter(function(o){return o.status==="delivered";}).length;
                 var returned=orders.filter(function(o){return o.status==="returned";}).length;
                 var pending=orders.filter(function(o){return o.status==="pending"||o.status==="assigned";}).length;
+                var totalExpected=orders.reduce(function(s,o){return s+(o.status==="assigned"||o.status==="pending"?o.amount:0);},0);
+                var totalCollected=orders.reduce(function(s,o){return s+(o.status==="delivered"?o.amount:0);},0);
                 var areaStats=AREAS.map(function(a){
                     return {area:a,total:orders.filter(function(o){return o.area===a;}).length,delivered:orders.filter(function(o){return o.area===a&&o.status==="delivered";}).length};
                 }).filter(function(a){return a.total>0;});
+                var windowStats=DELIVERY_WINDOWS.map(function(w){
+                    var oo=orders.filter(function(o){return (o.deliveryWindow||"بدون موعد")===w;});
+                    return {window:w,total:oo.length,delivered:oo.filter(function(o){return o.status==="delivered";}).length};
+                }).filter(function(w){return w.total>0;});
+                var sortedCouriers=couriers.slice().sort(function(a,b){
+                    var da=orders.filter(function(o){return o.courierId===a.id&&o.status==="delivered";}).length;
+                    var db=orders.filter(function(o){return o.courierId===b.id&&o.status==="delivered";}).length;
+                    return db-da;
+                });
+                var today = new Date().toISOString().slice(0,10);
+                var todayOrders=orders.filter(function(o){return o.date===today;});
                 return h('div',null,
                     h('div',{className:'sec-title',style:{marginBottom:18}},'📊 لوحة التحكم'),
                     h('div',{className:'stats'},
@@ -586,26 +592,62 @@
                         h('div',{className:'stat-card warn'},h('div',{className:'stat-icon'},'🏍️'),h('div',{className:'stat-num',style:{color:'var(--amber)'}},pending),h('div',{className:'stat-label'},'قيد التوصيل')),
                         h('div',{className:'stat-card blue'},h('div',{className:'stat-icon'},'↩️'),h('div',{className:'stat-num',style:{color:'var(--red)'}},returned),h('div',{className:'stat-label'},'مرتجعات'))
                     ),
+                    // Revenue stats
+                    h('div',{className:'stats',style:{gridTemplateColumns:'repeat(2,1fr)'}},
+                        h('div',{className:'stat-card'},h('div',{className:'stat-icon'},'💰'),h('div',{className:'stat-num',style:{fontSize:24}},totalExpected.toLocaleString(),' ج'),h('div',{className:'stat-label'},'متوقع تحصيله')),
+                        h('div',{className:'stat-card green'},h('div',{className:'stat-icon'},'✅'),h('div',{className:'stat-num',style:{fontSize:24,color:'var(--green)'}},totalCollected.toLocaleString(),' ج'),h('div',{className:'stat-label'},'تم تحصيله')),
+                    ),
+                    // Today's stats
+                    todayOrders.length>0 && h('div',{style:{marginBottom:20}},
+                        h('div',{className:'sec-title',style:{marginBottom:10}},'📅 إحصائيات اليوم (',today,')'),
+                        h('div',{style:{display:'flex',gap:12,fontSize:13,color:'var(--text-muted)',flexWrap:'wrap'}},
+                            h('span',{style:{fontWeight:700,color:'var(--text)'}},'📦 إجمالي: ',todayOrders.length),
+                            h('span',{style:{fontWeight:700,color:'var(--green)'}},'✅ تسليم: ',todayOrders.filter(function(o){return o.status==="delivered";}).length),
+                            h('span',{style:{fontWeight:700,color:'var(--red)'}},'↩️ مرتجع: ',todayOrders.filter(function(o){return o.status==="returned";}).length),
+                            h('span',{style:{fontWeight:700,color:'var(--amber)'}},'⏳ قيد التنفيذ: ',todayOrders.filter(function(o){return o.status==="assigned"||o.status==="pending";}).length),
+                        )
+                    ),
+                    // Delivery window breakdown
+                    windowStats.length>0 && h('div',{style:{marginBottom:28}},
+                        h('div',{className:'sec-title',style:{marginBottom:14}},'⏰ توزيع مواعيد التوصيل'),
+                        h('div',{className:'table-wrap'},
+                            h('table',null,
+                                h('thead',null,h('tr',null,h('th',null,'الموعد'),h('th',null,'إجمالي'),h('th',null,'تسليم'),h('th',null,'نسبة النجاح'))),
+                                h('tbody',null,windowStats.map(function(w){return h('tr',{key:w.window},
+                                    h('td',{style:{fontWeight:700,color:'var(--blue)'}},w.window),h('td',null,w.total),
+                                    h('td',{style:{color:'var(--green)',fontWeight:700}},w.delivered),
+                                    h('td',null,h('div',{style:{display:'flex',alignItems:'center',gap:10}},h('div',{className:'progress-bar-wrap'},h('div',{className:'progress-bar-fill',style:{width:(w.total?w.delivered/w.total*100:0)+'%'}})),h('span',{className:'progress-percent'},(w.total?Math.round(w.delivered/w.total*100):0),'%')))
+                                );}))
+                            )
+                        )
+                    ),
                     h('div',{className:'sec-title',style:{marginBottom:14}},'📍 إحصائيات المناطق'),
                     h('div',{className:'table-wrap',style:{marginBottom:28}},
                         h('table',null,
-                            h('thead',null,h('tr',null,h('th',null,'المنطقة'),h('th',null,'إجمالي'),h('th',null,'تسليم'),h('th',null,'نسبة النجاح'))),
-                            h('tbody',null,areaStats.map(function(a){return h('tr',{key:a.area},
-                                h('td',{style:{fontWeight:700}},a.area),h('td',null,a.total),h('td',{style:{color:'var(--green)',fontWeight:700}},a.delivered),
-                                h('td',null,h('div',{style:{display:'flex',alignItems:'center',gap:10}},h('div',{className:'progress-bar-wrap'},h('div',{className:'progress-bar-fill',style:{width:(a.total?a.delivered/a.total*100:0) + '%'}})),h('span',{className:'progress-percent'},(a.total?Math.round(a.delivered/a.total*100):0),'%')))
-                            );}))
+                            h('thead',null,h('tr',null,h('th',null,'المنطقة'),h('th',null,'إجمالي'),h('th',null,'تسليم'),h('th',null,'القيمة المحصلة'),h('th',null,'نسبة النجاح'))),
+                            h('tbody',null,areaStats.map(function(a){
+                                var areaCollected=orders.filter(function(o){return o.area===a.area&&o.status==="delivered";}).reduce(function(s,o){return s+o.amount;},0);
+                                return h('tr',{key:a.area},
+                                    h('td',{style:{fontWeight:700}},a.area),h('td',null,a.total),h('td',{style:{color:'var(--green)',fontWeight:700}},a.delivered),
+                                    h('td',{style:{fontWeight:700,color:'var(--orange)'}},areaCollected.toLocaleString(),' ج'),
+                                    h('td',null,h('div',{style:{display:'flex',alignItems:'center',gap:10}},h('div',{className:'progress-bar-wrap'},h('div',{className:'progress-bar-fill',style:{width:(a.total?a.delivered/a.total*100:0)+'%'}})),h('span',{className:'progress-percent'},(a.total?Math.round(a.delivered/a.total*100):0),'%')))
+                                );
+                            }))
                         )
                     ),
-                    h('div',{className:'sec-title',style:{marginBottom:14}},'🏍️ أداء المناديب'),
+                    h('div',{className:'sec-title',style:{marginBottom:14}},'🏆 ترتيب المناديب'),
                     h('div',{className:'table-wrap'},
                         h('table',null,
-                            h('thead',null,h('tr',null,h('th',null,'المندوب'),h('th',null,'المنطقة'),h('th',null,'تسليم'),h('th',null,'مرتجع'),h('th',null,'الحالة'))),
-                            h('tbody',null,couriers.map(function(c){
+                            h('thead',null,h('tr',null,h('th',null,'#'),h('th',null,'المندوب'),h('th',null,'المنطقة'),h('th',null,'تسليم'),h('th',null,'مرتجع'),h('th',null,'المتحصل'),h('th',null,'الحالة'))),
+                            h('tbody',null,sortedCouriers.map(function(c,i){
                                 var mo=orders.filter(function(o){return o.courierId===c.id;});
+                                var collected=mo.filter(function(o){return o.status==="delivered";}).reduce(function(s,o){return s+o.amount;},0);
                                 return h('tr',{key:c.id},
+                                    h('td',{style:{fontWeight:700,color:'var(--muted)'}},'#'+(i+1)),
                                     h('td',{style:{fontWeight:700}},c.name),h('td',{style:{color:'var(--text-muted)',fontSize:12}},c.area),
                                     h('td',{style:{color:'var(--green)',fontWeight:700}},mo.filter(function(o){return o.status==="delivered";}).length),
                                     h('td',{style:{color:'var(--red)',fontWeight:700}},mo.filter(function(o){return o.status==="returned";}).length),
+                                    h('td',{style:{fontWeight:700,color:'var(--orange)'}},collected.toLocaleString(),' ج'),
                                     h('td',null,h('span',{className:'badge ' + (c.active?"badge-delivered":"badge-returned")},h('span',{className:'dot'}),c.active?'نشط':'متوقف'))
                                 );
                             }))
@@ -619,13 +661,15 @@
                 var _a = useState(""), search = _a[0], setSearch = _a[1];
                 var _b = useState("all"), filterStatus = _b[0], setFilterStatus = _b[1];
                 var _c = useState("all"), filterArea = _c[0], setFilterArea = _c[1];
-                var _d = useState(false), showAdd = _d[0], setShowAdd = _d[1];
-                var _e = useState(null), assignOrder = _e[0], setAssignOrder = _e[1];
-                var _f = useState(null), qrOrder = _f[0], setQrOrder = _f[1];
+                var _d = useState("all"), filterWindow = _d[0], setFilterWindow = _d[1];
+                var _e = useState(false), showAdd = _e[0], setShowAdd = _e[1];
+                var _f = useState(null), assignOrder = _f[0], setAssignOrder = _f[1];
+                var _g = useState(null), qrOrder = _g[0], setQrOrder = _g[1];
                 var cm={};couriers.forEach(function(c){cm[c.id]=c.name;});
                 var filtered=orders.filter(function(o){
                     var ms=!search||o.customer.indexOf(search)!==-1||o.id.indexOf(search)!==-1||o.phone.indexOf(search)!==-1;
-                    return ms&&(filterStatus==="all"||o.status===filterStatus)&&(filterArea==="all"||o.area===filterArea);
+                    var fw=filterWindow==="all"||(o.deliveryWindow||"")===filterWindow;
+                    return ms&&(filterStatus==="all"||o.status===filterStatus)&&(filterArea==="all"||o.area===filterArea)&&fw;
                 });
                 var addOrder=function(o){setOrders(function(p){return [o].concat(p);});};
                 var assignCourier=function(oid,cid){setOrders(function(p){return p.map(function(o){if(o.id!==oid)return o;var c=cloneOrder(o);c.courierId=cid;c.status="assigned";return c;});});};
@@ -643,16 +687,18 @@
                     h('div',{className:'filter-bar'},
                         h('input',{className:'filter-input',placeholder:'🔍 ابحث باسم العميل أو رقم الأوردر...',value:search,onChange:function(e){setSearch(e.target.value);}}),
                         h('select',{className:'filter-select',value:filterStatus,onChange:function(e){setFilterStatus(e.target.value);}},h('option',{value:'all'},'كل الحالات'),Object.entries(statusLabel).map(function(_a){var k=_a[0],v=_a[1];return h('option',{key:k,value:k},v);})),
-                        h('select',{className:'filter-select',value:filterArea,onChange:function(e){setFilterArea(e.target.value);}},h('option',{value:'all'},'كل المناطق'),AREAS.map(function(a){return h('option',{key:a},a);}))
+                        h('select',{className:'filter-select',value:filterArea,onChange:function(e){setFilterArea(e.target.value);}},h('option',{value:'all'},'كل المناطق'),AREAS.map(function(a){return h('option',{key:a},a);})),
+                        h('select',{className:'filter-select',value:filterWindow,onChange:function(e){setFilterWindow(e.target.value);}},h('option',{value:'all'},'كل المواعيد'),DELIVERY_WINDOWS.map(function(w){return h('option',{key:w},w);}))
                     ),
                     h('div',{className:'table-wrap'},
                         h('table',null,
-                            h('thead',null,h('tr',null,h('th',null,'رقم الأوردر'),h('th',null,'العميل'),h('th',null,'المنطقة'),h('th',null,'الشحنة'),h('th',null,'القيمة'),h('th',null,'ملاحظات'),h('th',null,'المندوب'),h('th',null,'الحالة'),h('th',null,'QR'),h('th',null,'إجراء'))),
-                            h('tbody',null,filtered.length===0?h('tr',null,h('td',{colSpan:10},h('div',{className:'empty'},h('div',{className:'empty-icon'},'📦'),'لا توجد أوردرات'))):
+                            h('thead',null,h('tr',null,h('th',null,'رقم الأوردر'),h('th',null,'العميل'),h('th',null,'المنطقة'),h('th',null,'الموعد'),h('th',null,'الشحنة'),h('th',null,'القيمة'),h('th',null,'ملاحظات'),h('th',null,'المندوب'),h('th',null,'الحالة'),h('th',null,'QR'),h('th',null,'إجراء'))),
+                            h('tbody',null,filtered.length===0?h('tr',null,h('td',{colSpan:11},h('div',{className:'empty'},h('div',{className:'empty-icon'},'📦'),'لا توجد أوردرات'))):
                             filtered.map(function(o){return h('tr',{key:o.id},
                                 h('td',{className:'td-id'},o.id),
                                 h('td',null,h('div',{className:'td-customer'},o.customer),h('div',{className:'td-sub'},o.phone)),
                                 h('td',{className:'td-sub'},o.area),
+                                h('td',{style:{fontSize:11,color:'var(--blue)',fontWeight:600}},o.deliveryWindow||h('span',{style:{color:'var(--text-muted)',fontWeight:400}},'—')),
                                 h('td',{style:{fontSize:12}},o.description),
                                 h('td',{className:'td-amount'},o.amount.toLocaleString(),' ج'),
                                 h('td',null,o.notes?h('span',{className:'td-note'},o.notes):h('span',{style:{color:'var(--text-muted)',fontSize:11}},'—')),
@@ -893,7 +939,7 @@
                 var totalToCollect=activeOrders.reduce(function(s,o){return s+o.amount;},0);
                 var totalCollected=myOrders.filter(function(o){return o.status==="delivered";}).reduce(function(s,o){return s+o.amount;},0);
                 var displayOrders=screen==="active"?activeOrders:doneOrders;
-                var bottomTabs = [{id:"active",label:"نشط",icon:"🏍️"},{id:"scan",label:"مسح QR",icon:"📷"},{id:"history",label:"السجل",icon:"📋"}];
+                var bottomTabs = [{id:"active",label:"نشط",icon:"🏍️"},{id:"scan",label:"مسح QR",icon:"📷"},{id:"history",label:"السجل",icon:"📋"},{id:"earnings",label:"الأرباح",icon:"💰"}];
                 return h('div',{className:'courier-app'},
                     returnOrder&&h(ReturnModal,{order:returnOrder,onClose:function(){setReturnOrder(null);},onConfirm:markReturn}),
                     h('div',{className:'courier-header'},
@@ -904,7 +950,7 @@
                             h('button',{className:'btn btn-ghost btn-sm',onClick:onLogout},'🚪 خروج')
                         )
                     ),
-                    screen!=="scan" && h('div',{className:'courier-summary-strip'},
+                    screen!=="scan" && screen!=="earnings" && h('div',{className:'courier-summary-strip'},
                         h('div',{className:'summary-item'},h('span',{className:'summary-label'},'متوقع تحصيله'),h('span',{className:'summary-value orange'},totalToCollect.toLocaleString(),' ج')),
                         h('div',{className:'summary-divider'}),
                         h('div',{className:'summary-item'},h('span',{className:'summary-label'},'تم تحصيله'),h('span',{className:'summary-value green'},totalCollected.toLocaleString(),' ج')),
@@ -915,6 +961,28 @@
                         )
                     ),
                     screen==="scan"?h(ScanQR,{orders:orders}):
+                    screen==="earnings"?h('div',{className:'courier-body'},
+                        h('div',{className:'order-card',style:{marginBottom:14}},
+                            h('div',{style:{fontSize:14,fontWeight:800,marginBottom:12}},'💰 الأرباح'),
+                            h('div',{className:'info-row'},h('span',{className:'info-label'},'تم تحصيله'),h('span',{className:'info-value',style:{fontWeight:700,color:'var(--green)',fontSize:18}},totalCollected.toLocaleString(),' ج')),
+                            h('div',{className:'info-row'},h('span',{className:'info-label'},'متوقع'),h('span',{className:'info-value',style:{fontWeight:700,color:'var(--orange)',fontSize:18}},totalToCollect.toLocaleString(),' ج')),
+                            h('div',{className:'info-row'},h('span',{className:'info-label'},'تم التسليم'),h('span',{className:'info-value',style:{fontWeight:700}},myOrders.filter(function(o){return o.status==="delivered";}).length,' طلب')),
+                            h('div',{className:'info-row'},h('span',{className:'info-label'},'مرتجع'),h('span',{className:'info-value',style:{fontWeight:700,color:'var(--red)'}},myOrders.filter(function(o){return o.status==="returned";}).length,' طلب')),
+                        ),
+                        myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";}).length===0?h('div',{className:'empty'},h('div',{className:'empty-icon'},'💰'),'لا توجد معاملات بعد'):
+                        myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";}).map(function(o){return h('div',{className:'order-card',key:o.id,style:{padding:'12px 16px'}},
+                            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                                h('div',null,
+                                    h('div',{style:{fontWeight:700,fontSize:13}},o.customer),
+                                    h('div',{style:{fontSize:11,color:'var(--muted)'}},o.id,' · ',o.date)
+                                ),
+                                h('div',{style:{textAlign:'left'}},
+                                    h('div',{style:{fontWeight:700,color:o.status==="delivered"?"var(--green)":"var(--red)",fontSize:14}},o.status==="delivered"?"+"+o.amount.toLocaleString():"0"),' ج'),
+                                    h('div',{style:{fontSize:10,color:'var(--muted)'}},o.status==="delivered"?'تم التسليم':'مرتجع')
+                                )
+                            )
+                        );})
+                    ):
                     h('div',{className:'courier-body'},
                         displayOrders.length===0?h('div',{className:'empty'},h('div',{className:'empty-icon'},screen==="active"?'🏍️':'📋'),screen==="active"?'لا توجد أوردرات نشطة':'لا يوجد سجل'):
                         displayOrders.map(function(o){return h('div',{className:'order-card',key:o.id},
@@ -923,6 +991,7 @@
                             h('div',{className:'order-address-line'},'📍 ',o.address),
                             o.lat && o.lng && h('div',{style:{fontSize:11,color:'var(--text-muted)',fontFamily:'monospace',direction:'ltr',textAlign:'left'}},'📍 ',o.lat,', ',o.lng),
                             h('div',{className:'order-desc'},'📦 ',o.description),
+                            o.deliveryWindow?h('div',{style:{fontSize:11,color:'var(--blue)',fontWeight:600,display:'flex',alignItems:'center',gap:4}},'⏰ ',o.deliveryWindow):null,
                             o.notes?h('div',{className:'order-note'},'📝 ',o.notes):null,
                             h('div',{className:'order-bottom'},
                                 h('div',null,h('div',{style:{fontSize:10,color:'var(--text-muted)',marginBottom:2}},'قيمة التحصيل'),h('div',{className:'order-amount-big'},o.amount.toLocaleString(),' ج')),
