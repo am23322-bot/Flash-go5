@@ -22,6 +22,8 @@
         .status-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
         .status-dot.pending{background:var(--orange)}
         .status-dot.assigned{background:var(--blue)}
+        .status-dot.picked{background:#9c27b0}
+        .status-dot.transit{background:#009688}
         .status-dot.delivered{background:var(--green)}
         .status-dot.returned{background:var(--red)}
         .status-text{font-size:14px;font-weight:600}
@@ -32,6 +34,8 @@
         .badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700}
         .badge-pending{background:rgba(232,137,12,0.1);color:var(--orange)}
         .badge-assigned{background:rgba(21,101,192,0.1);color:var(--blue)}
+        .badge-picked{background:rgba(156,39,176,0.1);color:#9c27b0}
+        .badge-transit{background:rgba(0,150,136,0.1);color:#009688}
         .badge-delivered{background:rgba(46,125,50,0.1);color:var(--green)}
         .badge-returned{background:rgba(198,40,40,0.1);color:var(--red)}
         .map-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-top:12px}
@@ -63,10 +67,10 @@
             var FB_URL = "https://flash-go-b7d17-default-rtdb.europe-west1.firebasedatabase.app";
             function fbGet(path) { return fetch(FB_URL + "/" + path + ".json").then(function(r){return r.json();}); }
 
-            var statusLabel = {pending:"قيد الانتظار",assigned:"تم التعيين",delivered:"تم التسليم",returned:"مرتجع"};
-            var statusClass = {pending:"badge-pending",assigned:"badge-assigned",delivered:"badge-delivered",returned:"badge-returned"};
-            var statusDot = {pending:"pending",assigned:"assigned",delivered:"delivered",returned:"returned"};
-            var statusIcon = {pending:"⏳",assigned:"🏍️",delivered:"✅",returned:"↩️"};
+            var statusLabel = {pending:"قيد الانتظار",assigned:"تم التعيين",picked_up:"تم الاستلام",in_transit:"في الطريق",delivered:"تم التسليم",returned:"مرتجع"};
+            var statusClass = {pending:"badge-pending",assigned:"badge-assigned",picked_up:"badge-picked",in_transit:"badge-transit",delivered:"badge-delivered",returned:"badge-returned"};
+            var statusDot = {pending:"pending",assigned:"assigned",picked_up:"picked",in_transit:"transit",delivered:"delivered",returned:"returned"};
+            var statusIcon = {pending:"⏳",assigned:"🏍️",picked_up:"📦",in_transit:"🚚",delivered:"✅",returned:"↩️"};
 
             var orderId = new URLSearchParams(window.location.search).get('order');
             var root = document.getElementById('root');
@@ -79,11 +83,17 @@
                 var steps = [
                     {status:"pending",label:"قيد الانتظار",done:true},
                     {status:"assigned",label:"تم التعيين لمندوب",done:order.status!=="pending"},
+                    {status:"picked_up",label:"تم استلام الطرد من المخزن",done:order.status==="picked_up"||order.status==="in_transit"||order.status==="delivered"},
+                    {status:"in_transit",label:"في الطريق للتوصيل",done:order.status==="in_transit"||order.status==="delivered"},
                     {status:"delivered",label:"تم التسليم",done:order.status==="delivered"}
                 ];
                 if (order.status==="returned") {
-                    steps = steps.slice(0,2);
-                    steps.push({status:"returned",label:"مرتجع",done:true});
+                    steps = [
+                        {status:"pending",label:"قيد الانتظار",done:true},
+                        {status:"assigned",label:"تم التعيين لمندوب",done:true},
+                        {status:"picked_up",label:"تم استلام الطرد",done:order.status==="returned"},
+                        {status:"returned",label:"مرتجع",done:true}
+                    ];
                 }
 
                 var html = '<div class="card">' +

@@ -117,6 +117,8 @@
         .badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
         .badge-pending { background: var(--amber-glow); color: var(--amber); }
         .badge-assigned { background: var(--blue-glow); color: var(--blue); }
+        .badge-picked { background: rgba(156,39,176,0.1); color: #9c27b0; }
+        .badge-transit { background: rgba(0,150,136,0.1); color: #009688; }
         .badge-delivered { background: var(--green-glow); color: var(--green); }
         .badge-returned { background: var(--red-glow); color: var(--red); }
         .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
@@ -311,8 +313,8 @@
                 makeOrder("FG-1006","هاني سعد","01006666666","11 شارع مصطفى النحاس، مدينة نصر","مدينة نصر","طرد متوسط - أحذية",780,null,"pending",_d,"","",30.059,31.330,"9-12 صباحاً"),
             ];
 
-            const statusLabel = {pending:"معلق",assigned:"تم التعيين",delivered:"تم التسليم",returned:"مرتجع"};
-            const statusClass = {pending:"badge-pending",assigned:"badge-assigned",delivered:"badge-delivered",returned:"badge-returned"};
+            const statusLabel = {pending:"معلق",assigned:"تم التعيين",picked_up:"تم الاستلام",in_transit:"في الطريق",delivered:"تم التسليم",returned:"مرتجع"};
+            const statusClass = {pending:"badge-pending",assigned:"badge-assigned",picked_up:"badge-picked",in_transit:"badge-transit",delivered:"badge-delivered",returned:"badge-returned"};
 
             const h = React.createElement;
 
@@ -567,8 +569,8 @@
                 var total=orders.length;
                 var delivered=orders.filter(function(o){return o.status==="delivered";}).length;
                 var returned=orders.filter(function(o){return o.status==="returned";}).length;
-                var pending=orders.filter(function(o){return o.status==="pending"||o.status==="assigned";}).length;
-                var totalExpected=orders.reduce(function(s,o){return s+(o.status==="assigned"||o.status==="pending"?o.amount:0);},0);
+                var pending=orders.filter(function(o){return o.status==="pending"||o.status==="assigned"||o.status==="picked_up"||o.status==="in_transit";}).length;
+                var totalExpected=orders.reduce(function(s,o){return s+(o.status==="assigned"||o.status==="pending"||o.status==="picked_up"||o.status==="in_transit"?o.amount:0);},0);
                 var totalCollected=orders.reduce(function(s,o){return s+(o.status==="delivered"?o.amount:0);},0);
                 var areaStats=AREAS.map(function(a){
                     return {area:a,total:orders.filter(function(o){return o.area===a;}).length,delivered:orders.filter(function(o){return o.area===a&&o.status==="delivered";}).length};
@@ -706,7 +708,7 @@
                                 h('td',null,h(Badge,{status:o.status})),
                                 h('td',null,h('button',{className:'btn btn-sm btn-ghost',style:{fontSize:16},onClick:function(){setQrOrder(o);}},'📱')),
                                 h('td',null,
-                                    (o.status==="pending"||o.status==="assigned")&&h('button',{className:'btn btn-outline-orange btn-sm',onClick:function(){setAssignOrder(o);}},'تعيين'),
+                                    (o.status==="pending"||o.status==="assigned"||o.status==="picked_up"||o.status==="in_transit")&&h('button',{className:'btn btn-outline-orange btn-sm',onClick:function(){setAssignOrder(o);}},'تعيين'),
                                     o.status==="returned"&&h('span',{className:'td-sub'},o.returnReason)
                                 )
                             );}))
@@ -761,7 +763,7 @@
                     couriers.forEach(function(c) {
                         var t = tracking && tracking['c' + c.id];
                         if (t && t.lat && t.lng) {
-                            var activeOrders = orders.filter(function(o){return o.courierId===c.id && o.status==="assigned";}).length;
+                            var activeOrders = orders.filter(function(o){return o.courierId===c.id && o.status!=="delivered"&&o.status!=="returned";}).length;
                             var icon = L.divIcon({
                                 className:'',
                                 html:'<div style="background:#1a1a1a;color:white;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🏍️ ' + c.name + ' (' + activeOrders + ')</div>',
@@ -921,9 +923,9 @@
                 var _c = useState(false), gpsActive = _c[0], setGpsActive = _c[1];
                 var courier = MOCK_COURIERS.find(function(c){return c.id===user.courierId;});
                 var myOrders=orders.filter(function(o){return o.courierId===user.courierId;});
-                var activeOrders=myOrders.filter(function(o){return o.status==="assigned";});
+                var activeOrders=myOrders.filter(function(o){return o.status==="assigned"||o.status==="picked_up"||o.status==="in_transit";});
                 var doneOrders=myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";});
-                function markDelivered(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="delivered";return c;});}); }
+                function advanceStatus(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);if(c.status==="assigned")c.status="picked_up";else if(c.status==="picked_up")c.status="in_transit";else if(c.status==="in_transit")c.status="delivered";return c;});}); }
                 function markReturn(id,reason) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="returned";c.returnReason=reason;return c;});}); }
                 // GPS tracking
                 useEffect(function() {
@@ -936,7 +938,7 @@
                     }, function() { setGpsActive(false); }, {enableHighAccuracy:true, timeout:5000, maximumAge:10000});
                     return function() { navigator.geolocation.clearWatch(watch); };
                 }, [user]);
-                var totalToCollect=activeOrders.reduce(function(s,o){return s+o.amount;},0);
+                var totalToCollect=myOrders.filter(function(o){return o.status!=="delivered"&&o.status!=="returned";}).reduce(function(s,o){return s+o.amount;},0);
                 var totalCollected=myOrders.filter(function(o){return o.status==="delivered";}).reduce(function(s,o){return s+o.amount;},0);
                 var displayOrders=screen==="active"?activeOrders:doneOrders;
                 var bottomTabs = [{id:"active",label:"نشط",icon:"🏍️"},{id:"scan",label:"مسح QR",icon:"📷"},{id:"history",label:"السجل",icon:"📋"},{id:"earnings",label:"الأرباح",icon:"💰"}];
@@ -955,7 +957,7 @@
                         h('div',{className:'summary-divider'}),
                         h('div',{className:'summary-item'},h('span',{className:'summary-label'},'تم تحصيله'),h('span',{className:'summary-value green'},totalCollected.toLocaleString(),' ج')),
                         h('div',{className:'summary-divider'}),
-                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'أوردرات نشطة'),h('span',{className:'summary-value blue'},activeOrders.length)),
+                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'أوردرات نشطة'),h('span',{className:'summary-value blue'},myOrders.filter(function(o){return o.status!=="delivered"&&o.status!=="returned";}).length)),
                         h('div',{className:'summary-divider'}),
                         h('div',{className:'summary-item'},h('span',{className:'summary-label'},'إجمالي الكل'),h('span',{className:'summary-value',style:{color:'var(--text-muted)',fontSize:14}},orders.length)
                         )
@@ -999,8 +1001,9 @@
                             ),
                             h('button',{className:'nav-address-btn btn-block',onClick:function(){openAddressInGPS(o.address,o.lat,o.lng);}},'📍 GPS - افتح في جوجل مابس'),
                             o.status==="returned"&&h('div',{className:'return-reason-tag'},'↩️ ',o.returnReason),
-                            o.status==="assigned"&&h('div',{className:'order-actions-row'},
-                                h('button',{className:'btn btn-success',onClick:function(){markDelivered(o.id);}},'✅ تم التسليم'),
+                            (o.status==="assigned"||o.status==="picked_up"||o.status==="in_transit")&&h('div',{className:'order-actions-row'},
+                                h('button',{className:'btn btn-success',onClick:function(){advanceStatus(o.id);}},
+                                    o.status==="assigned"?'📦 استلام الطرد':o.status==="picked_up"?'🚚 في الطريق':'✅ تم التسليم'),
                                 h('button',{className:'btn btn-danger',onClick:function(){setReturnOrder(o);}},'↩️ مرتجع')
                             )
                         );})
