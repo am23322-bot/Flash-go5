@@ -246,8 +246,6 @@
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 
     <script>
         (function() {
@@ -259,18 +257,9 @@
             const createRoot = ReactDOM.createRoot;
             const Html5Qrcode = window.Html5Qrcode;
 
-            var firebaseConfig = {
-                apiKey: "AIzaSyAhUdns0XXy4KT8TeaUif0-Wf-QpyrLEjE",
-                authDomain: "flash-go-b7d17.firebaseapp.com",
-                databaseURL: "https://flash-go-b7d17-default-rtdb.europe-west1.firebasedatabase.app",
-                projectId: "flash-go-b7d17",
-                storageBucket: "flash-go-b7d17.firebasestorage.app",
-                messagingSenderId: "497482723387",
-                appId: "1:497482723387:web:37baea0e8f23f19f242c1e",
-                measurementId: "G-ZV9VVVE3HP"
-            };
-            firebase.initializeApp(firebaseConfig);
-            var db = firebase.database();
+            var FB_URL = "https://flash-go-b7d17-default-rtdb.europe-west1.firebasedatabase.app";
+            function fbGet(path) { return fetch(FB_URL + "/" + path + ".json").then(function(r){return r.json();}); }
+            function fbPut(path, data) { return fetch(FB_URL + "/" + path + ".json", {method:"PUT",body:JSON.stringify(data),headers:{"Content-Type":"application/json"}}).then(function(r){return r.json();}); }
 
             const RETURN_REASONS = [
                 "العميل رفض الاستلام","العميل غير موجود","العنوان غير صحيح",
@@ -870,71 +859,75 @@
                 var _b = useState([]), orders = _b[0], setOrders = _b[1];
                 var _c = useState([]), couriers = _c[0], setCouriers = _c[1];
                 var _d = useState(true), loading = _d[0], setLoading = _d[1];
-                var ordersSnap = useRef("");
-                var couriersSnap = useRef("");
-                var skipOrders = useRef(false);
-                var skipCouriers = useRef(false);
+                var lastOrdersStr = useRef("");
+                var lastCouriersStr = useRef("");
 
+                function objToArr(obj) { return obj ? Object.keys(obj).map(function(k){return obj[k];}) : []; }
+                function arrToObj(arr) { var o={}; arr.forEach(function(v){o[v.id]=v;}); return o; }
+
+                // Load initial data + seed if empty
                 useEffect(function() {
-                    var ordersRef = db.ref('flashgo/orders');
-                    var couriersRef = db.ref('flashgo/couriers');
-
-                    ordersRef.on('value', function(snap) {
-                        var val = snap.val();
-                        var json = JSON.stringify(val || {});
-                        if (json === ordersSnap.current) return;
-                        ordersSnap.current = json;
-                        skipOrders.current = true;
-                        if (val) {
-                            setOrders(Object.keys(val).map(function(k) { return val[k]; }));
+                    fbGet("flashgo/orders").then(function(val) {
+                        if (val && Object.keys(val).length > 0) {
+                            setOrders(objToArr(val));
                         } else {
-                            var seed = {};
-                            INITIAL_ORDERS.forEach(function(o) { seed[o.id] = o; });
-                            ordersRef.set(seed);
+                            var seed = arrToObj(INITIAL_ORDERS);
+                            fbPut("flashgo/orders", seed);
                             setOrders(INITIAL_ORDERS);
                         }
-                        setLoading(false);
                     });
-
-                    couriersRef.on('value', function(snap) {
-                        var val = snap.val();
-                        var json = JSON.stringify(val || {});
-                        if (json === couriersSnap.current) return;
-                        couriersSnap.current = json;
-                        skipCouriers.current = true;
-                        if (val) {
-                            setCouriers(Object.keys(val).map(function(k) { return val[k]; }));
+                    fbGet("flashgo/couriers").then(function(val) {
+                        if (val && Object.keys(val).length > 0) {
+                            setCouriers(objToArr(val));
                         } else {
-                            var seed = {};
-                            MOCK_COURIERS.forEach(function(c) { seed[c.id] = c; });
-                            couriersRef.set(seed);
+                            var seed = arrToObj(MOCK_COURIERS);
+                            fbPut("flashgo/couriers", seed);
                             setCouriers(MOCK_COURIERS);
                         }
-                    });
-
-                    return function() { ordersRef.off(); couriersRef.off(); };
+                    }).then(function() { setLoading(false); });
                 }, []);
 
+                // Poll for remote changes every 2 seconds
+                useEffect(function() {
+                    var timer = setInterval(function() {
+                        fbGet("flashgo/orders").then(function(val) {
+                            if (!val) return;
+                            var s = JSON.stringify(val);
+                            if (s !== lastOrdersStr.current) {
+                                lastOrdersStr.current = s;
+                                setOrders(objToArr(val));
+                            }
+                        });
+                        fbGet("flashgo/couriers").then(function(val) {
+                            if (!val) return;
+                            var s = JSON.stringify(val);
+                            if (s !== lastCouriersStr.current) {
+                                lastCouriersStr.current = s;
+                                setCouriers(objToArr(val));
+                            }
+                        });
+                    }, 2000);
+                    return function() { clearInterval(timer); };
+                }, []);
+
+                // Save orders to Firebase when they change locally
                 useEffect(function() {
                     if (loading) return;
-                    if (skipOrders.current) { skipOrders.current = false; return; }
-                    var obj = {};
-                    orders.forEach(function(o) { obj[o.id] = o; });
-                    var json = JSON.stringify(obj);
-                    if (json === ordersSnap.current) return;
-                    ordersSnap.current = json;
-                    db.ref('flashgo/orders').set(obj);
+                    var obj = arrToObj(orders);
+                    var s = JSON.stringify(obj);
+                    if (s === lastOrdersStr.current) return;
+                    lastOrdersStr.current = s;
+                    fbPut("flashgo/orders", obj);
                 }, [orders, loading]);
 
+                // Save couriers to Firebase when they change locally
                 useEffect(function() {
                     if (loading) return;
-                    if (skipCouriers.current) { skipCouriers.current = false; return; }
-                    var obj = {};
-                    couriers.forEach(function(c) { obj[c.id] = c; });
-                    var json = JSON.stringify(obj);
-                    if (json === couriersSnap.current) return;
-                    couriersSnap.current = json;
-                    db.ref('flashgo/couriers').set(obj);
+                    var obj = arrToObj(couriers);
+                    var s = JSON.stringify(obj);
+                    if (s === lastCouriersStr.current) return;
+                    lastCouriersStr.current = s;
+                    fbPut("flashgo/couriers", obj);
                 }, [couriers, loading]);
 
                 if (loading) return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)'}},'⏳ جاري التحميل...');
