@@ -830,7 +830,10 @@
                         h('div',{className:'summary-divider'}),
                         h('div',{className:'summary-item'},h('span',{className:'summary-label'},'تم تحصيله'),h('span',{className:'summary-value green'},totalCollected.toLocaleString(),' ج')),
                         h('div',{className:'summary-divider'}),
-                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'أوردرات نشطة'),h('span',{className:'summary-value blue'},activeOrders.length))
+                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'أوردرات نشطة'),h('span',{className:'summary-value blue'},activeOrders.length)),
+                        h('div',{className:'summary-divider'}),
+                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'إجمالي الكل'),h('span',{className:'summary-value',style:{color:'var(--text-muted)',fontSize:14}},orders.length)
+                        )
                     ),
                     screen==="scan"?h(ScanQR,{orders:orders}):
                     h('div',{className:'courier-body'},
@@ -867,20 +870,17 @@
                 var _b = useState([]), orders = _b[0], setOrders = _b[1];
                 var _c = useState([]), couriers = _c[0], setCouriers = _c[1];
                 var _d = useState(true), loading = _d[0], setLoading = _d[1];
-                var ready = useRef(false);
+                var _e = useState(""), fbError = _e[0], setFbError = _e[1];
                 var lastOrdersStr = useRef("");
                 var lastCouriersStr = useRef("");
-
-                var _e = useState(""), fbError = _e[0], setFbError = _e[1];
 
                 function objToArr(obj) { return obj ? Object.keys(obj).map(function(k){return obj[k];}) : []; }
                 function arrToObj(arr) { var o={}; arr.forEach(function(v){o[v.id]=v;}); return o; }
 
-                // Load initial data + seed if empty (BOTH orders AND couriers before ready)
+                // Load initial data
                 useEffect(function() {
                     var loaded = 0;
-                    var failed = false;
-                    function checkDone() { loaded++; if (loaded === 2) { if (!failed) { ready.current = true; } setLoading(false); } }
+                    function done() { loaded++; if (loaded === 2) setLoading(false); }
 
                     fbGet("flashgo/orders").then(function(val) {
                         if (val && Object.keys(val).length > 0) {
@@ -893,8 +893,8 @@
                             lastOrdersStr.current = JSON.stringify(seed);
                             setOrders(INITIAL_ORDERS);
                         }
-                        checkDone();
-                    }).catch(function() { failed=true; setFbError("فشل الاتصال بقاعدة البيانات"); setLoading(false); });
+                        done();
+                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); setLoading(false); });
 
                     fbGet("flashgo/couriers").then(function(val) {
                         if (val && Object.keys(val).length > 0) {
@@ -907,8 +907,8 @@
                             lastCouriersStr.current = JSON.stringify(seed);
                             setCouriers(MOCK_COURIERS);
                         }
-                        checkDone();
-                    }).catch(function() { failed=true; setFbError("فشل الاتصال بقاعدة البيانات"); setLoading(false); });
+                        done();
+                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); setLoading(false); });
                 }, []);
 
                 // Poll for remote changes every 2 seconds
@@ -936,23 +936,23 @@
 
                 // Save orders to Firebase when they change locally
                 useEffect(function() {
-                    if (!ready.current) return;
+                    if (loading) return;
                     var obj = arrToObj(orders);
                     var s = JSON.stringify(obj);
                     if (s === lastOrdersStr.current) return;
                     lastOrdersStr.current = s;
                     fbPut("flashgo/orders", obj).catch(function(){});
-                }, [orders, loading]);
+                }, [orders]);
 
                 // Save couriers to Firebase when they change locally
                 useEffect(function() {
-                    if (!ready.current) return;
+                    if (loading) return;
                     var obj = arrToObj(couriers);
                     var s = JSON.stringify(obj);
                     if (s === lastCouriersStr.current) return;
                     lastCouriersStr.current = s;
                     fbPut("flashgo/couriers", obj).catch(function(){});
-                }, [couriers, loading]);
+                }, [couriers]);
 
                 if (loading) return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)'}},'⏳ جاري التحميل...');
                 if (fbError) return h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',padding:20,textAlign:'center'}},
