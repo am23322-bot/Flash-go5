@@ -246,6 +246,8 @@
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 
     <script>
         (function() {
@@ -256,6 +258,19 @@
             const { useState, useEffect, useRef } = React;
             const createRoot = ReactDOM.createRoot;
             const Html5Qrcode = window.Html5Qrcode;
+
+            var firebaseConfig = {
+                apiKey: "AIzaSyAhUdns0XXy4KT8TeaUif0-Wf-QpyrLEjE",
+                authDomain: "flash-go-b7d17.firebaseapp.com",
+                databaseURL: "https://flash-go-b7d17-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "flash-go-b7d17",
+                storageBucket: "flash-go-b7d17.firebasestorage.app",
+                messagingSenderId: "497482723387",
+                appId: "1:497482723387:web:37baea0e8f23f19f242c1e",
+                measurementId: "G-ZV9VVVE3HP"
+            };
+            firebase.initializeApp(firebaseConfig);
+            var db = firebase.database();
 
             const RETURN_REASONS = [
                 "العميل رفض الاستلام","العميل غير موجود","العنوان غير صحيح",
@@ -852,10 +867,60 @@
                 var urlParams = new URLSearchParams(window.location.search);
                 var urlMode = urlParams.get('mode') || "";
                 var _a = useState(null), user = _a[0], setUser = _a[1];
-                var _b = useState(loadData('orders', INITIAL_ORDERS)), orders = _b[0], setOrders = _b[1];
-                var _c = useState(loadData('couriers', MOCK_COURIERS)), couriers = _c[0], setCouriers = _c[1];
-                useEffect(function() { saveData('orders', orders); }, [orders]);
-                useEffect(function() { saveData('couriers', couriers); }, [couriers]);
+                var _b = useState([]), orders = _b[0], setOrders = _b[1];
+                var _c = useState([]), couriers = _c[0], setCouriers = _c[1];
+                var _d = useState(true), loading = _d[0], setLoading = _d[1];
+                var firstRender = useRef(true);
+
+                useEffect(function() {
+                    var ordersRef = db.ref('flashgo/orders');
+                    var couriersRef = db.ref('flashgo/couriers');
+
+                    ordersRef.on('value', function(snap) {
+                        var val = snap.val();
+                        if (val) {
+                            setOrders(Object.keys(val).map(function(k) { return val[k]; }));
+                        } else {
+                            var seed = {};
+                            INITIAL_ORDERS.forEach(function(o) { seed[o.id] = o; });
+                            ordersRef.set(seed);
+                        }
+                        setLoading(false);
+                    });
+
+                    couriersRef.on('value', function(snap) {
+                        var val = snap.val();
+                        if (val) {
+                            setCouriers(Object.keys(val).map(function(k) { return val[k]; }));
+                        } else {
+                            var seed = {};
+                            MOCK_COURIERS.forEach(function(c) { seed[c.id] = c; });
+                            couriersRef.set(seed);
+                        }
+                    });
+
+                    return function() { ordersRef.off(); couriersRef.off(); };
+                }, []);
+
+                useEffect(function() {
+                    if (firstRender.current) { firstRender.current = false; return; }
+                    if (!loading) {
+                        var obj = {};
+                        orders.forEach(function(o) { obj[o.id] = o; });
+                        db.ref('flashgo/orders').set(obj);
+                    }
+                }, [orders, loading]);
+
+                useEffect(function() {
+                    if (firstRender.current) return;
+                    if (!loading) {
+                        var obj = {};
+                        couriers.forEach(function(c) { obj[c.id] = c; });
+                        db.ref('flashgo/couriers').set(obj);
+                    }
+                }, [couriers, loading]);
+
+                if (loading) return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)'}},'⏳ جاري التحميل...');
                 if(!user)return h(LoginScreen,{onLogin:setUser,mode:urlMode});
                 if(user.role==="courier")return h(CourierApp,{user:user,orders:orders,setOrders:setOrders,onLogout:function(){setUser(null);}});
                 return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,onLogout:function(){setUser(null);}});
