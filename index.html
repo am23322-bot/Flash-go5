@@ -264,49 +264,11 @@
 <body>
     <div id="root"></div>
 
-    <script>
-        // Load all CDN scripts dynamically to avoid blocking page rendering
-        var _fgScripts = [
-            'https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'
-        ];
-        var _fgLoaded = 0;
-        var _fgScriptsReady = false;
-        function _fgCheckBoot() {
-            if (typeof _fgBootApp === 'function' && _fgScriptsReady) {
-                _fgBootApp();
-            }
-        }
-        function _fgScriptLoad() {
-            _fgLoaded++;
-            if (_fgLoaded >= _fgScripts.length) {
-                _fgScriptsReady = true;
-                if (window._fgTimer) clearTimeout(window._fgTimer);
-                _fgCheckBoot();
-            }
-        }
-        _fgScripts.forEach(function(url) {
-            var s = document.createElement('script');
-            s.src = url;
-            s.onload = _fgScriptLoad;
-            s.onerror = _fgScriptLoad;
-            document.body.appendChild(s);
-        });
-        // Timeout fallback
-        window._fgTimer = setTimeout(function() {
-            if (!window.React || !window.ReactDOM) {
-                document.getElementById('root').innerHTML =
-                    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;flex-direction:column;padding:30px;text-align:center;background:#f5f0eb">' +
-                    '<div style="font-size:40px;margin-bottom:16px">🌐</div>' +
-                    '<div style="font-size:18px;font-weight:700;color:#c62828;margin-bottom:12px">فشل تحميل المكتبات - تأكد من اتصالك بالإنترنت</div>' +
-                    '<div style="font-size:13px;color:#666;margin-bottom:20px;max-width:450px;line-height:1.8">جرب استخدام VPN أو شبكة مختلفة أو أعد تحميل الصفحة</div>' +
-                    '<button onclick="location.reload()" style="padding:12px 30px;border-radius:8px;border:none;background:#1a1a1a;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:sans-serif">🔄 إعادة تحميل</button>' +
-                    '</div>';
-            }
-        }, 8000);
-    </script>
+    <script src="lib/react.production.min.js"></script>
+    <script src="lib/react-dom.production.min.js"></script>
+    <script src="lib/html5-qrcode.min.js"></script>
+    <script src="lib/leaflet.js"></script>
+    <noscript><div style="font-size:20px;padding:40px;text-align:center;font-family:sans-serif">⚠️ JavaScript غير مفعل. يرجى تفعيل JavaScript لعرض التطبيق.</div></noscript>
 
     <script>
         function _fgBootApp() {
@@ -1187,7 +1149,7 @@
             createRoot(document.getElementById('root')).render(h(App));
         })();
     }
-    _fgCheckBoot();
+    _fgBootApp();
     </script>
 </body>
 </html>
