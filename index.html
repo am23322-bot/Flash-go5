@@ -1460,8 +1460,12 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
             }
 
             function getMapUrl(address, lat, lng) {
-                if (lat && lng) return "https://www.google.com/maps?q=" + lat + "," + lng;
-                return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(address);
+                if (lat && lng) return "https://www.openstreetmap.org/?mlat=" + lat + "&mlon=" + lng + "#map=15/" + lat + "/" + lng;
+                return "https://www.openstreetmap.org/search?query=" + encodeURIComponent(address);
+            }
+            function openAddressInGPS(address, lat, lng) {
+                if (lat && lng) { window.open("https://www.openstreetmap.org/?mlat=" + lat + "&mlon=" + lng + "#map=15/" + lat + "/" + lng, "_blank"); }
+                else { window.open("https://www.openstreetmap.org/search?query=" + encodeURIComponent(address), "_blank"); }
             }
 
             function QRCodeDisplay(props) {
@@ -1574,11 +1578,11 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         h('div',{className:'form-group'},
                             h('label',{className:'form-label'},'📍 إحداثيات الموقع (اختياري)'),
                             h('div',{className:'location-input-group'},
-                                h('input',{className:'form-input',value:form.location,onChange:function(e){set("location",e.target.value);},placeholder:'29.958, 31.250 أو رابط Google Maps',dir:'ltr',style:{textAlign:'left'}}),
+                                h('input',{className:'form-input',value:form.location,onChange:function(e){set("location",e.target.value);},placeholder:'29.958, 31.250 أو رابط OpenStreetMap',dir:'ltr',style:{textAlign:'left'}}),
                                 h('button',{className:'btn btn-sm btn-ghost',type:'button',onClick:function(){window.open(getMapUrl(form.address||"القاهرة",null,null),'_blank');}},'📍')
                             ),
-                            h('div',{className:'loc-hint'},'انسخ الإحداثيات من جوجل مابس (مثال: 29.958, 31.250)'),
-                            h('div',{className:'loc-hint'},'أو الصق رابط مثل: https://maps.google.com/?q=29.958,31.250')
+                            h('div',{className:'loc-hint'},'انسخ الإحداثيات من OpenStreetMap (مثال: 29.958, 31.250)'),
+                            h('div',{className:'loc-hint'},'أو استخدم الخريطة المباشرة: اضغط على 📍 عشان تفتح OpenStreetMap')
                         ),
                         h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary',onClick:handleSave},'✅ حفظ الأوردر'))
                     )
@@ -2379,7 +2383,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                     h('div',null,h('div',{style:{fontSize:10,color:'var(--text-muted)',marginBottom:2}},'قيمة التحصيل'),h('div',{className:'order-amount-big'},o.amount.toLocaleString(),' ج')),
                                     h('div',{className:'order-phone'},h('a',{href:'tel:' + o.phone},'📞 ',o.phone))
                                 ),
-                                h('button',{className:'nav-address-btn btn-block',onClick:function(){openAddressInGPS(o.address,o.lat,o.lng);}},'📍 GPS - افتح في جوجل مابس'),
+                                h('button',{className:'nav-address-btn btn-block',onClick:function(){openAddressInGPS(o.address,o.lat,o.lng);}},'📍 GPS - افتح الخريطة'),
                                 o.status==="returned"&&h('div',{className:'return-reason-tag'},'↩️ ',o.returnReason),
                                 o.status==="assigned"&&h('div',{className:'order-actions-row'},
                                     h('button',{className:'btn btn-success',onClick:function(){markDelivered(o.id);}},'✅ تم التسليم'),
@@ -2401,7 +2405,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                 h('div',null,h('div',{style:{fontSize:10,color:'var(--text-muted)',marginBottom:2}},'قيمة التحصيل'),h('div',{className:'order-amount-big'},o.amount.toLocaleString(),' ج')),
                                 h('div',{className:'order-phone'},h('a',{href:'tel:' + o.phone},'📞 ',o.phone))
                             ),
-                            h('button',{className:'nav-address-btn btn-block',onClick:function(){openAddressInGPS(o.address,o.lat,o.lng);}},'📍 GPS - افتح في جوجل مابس'),
+                            h('button',{className:'nav-address-btn btn-block',onClick:function(){openAddressInGPS(o.address,o.lat,o.lng);}},'📍 GPS - افتح الخريطة'),
                             o.status==="returned"&&h('div',{className:'return-reason-tag'},'↩️ ',o.returnReason)
                         );})
                     ),
