@@ -1550,6 +1550,8 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
             function AddOrderModal(props) {
                 var _a = useState({customer:"",phone:"",address:"",area:AREAS[0],description:"",amount:"",notes:"",location:"",deliveryWindow:DELIVERY_WINDOWS[0]}), form = _a[0], setForm = _a[1];
+                var _b = useState(false), showMap = _b[0], setShowMap = _b[1];
+                var mapRef = useRef(null), markerRef = useRef(null);
                 function set(k,v) { setForm(function(f){var o={};for(var x in f)o[x]=f[x];o[k]=v;return o;}); }
                 function handleSave() {
                     if(!form.customer||!form.phone||!form.address||!form.amount)return;
@@ -1564,6 +1566,32 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     });
                     props.onClose();
                 }
+                useEffect(function() {
+                    if (!showMap || !mapRef.current) return;
+                    var map = L.map(mapRef.current, {zoomControl:true});
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap', maxZoom:19}).addTo(map);
+                    map.setView([29.95, 31.25], 10);
+                    var loc = parseLocationInput(form.location);
+                    if (loc.lat && loc.lng) {
+                        map.setView([loc.lat, loc.lng], 16);
+                        markerRef.current = L.marker([loc.lat, loc.lng], {draggable:true}).addTo(map);
+                        markerRef.current.on("dragend", function() {
+                            var p = markerRef.current.getLatLng();
+                            set("location", p.lat.toFixed(6) + ", " + p.lng.toFixed(6));
+                        });
+                    }
+                    map.on("click", function(e) {
+                        var lat = e.latlng.lat.toFixed(6), lng = e.latlng.lng.toFixed(6);
+                        set("location", lat + ", " + lng);
+                        if (markerRef.current) map.removeLayer(markerRef.current);
+                        markerRef.current = L.marker([lat, lng], {draggable:true}).addTo(map);
+                        markerRef.current.on("dragend", function() {
+                            var p = markerRef.current.getLatLng();
+                            set("location", p.lat.toFixed(6) + ", " + p.lng.toFixed(6));
+                        });
+                    });
+                    return function() { map.remove(); };
+                }, [showMap]);
                 return h('div',{className:'overlay',onClick:function(e){if(e.target===e.currentTarget)props.onClose();}},
                     h('div',{className:'modal'},
                         h('div',{className:'modal-title'},'📦 إضافة أوردر جديد'),
@@ -1578,11 +1606,12 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         h('div',{className:'form-group'},
                             h('label',{className:'form-label'},'📍 إحداثيات الموقع (اختياري)'),
                             h('div',{className:'location-input-group'},
-                                h('input',{className:'form-input',value:form.location,onChange:function(e){set("location",e.target.value);},placeholder:'29.958, 31.250 أو رابط OpenStreetMap',dir:'ltr',style:{textAlign:'left'}}),
-                                h('button',{className:'btn btn-sm btn-ghost',type:'button',onClick:function(){window.open(getMapUrl(form.address||"اكتوبر",null,null),'_blank');}},'📍')
+                                h('input',{className:'form-input',value:form.location,onChange:function(e){set("location",e.target.value);},placeholder:'29.958, 31.250',dir:'ltr',style:{textAlign:'left'}}),
+                                h('button',{className:'btn btn-sm btn-ghost',type:'button',onClick:function(){window.open(getMapUrl(form.address||"اكتوبر",null,null),'_blank');}},'📍'),
+                                h('button',{className:'btn btn-sm' + (showMap?' btn-primary':' btn-ghost'),type:'button',onClick:function(){setShowMap(function(v){return !v;});}},'🗺️')
                             ),
-                            h('div',{className:'loc-hint'},'انسخ الإحداثيات من OpenStreetMap (مثال: 29.958, 31.250)'),
-                            h('div',{className:'loc-hint'},'أو استخدم الخريطة المباشرة: اضغط على 📍 عشان تفتح OpenStreetMap')
+                            h('div',{className:'loc-hint'},'اضغط 🗺️ عشان تختار من الخريطة — اسحب الماركر للضبط'),
+                            showMap && h('div',{ref:mapRef,style:{height:280,borderRadius:'var(--radius-sm)',marginTop:8,border:'2px solid var(--orange)',zIndex:1,position:'relative'}})
                         ),
                         h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary',onClick:handleSave},'✅ حفظ الأوردر'))
                     )
