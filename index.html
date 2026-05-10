@@ -1895,15 +1895,16 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 }
                 return h('div',{style:{display:'flex',flexDirection:'column',minHeight:'100vh'}},
                     h('nav',{className:'nav'},
-                        h('div',{className:'logo'},'FLASH ',h('span',null,'GO')),
-                        h('div',{className:'nav-user'},
-                            h('div',{style:{textAlign:'left',cursor:'pointer'},onClick:function(){setTab('profile');}},h('div',{style:{fontSize:13,fontWeight:700,color:'var(--black)'}},user.name),h('div',{className:'nav-info'},user.role==="chairman"?'رئيس مجلس الإدارة':'المدير العام')),
-                            h('div',{className:'avatar'},user.name.charAt(0)),
+                        h('div',{style:{display:'flex',alignItems:'center',gap:8}},
                             h('button',{className:'btn btn-ghost btn-sm',onClick:function(){setMenuOpen(true);}},'☰'),
+                            h('span',{style:{fontSize:12,fontWeight:600,color:'var(--text-secondary)',whiteSpace:'nowrap'}},'الويب الخاص بالاداره'),
+                            h('div',{className:'avatar',style:{cursor:'pointer',marginRight:4},onClick:function(){setTab('profile');}},user.name.charAt(0)),
+                            h('div',{style:{cursor:'pointer'},onClick:function(){setTab('profile');}},h('div',{style:{fontSize:13,fontWeight:700,color:'var(--black)'}},user.name),h('div',{className:'nav-info'},user.role==="chairman"?'رئيس مجلس الإدارة':'المدير العام')),
                             h('button',{className:'btn btn-sm btn-outline-orange',style:{fontSize:11},onClick:forceSync},'📡 مزامنة'),
                             syncMsg && h('span',{style:{fontSize:11,color:'var(--green)',fontWeight:600}},syncMsg),
                             h('button',{className:'btn btn-ghost btn-sm',onClick:onLogout},'🚪 خروج')
-                        )
+                        ),
+                        h('div',{className:'logo'},'FLASH ',h('span',null,'GO'))
                     ),
                     menuOpen && h('div',{className:'sidebar-overlay',onClick:function(){setMenuOpen(false);}},
                         h('div',{className:'sidebar-panel',onClick:function(e){e.stopPropagation();}},
