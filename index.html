@@ -2495,26 +2495,24 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             pollOrders.current = JSON.stringify(val);
                             setOrders(objToArr(val));
                         } else {
-                            var seed = arrToObj(INITIAL_ORDERS);
-                            fbPut("flashgo/orders", seed);
-                            pollOrders.current = JSON.stringify(seed);
-                            setOrders(INITIAL_ORDERS);
+                            fbPut("flashgo/orders", {});
+                            pollOrders.current = "{}";
+                            setOrders([]);
                         }
                         done();
-                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); });
+                    }).catch(function() { setOrders([]); done(); });
 
                     fbGet("flashgo/couriers").then(function(val) {
                         if (val && Object.keys(val).length > 0) {
                             pollCouriers.current = JSON.stringify(val);
                             setCouriers(objToArr(val));
                         } else {
-                            var seed = arrToObj(MOCK_COURIERS, 'c');
-                            fbPut("flashgo/couriers", seed);
-                            pollCouriers.current = JSON.stringify(seed);
+                            fbPut("flashgo/couriers", {});
+                            pollCouriers.current = "{}";
                             setCouriers(MOCK_COURIERS);
                         }
                         done();
-                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); });
+                    }).catch(function() { setCouriers(MOCK_COURIERS); done(); });
                 }, []);
 
                 // Poll for remote changes
