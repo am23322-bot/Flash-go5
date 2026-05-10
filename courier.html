@@ -2295,17 +2295,21 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var mapInstance = useRef(null);
                 var markersRef = useRef(null);
                 useEffect(function() {
-                    if (mapInstance.current) return;
+                    if (!mapRef.current) return;
                     if (!window.L) return;
-                    var m = L.map(mapRef.current, {zoomControl:true});
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap', maxZoom:19}).addTo(m);
-                    mapInstance.current = m;
-                    return function() { m.remove(); };
+                    try {
+                        var m = L.map(mapRef.current, {zoomControl:true});
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap', maxZoom:19}).addTo(m);
+                        setTimeout(function() { m.invalidateSize(); }, 100);
+                        mapInstance.current = m;
+                    } catch(e) { console.error("Map init error:", e); }
+                    return function() { if (mapInstance.current) { try { mapInstance.current.remove(); } catch(e) {} mapInstance.current = null; } };
                 }, []);
                 useEffect(function() {
                     if (!mapInstance.current || !window.L) return;
                     var m = mapInstance.current;
-                    if (markersRef.current) markersRef.current.forEach(function(mk) { m.removeLayer(mk); });
+                    setTimeout(function() { m.invalidateSize(); }, 50);
+                    if (markersRef.current) markersRef.current.forEach(function(mk) { try { m.removeLayer(mk); } catch(e) {} });
                     var markers = [];
                     var validOrders = orders.filter(function(o){return o.lat && o.lng;});
                     validOrders.forEach(function(o, idx) {
@@ -2322,7 +2326,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         m.fitBounds(group.getBounds().pad(0.1));
                     }
                 }, [orders]);
-                var mapH = props.fullHeight ? '100%' : 'calc(100vh - 140px)';
+                var mapH = props.fullHeight ? 'calc(100vh - 50px)' : 'calc(100vh - 140px)';
                 return h('div',{style:{height:mapH,width:'100%',borderRadius:'var(--radius-lg)',overflow:'hidden',border:'1px solid var(--border)'}},
                     h('div',{ref:mapRef,style:{height:'100%',width:'100%'}})
                 );
@@ -2332,27 +2336,44 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var orders = props.orders;
                 var _a = useState(null), result = _a[0], setResult = _a[1];
                 var _b = useState(null), error = _b[0], setError = _b[1];
+                var _c = useState(0), scanKey = _c[0], setScanKey = _c[1];
                 var scannerRef = useRef(null);
                 var readerRef = useRef(null);
+                function stopAndClean() {
+                    if (scannerRef.current) {
+                        try { scannerRef.current.stop().catch(function(){}); } catch(e) {}
+                        scannerRef.current = null;
+                    }
+                    var el = document.getElementById("qr-reader");
+                    if (el) el.innerHTML = "";
+                }
                 useEffect(function() {
                     if (!window.Html5Qrcode) return;
-                    var scanner = new Html5Qrcode("qr-reader");
-                    readerRef.current = scanner;
+                    stopAndClean();
+                    var el = document.getElementById("qr-reader");
+                    if (!el) return;
+                    el.innerHTML = "";
+                    var scanner;
+                    try {
+                        scanner = new Html5Qrcode("qr-reader");
+                    } catch(e) { setError("فشل تهيئة القارئ"); return; }
+                    scannerRef.current = scanner;
                     scanner.start({facingMode:"environment"}, {fps:10,qrbox:{width:250,height:250}},
                         function(text) {
                             var data = parseQRData(text);
                             if (data) {
                                 var order = orders.find(function(o){return o.id===data.id;});
                                 setResult({qr:data,order:order,raw:text});
-                                scanner.stop().catch(function(){});
+                                try { scanner.stop().catch(function(){}); } catch(e) {}
                             } else {
                                 setError("QR data غير صالح");
                             }
                         },
                         function(err) { if (err.indexOf("No MultiFormat Readers") >= 0) setError("الكاميرا غير متوفرة"); }
                     ).catch(function(e) { setError("فشل تشغيل الكاميرا: "+e); });
-                    return function() { scanner.stop().catch(function(){}); };
-                }, []);
+                    return function() { stopAndClean(); };
+                }, [scanKey]);
+                function rescan() { setResult(null); setError(null); setScanKey(function(k){return k+1;}); }
                 return h('div',{style:{padding:16}},
                     h('div',{id:"qr-reader",style:{width:'100%',maxWidth:400,margin:'0 auto 16px'}}),
                     error && h('div',{className:'alert alert-error'},error),
@@ -2364,7 +2385,8 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         result.qr.desc && h('div',{className:'order-desc'},'📦 ',result.qr.desc),
                         result.qr.notes && h('div',{className:'order-note'},'📝 ',result.qr.notes),
                         result.qr.phone && h('div',{className:'order-phone'},h('a',{href:'tel:'+result.qr.phone},'📞 ',result.qr.phone)),
-                        result.order && h('div',{style:{marginTop:12,fontSize:12,color:'var(--green)'}},'✅ الأوردر موجود في النظام')
+                        result.order && h('div',{style:{marginTop:12,fontSize:12,color:'var(--green)'}},'✅ الأوردر موجود في النظام'),
+                        h('button',{className:'btn btn-primary btn-block',style:{marginTop:12},onClick:rescan},'🔄 مسح QR آخر')
                     )
                 );
             }
