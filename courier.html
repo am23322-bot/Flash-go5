@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="pragma" content="no-cache">
-    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
-    <title>Flash Go — نظام إدارة التوصيل</title>
+    <title>Flash Go — تطبيق المندوب</title>
     <script>
         // Unregister all service workers (no reload to avoid infinite loops)
         if ('serviceWorker' in navigator) {
@@ -680,7 +678,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
     <meta name="theme-color" content="#1a1a1a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-status-bar-style" content="default">
-    <script>if('serviceWorker'in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(s){s.unregister();});});}</script>
     <style>
         *,
         *::before,
@@ -869,7 +866,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         .courier-stat.green { color: var(--green); }
         .courier-stat.red { color: var(--red); }
         .courier-stat.blue { color: var(--blue); }
-        .courier-app { min-height: 100vh; background: var(--bg-primary); display: flex; flex-direction: column; max-width: 800px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.06); }
+        .courier-app { min-height: 100vh; background: var(--bg-primary); display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.06); }
         .courier-header { background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
         .courier-logo { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 900; letter-spacing: 2px; color: var(--black); text-transform: uppercase; }
         .courier-logo span { color: var(--orange); }
@@ -883,10 +880,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
         .summary-divider { width: 1px; background: var(--border); flex-shrink: 0; }
         .courier-body { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
         .courier-active-layout { flex-direction: row; padding: 0; overflow: hidden; }
+        .courier-active-layout .route-sidebar { width: 280px; flex-shrink: 0; overflow-y: auto; padding: 12px; background: var(--bg-card); border-right: 1px solid var(--border); }
         .courier-active-layout .orders-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: flex; justify-content: flex-end; }
-        .sidebar-panel { width: 320px; max-width: 85vw; background: var(--bg-card); height: 100%; overflow-y: auto; padding: 20px; box-shadow: -4px 0 20px rgba(0,0,0,0.15); animation: slideIn 0.2s ease; }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         .stop-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
         .stop-item:hover { opacity: 0.8; }
         .stop-number { width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
@@ -934,7 +929,6 @@ svg.leaflet-image-layer.leaflet-interactive path {
             .summary-value { font-size: 16px; }
             th, td { padding: 10px 10px; font-size: 11px; }
             .sec-title { font-size: 16px; }
-            .courier-active-layout { flex-direction: column; }
         }
         @media (max-width: 420px) {
             .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -998,6 +992,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
         .cp-edit-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .cp-edit-form .full-width { grid-column: 1 / -1; }
         .cp-due { color: var(--green); font-weight: 700; font-size: 15px; }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: flex; justify-content: flex-end; }
+        .sidebar-panel { width: 320px; max-width: 85vw; background: var(--bg-card); height: 100%; overflow-y: auto; padding: 20px; box-shadow: -4px 0 20px rgba(0,0,0,0.15); animation: slideIn 0.2s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
     </style>
 </head>
 <body>
@@ -1315,19 +1312,19 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
     <script>
         function _fgBootApp() {
             (function() {
-                'use strict';
-                document.body.classList.add('loaded');
+            'use strict';
+            document.body.classList.add('loaded');
 
-                if (!window.React || !window.ReactDOM) {
-                    document.getElementById('root').innerHTML =
-                        '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Cairo;flex-direction:column;padding:20px;text-align:center">' +
-                        '<div style="font-size:48px;margin-bottom:16px">⚠️</div>' +
-                        '<div style="font-size:18px;font-weight:700;color:#c62828;margin-bottom:8px">فشل تحميل المكتبات الأساسية</div>' +
-                        '<div style="font-size:13px;color:#999085;margin-bottom:20px;max-width:400px">تأكد من اتصالك بالإنترنت ثم أعد تحميل الصفحة</div>' +
-                        '<button onclick="location.reload()" style="padding:12px 24px;border-radius:8px;border:none;background:#1a1a1a;color:white;font-family:Cairo;font-size:14px;font-weight:700;cursor:pointer">🔄 إعادة تحميل</button>' +
-                        '</div>';
-                    return;
-                }
+            if (!window.React || !window.ReactDOM) {
+                document.getElementById('root').innerHTML =
+                    '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Cairo;flex-direction:column;padding:20px;text-align:center">' +
+                    '<div style="font-size:48px;margin-bottom:16px">⚠️</div>' +
+                    '<div style="font-size:18px;font-weight:700;color:#c62828;margin-bottom:8px">فشل تحميل المكتبات الأساسية</div>' +
+                    '<div style="font-size:13px;color:#999085;margin-bottom:20px;max-width:400px">تأكد من اتصالك بالإنترنت ثم أعد تحميل الصفحة</div>' +
+                    '<button onclick="location.reload()" style="padding:12px 24px;border-radius:8px;border:none;background:#1a1a1a;color:white;font-family:Cairo;font-size:14px;font-weight:700;cursor:pointer">🔄 إعادة تحميل</button>' +
+                    '</div>';
+                return;
+            }
 
             const React = window.React;
             const ReactDOM = window.ReactDOM;
@@ -1395,38 +1392,6 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 return fallback;
             }
 
-            function downloadCSV(orders, couriers) {
-                var cm = {};
-                couriers.forEach(function(c) { cm[c.id]=c.name; });
-                var rows = [["رقم الأوردر","العميل","التليفون","المنطقة","الموعد","العنوان","الشحنة","القيمة","المندوب","الحالة","التاريخ","ملاحظات","الإحداثيات","سبب المرتجع"]];
-                orders.forEach(function(o) {
-                    var loc = (o.lat&&o.lng) ? o.lat+","+o.lng : "";
-                    rows.push([o.id,o.customer,o.phone,o.area,o.deliveryWindow||"",o.address,o.description,o.amount,o.courierId?cm[o.courierId]||"":"",statusLabel[o.status],o.date,o.notes||"",loc,o.returnReason||""]);
-                });
-                var csv="\uFEFF"+rows.map(function(r){return r.map(function(v){return '"'+v+'"'}).join(",")}).join("\n");
-                var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
-                var url=URL.createObjectURL(blob);
-                var a=document.createElement("a");
-                a.href=url; a.download='flash-go-' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
-                URL.revokeObjectURL(url);
-            }
-
-            function generateQRData(order) {
-                var data = {
-                    id: order.id,
-                    addr: order.address,
-                    cust: order.customer,
-                    phone: order.phone,
-                    area: order.area,
-                    desc: order.description,
-                    amount: order.amount,
-                    notes: order.notes || "",
-                    status: order.status
-                };
-                if (order.lat && order.lng) { data.lat = order.lat; data.lng = order.lng; }
-                return JSON.stringify(data);
-            }
-
             function parseQRData(str) {
                 try { return JSON.parse(str); } catch(e) { return null; }
             }
@@ -1469,141 +1434,29 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(address);
             }
 
-            function QRCodeDisplay(props) {
-                var qrUrl = "https://chart.googleapis.com/chart?chs=" + (props.size || 140) + "x" + (props.size || 140) + "&cht=qr&chl=" + encodeURIComponent(props.data) + "&choe=UTF-8";
-                return h('img',{src: qrUrl, width: props.size || 140, height: props.size || 140, alt: 'QR', style: {borderRadius: 8, border: '2px solid var(--border)'}});
-            }
-
-            function QRModal(props) {
-                var order = props.order;
-                var qrData = generateQRData(order);
-                return h('div',{className:'overlay',onClick:function(e){if(e.target===e.currentTarget)props.onClose();}},
-                    h('div',{className:'modal',style:{maxWidth:420,textAlign:'center'}},
-                        h('div',{className:'modal-title'},'📱 QR ', order.id),
-                        h('div',{className:'qr-wrap'},h(QRCodeDisplay,{data:qrData,size:200})),
-                        h('div',{style:{fontSize:11,color:'var(--text-muted)',margin:'8px 0 16px',wordBreak:'break-all',background:'var(--bg-input)',padding:8,borderRadius:6,fontFamily:'monospace',textAlign:'left',direction:'ltr'}},qrData),
-                        order.lat && order.lng && h('div',{style:{marginBottom:12,fontSize:12,color:'var(--green)',fontWeight:600}},'📍 الإحداثيات: ' + order.lat + ', ' + order.lng),
-                        h('div',{style:{display:'flex',gap:8,justifyContent:'center',flexWrap:'wrap'}},
-                            h('button',{className:'btn btn-sm btn-ghost',onClick:function(){navigator.clipboard&&navigator.clipboard.writeText(qrData);}},'📋 نسخ QR data'),
-                            h('button',{className:'btn btn-sm btn-primary',onClick:function(){window.open(getMapUrl(order.address,order.lat,order.lng),'_blank');}},'📍 فتح في مابس')
-                        ),
-                        h('div',{className:'modal-actions',style:{justifyContent:'center'}},
-                            h('button',{className:'btn btn-primary',onClick:function(){window.print();}},'🖨️ طباعة QR'),
-                            h('button',{className:'btn btn-ghost',onClick:props.onClose},'إغلاق')
-                        )
-                    )
-                );
-            }
-
             function LoginScreen(props) {
-                var mode = props.mode || "";
-                var defaultRole = (mode==="courier") ? "courier" : "admin";
-                var _a = useState(defaultRole), role = _a[0], setRole = _a[1];
-                var _b = useState(""), email = _b[0], setEmail = _b[1];
-                var _c = useState(""), password = _c[0], setPassword = _c[1];
-                var _d = useState(""), error = _d[0], setError = _d[1];
+                var _a = useState(""), email = _a[0], setEmail = _a[1];
+                var _b = useState(""), password = _b[0], setPassword = _b[1];
+                var _c = useState(""), error = _c[0], setError = _c[1];
                 var handleLogin = function() {
                     var found = (props.users||[]).find(function(u){
-                        var r = (role==="admin") ? (u.role==="chairman"||u.role==="gm") : (u.role==="courier");
-                        return r && u.email===email && u.password===password;
+                        return u.role==="courier" && u.email===email && u.password===password;
                     });
                     if(found){setError("");props.onLogin(found);}else setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");
                 };
-                var adminUsers = (props.users||[]).filter(function(u){return u.role==="chairman"||u.role==="gm";});
                 var courierUsers = (props.users||[]).filter(function(u){return u.role==="courier";});
                 return h('div',{className:'login-screen'},
                     h('div',{className:'login-card'},
                         h('div',{className:'login-logo'},'FLASH ',h('span',null,'GO')),
-                        h('div',{className:'login-sub'},mode==="courier"?'تطبيق المندوب':'نظام إدارة التوصيل الذكي'),
-                        (mode===""||mode==="both") && h('div',{className:'login-role-tabs'},
-                            h('button',{className:'role-tab ' + (role==="admin"?"active":""),onClick:function(){setRole("admin");setEmail("");setPassword("");setError("");}},'لوحة الإدارة'),
-                            h('button',{className:'role-tab ' + (role==="courier"?"active":""),onClick:function(){setRole("courier");setEmail("");setPassword("");setError("");}},'تطبيق المندوب')
-                        ),
+                        h('div',{className:'login-sub'},'تطبيق المندوب'),
                         error && h('div',{className:'alert alert-error'},error),
                         h('div',{className:'form-group'},h('label',{className:'form-label'},'📧 البريد الإلكتروني'),h('input',{className:'form-input',value:email,onChange:function(e){setEmail(e.target.value);},placeholder:'email@example.com',dir:'ltr',style:{textAlign:'left'}})),
                         h('div',{className:'form-group'},h('label',{className:'form-label'},'🔒 كلمة المرور'),h('input',{className:'form-input',type:'password',value:password,onChange:function(e){setPassword(e.target.value);},onKeyDown:function(e){if(e.key==="Enter")handleLogin();},placeholder:'••••••'})),
                         h('button',{className:'btn btn-primary btn-block btn-lg',onClick:handleLogin},'🚀 دخول'),
                         h('div',{className:'login-divider'}),
                         h('div',{style:{fontSize:11,color:'var(--text-muted)',lineHeight:1.8}},
-                            mode!=="courier" && h('div',null,'👨‍💼 إدارة: ',adminUsers.map(function(u){return u.email+' / '+u.password;}).join(' | ')),
-                            mode!=="admin" && h('div',null,'🏍️ مندوب: ',courierUsers.map(function(u){return u.email+' / '+u.password;}).join(' | '))
+                            h('div',null,'🏍️ مندوب: ',courierUsers.map(function(u){return u.email+' / '+u.password;}).join(' | '))
                         )
-                    )
-                );
-            }
-
-            function AddOrderModal(props) {
-                var _a = useState({customer:"",phone:"",address:"",area:AREAS[0],description:"",amount:"",notes:"",location:"",deliveryWindow:DELIVERY_WINDOWS[0]}), form = _a[0], setForm = _a[1];
-                function set(k,v) { setForm(function(f){var o={};for(var x in f)o[x]=f[x];o[k]=v;return o;}); }
-                function handleSave() {
-                    if(!form.customer||!form.phone||!form.address||!form.amount)return;
-                    var loc = parseLocationInput(form.location);
-                    props.onSave({
-                        id:'FG-' + (1000+Math.floor(Math.random()*9000)),
-                        customer:form.customer,phone:form.phone,address:form.address,area:form.area,
-                        description:form.description,amount:Number(form.amount),
-                        courierId:null,status:"pending",date:new Date().toISOString().slice(0,10),
-                        notes:form.notes||"",lat:loc.lat,lng:loc.lng,
-                        deliveryWindow:form.deliveryWindow
-                    });
-                    props.onClose();
-                }
-                return h('div',{className:'overlay',onClick:function(e){if(e.target===e.currentTarget)props.onClose();}},
-                    h('div',{className:'modal'},
-                        h('div',{className:'modal-title'},'📦 إضافة أوردر جديد'),
-                        [["customer","اسم العميل","text"],["phone","رقم التليفون","tel"],["address","العنوان بالتفصيل","text"],["amount","قيمة التحصيل (جنيه)","number"]].map(function(_a){
-                            var k=_a[0],l=_a[1],t=_a[2];
-                            return h('div',{className:'form-group',key:k},h('label',{className:'form-label'},l),h('input',{className:'form-input',type:t,value:form[k],onChange:function(e){set(k,e.target.value);}}));
-                        }),
-                        h('div',{className:'form-group'},h('label',{className:'form-label'},'المنطقة'),h('select',{className:'form-select',value:form.area,onChange:function(e){set("area",e.target.value);}},AREAS.map(function(a){return h('option',{key:a},a);}))),
-                        h('div',{className:'form-group'},h('label',{className:'form-label'},'⏰ موعد التوصيل'),h('select',{className:'form-select',value:form.deliveryWindow,onChange:function(e){set("deliveryWindow",e.target.value);}},DELIVERY_WINDOWS.map(function(w){return h('option',{key:w},w);}))),
-                        h('div',{className:'form-group'},h('label',{className:'form-label'},'وصف الشحنة'),h('textarea',{className:'form-textarea',value:form.description,onChange:function(e){set("description",e.target.value);}})),
-                        h('div',{className:'form-group'},h('label',{className:'form-label'},'📝 ملاحظات التوصيل'),h('textarea',{className:'form-textarea',value:form.notes,onChange:function(e){set("notes",e.target.value);},placeholder:'الاستلام بعد 5م، جرس الباب لا يعمل...'})),
-                        h('div',{className:'form-group'},
-                            h('label',{className:'form-label'},'📍 إحداثيات الموقع (اختياري)'),
-                            h('div',{className:'location-input-group'},
-                                h('input',{className:'form-input',value:form.location,onChange:function(e){set("location",e.target.value);},placeholder:'29.958, 31.250 أو رابط Google Maps',dir:'ltr',style:{textAlign:'left'}}),
-                                h('button',{className:'btn btn-sm btn-ghost',type:'button',onClick:function(){window.open(getMapUrl(form.address||"القاهرة",null,null),'_blank');}},'📍')
-                            ),
-                            h('div',{className:'loc-hint'},'انسخ الإحداثيات من جوجل مابس (مثال: 29.958, 31.250)'),
-                            h('div',{className:'loc-hint'},'أو الصق رابط مثل: https://maps.google.com/?q=29.958,31.250')
-                        ),
-                        h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary',onClick:handleSave},'✅ حفظ الأوردر'))
-                    )
-                );
-            }
-
-            function AssignModal(props) {
-                var _a = useState(props.order.courierId), selected = _a[0], setSelected = _a[1];
-                var active = props.couriers.filter(function(c){return c.active;});
-                return h('div',{className:'overlay',onClick:function(e){if(e.target===e.currentTarget)props.onClose();}},
-                    h('div',{className:'modal'},
-                        h('div',{className:'modal-title'},'🏍️ تعيين مندوب — ',props.order.id),
-                        h('div',{style:{marginBottom:18,fontSize:13,color:'var(--text-secondary)',fontWeight:500}},props.order.customer,' · 📍 ',props.order.area),
-                        h('div',{className:'reason-list'},
-                            active.length===0?h('div',{style:{color:'var(--text-muted)',padding:20,textAlign:'center'}},'لا يوجد مناديب نشطين'):
-                            active.map(function(c){return h('div',{key:c.id,className:'reason-item ' + (selected===c.id?"selected":""),onClick:function(){setSelected(c.id);}},
-                                h('div',{className:'radio ' + (selected===c.id?"checked":"")}),
-                                h('div',null,h('div',{style:{fontWeight:700,fontSize:14}},c.name),h('div',{style:{fontSize:11,color:'var(--text-muted)'}},c.area,' · ',c.phone))
-                            );})
-                        ),
-                        h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary',disabled:!selected,onClick:function(){props.onAssign(props.order.id,selected);props.onClose();}},'تأكيد التعيين'))
-                    )
-                );
-            }
-
-            function AddCourierModal(props) {
-                var _a = useState({name:"",phone:"",area:AREAS[0]}), form = _a[0], setForm = _a[1];
-                function set(k,v) { setForm(function(f){var o={};for(var x in f)o[x]=f[x];o[k]=v;return o;}); }
-                return h('div',{className:'overlay',onClick:function(e){if(e.target===e.currentTarget)props.onClose();}},
-                    h('div',{className:'modal'},
-                        h('div',{className:'modal-title'},'👤 إضافة مندوب جديد'),
-                        [["name","الاسم الكامل"],["phone","رقم التليفون"]].map(function(_a){
-                            var k=_a[0],l=_a[1];
-                            return h('div',{className:'form-group',key:k},h('label',{className:'form-label'},l),h('input',{className:'form-input',value:form[k],onChange:function(e){set(k,e.target.value);}}));
-                        }),
-                        h('div',{className:'form-group'},h('label',{className:'form-label'},'المنطقة'),h('select',{className:'form-select',value:form.area,onChange:function(e){set("area",e.target.value);}},AREAS.map(function(a){return h('option',{key:a},a);}))),
-                        h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary',onClick:function(){if(!form.name||!form.phone)return;props.onSave({id:Date.now(),name:form.name,phone:form.phone,area:form.area,active:true});props.onClose();}},'حفظ المندوب'))
                     )
                 );
             }
@@ -1616,395 +1469,6 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         h('div',{style:{marginBottom:18,fontSize:14,color:'var(--text-secondary)',fontWeight:500}},props.order.id,' · ',props.order.customer),
                         h('div',{className:'reason-list'},RETURN_REASONS.map(function(r){return h('div',{key:r,className:'reason-item ' + (reason===r?"selected":""),onClick:function(){setReason(r);}},h('div',{className:'radio ' + (reason===r?"checked":"")}),r);})),
                         h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-danger',disabled:!reason,onClick:function(){props.onConfirm(props.order.id,reason);props.onClose();}},'تأكيد المرتجع'))
-                    )
-                );
-            }
-
-            function DashboardTab(props) {
-                var orders = props.orders, couriers = props.couriers;
-                var total=orders.length;
-                var delivered=orders.filter(function(o){return o.status==="delivered";}).length;
-                var returned=orders.filter(function(o){return o.status==="returned";}).length;
-                var pending=orders.filter(function(o){return o.status==="pending"||o.status==="assigned"||o.status==="picked_up"||o.status==="in_transit";}).length;
-                var totalExpected=orders.reduce(function(s,o){return s+(o.status==="assigned"||o.status==="pending"||o.status==="picked_up"||o.status==="in_transit"?o.amount:0);},0);
-                var totalCollected=orders.reduce(function(s,o){return s+(o.status==="delivered"?o.amount:0);},0);
-                var areaStats=AREAS.map(function(a){
-                    return {area:a,total:orders.filter(function(o){return o.area===a;}).length,delivered:orders.filter(function(o){return o.area===a&&o.status==="delivered";}).length};
-                }).filter(function(a){return a.total>0;});
-                var windowStats=DELIVERY_WINDOWS.map(function(w){
-                    var oo=orders.filter(function(o){return (o.deliveryWindow||"بدون موعد")===w;});
-                    return {window:w,total:oo.length,delivered:oo.filter(function(o){return o.status==="delivered";}).length};
-                }).filter(function(w){return w.total>0;});
-                var sortedCouriers=couriers.slice().sort(function(a,b){
-                    var da=orders.filter(function(o){return o.courierId===a.id&&o.status==="delivered";}).length;
-                    var db=orders.filter(function(o){return o.courierId===b.id&&o.status==="delivered";}).length;
-                    return db-da;
-                });
-                var today = new Date().toISOString().slice(0,10);
-                var todayOrders=orders.filter(function(o){return o.date===today;});
-                return h('div',null,
-                    h('div',{className:'sec-title',style:{marginBottom:18}},'📊 لوحة التحكم'),
-                    h('div',{className:'stats'},
-                        h('div',{className:'stat-card'},h('div',{className:'stat-icon'},'📦'),h('div',{className:'stat-num'},total),h('div',{className:'stat-label'},'إجمالي الأوردرات')),
-                        h('div',{className:'stat-card green'},h('div',{className:'stat-icon'},'✅'),h('div',{className:'stat-num',style:{color:'var(--green)'}},delivered),h('div',{className:'stat-label'},'تم التسليم بنجاح')),
-                        h('div',{className:'stat-card warn'},h('div',{className:'stat-icon'},'🏍️'),h('div',{className:'stat-num',style:{color:'var(--amber)'}},pending),h('div',{className:'stat-label'},'قيد التوصيل')),
-                        h('div',{className:'stat-card blue'},h('div',{className:'stat-icon'},'↩️'),h('div',{className:'stat-num',style:{color:'var(--red)'}},returned),h('div',{className:'stat-label'},'مرتجعات'))
-                    ),
-                    // Revenue stats
-                    h('div',{className:'stats',style:{gridTemplateColumns:'repeat(2,1fr)'}},
-                        h('div',{className:'stat-card'},h('div',{className:'stat-icon'},'💰'),h('div',{className:'stat-num',style:{fontSize:24}},totalExpected.toLocaleString(),' ج'),h('div',{className:'stat-label'},'متوقع تحصيله')),
-                        h('div',{className:'stat-card green'},h('div',{className:'stat-icon'},'✅'),h('div',{className:'stat-num',style:{fontSize:24,color:'var(--green)'}},totalCollected.toLocaleString(),' ج'),h('div',{className:'stat-label'},'تم تحصيله')),
-                    ),
-                    // Today's stats
-                    todayOrders.length>0 && h('div',{style:{marginBottom:20}},
-                        h('div',{className:'sec-title',style:{marginBottom:10}},'📅 إحصائيات اليوم (',today,')'),
-                        h('div',{style:{display:'flex',gap:12,fontSize:13,color:'var(--text-muted)',flexWrap:'wrap'}},
-                            h('span',{style:{fontWeight:700,color:'var(--text)'}},'📦 إجمالي: ',todayOrders.length),
-                            h('span',{style:{fontWeight:700,color:'var(--green)'}},'✅ تسليم: ',todayOrders.filter(function(o){return o.status==="delivered";}).length),
-                            h('span',{style:{fontWeight:700,color:'var(--red)'}},'↩️ مرتجع: ',todayOrders.filter(function(o){return o.status==="returned";}).length),
-                            h('span',{style:{fontWeight:700,color:'var(--amber)'}},'⏳ قيد التنفيذ: ',todayOrders.filter(function(o){return o.status==="assigned"||o.status==="pending";}).length),
-                        )
-                    ),
-                    // Delivery window breakdown
-                    windowStats.length>0 && h('div',{style:{marginBottom:28}},
-                        h('div',{className:'sec-title',style:{marginBottom:14}},'⏰ توزيع مواعيد التوصيل'),
-                        h('div',{className:'table-wrap'},
-                            h('table',null,
-                                h('thead',null,h('tr',null,h('th',null,'الموعد'),h('th',null,'إجمالي'),h('th',null,'تسليم'),h('th',null,'نسبة النجاح'))),
-                                h('tbody',null,windowStats.map(function(w){return h('tr',{key:w.window},
-                                    h('td',{style:{fontWeight:700,color:'var(--blue)'}},w.window),h('td',null,w.total),
-                                    h('td',{style:{color:'var(--green)',fontWeight:700}},w.delivered),
-                                    h('td',null,h('div',{style:{display:'flex',alignItems:'center',gap:10}},h('div',{className:'progress-bar-wrap'},h('div',{className:'progress-bar-fill',style:{width:(w.total?w.delivered/w.total*100:0)+'%'}})),h('span',{className:'progress-percent'},(w.total?Math.round(w.delivered/w.total*100):0),'%')))
-                                );}))
-                            )
-                        )
-                    ),
-                    h('div',{className:'sec-title',style:{marginBottom:14}},'📍 إحصائيات المناطق'),
-                    h('div',{className:'table-wrap',style:{marginBottom:28}},
-                        h('table',null,
-                            h('thead',null,h('tr',null,h('th',null,'المنطقة'),h('th',null,'إجمالي'),h('th',null,'تسليم'),h('th',null,'القيمة المحصلة'),h('th',null,'نسبة النجاح'))),
-                            h('tbody',null,areaStats.map(function(a){
-                                var areaCollected=orders.filter(function(o){return o.area===a.area&&o.status==="delivered";}).reduce(function(s,o){return s+o.amount;},0);
-                                return h('tr',{key:a.area},
-                                    h('td',{style:{fontWeight:700}},a.area),h('td',null,a.total),h('td',{style:{color:'var(--green)',fontWeight:700}},a.delivered),
-                                    h('td',{style:{fontWeight:700,color:'var(--orange)'}},areaCollected.toLocaleString(),' ج'),
-                                    h('td',null,h('div',{style:{display:'flex',alignItems:'center',gap:10}},h('div',{className:'progress-bar-wrap'},h('div',{className:'progress-bar-fill',style:{width:(a.total?a.delivered/a.total*100:0)+'%'}})),h('span',{className:'progress-percent'},(a.total?Math.round(a.delivered/a.total*100):0),'%')))
-                                );
-                            }))
-                        )
-                    ),
-                    h('div',{className:'sec-title',style:{marginBottom:14}},'🏆 ترتيب المناديب'),
-                    h('div',{className:'table-wrap'},
-                        h('table',null,
-                            h('thead',null,h('tr',null,h('th',null,'#'),h('th',null,'المندوب'),h('th',null,'المنطقة'),h('th',null,'تسليم'),h('th',null,'مرتجع'),h('th',null,'المتحصل'),h('th',null,'الحالة'))),
-                            h('tbody',null,sortedCouriers.map(function(c,i){
-                                var mo=orders.filter(function(o){return o.courierId===c.id;});
-                                var collected=mo.filter(function(o){return o.status==="delivered";}).reduce(function(s,o){return s+o.amount;},0);
-                                return h('tr',{key:c.id},
-                                    h('td',{style:{fontWeight:700,color:'var(--muted)'}},'#'+(i+1)),
-                                    h('td',{style:{fontWeight:700}},c.name),h('td',{style:{color:'var(--text-muted)',fontSize:12}},c.area),
-                                    h('td',{style:{color:'var(--green)',fontWeight:700}},mo.filter(function(o){return o.status==="delivered";}).length),
-                                    h('td',{style:{color:'var(--red)',fontWeight:700}},mo.filter(function(o){return o.status==="returned";}).length),
-                                    h('td',{style:{fontWeight:700,color:'var(--orange)'}},collected.toLocaleString(),' ج'),
-                                    h('td',null,h('span',{className:'badge ' + (c.active?"badge-delivered":"badge-returned")},h('span',{className:'dot'}),c.active?'نشط':'متوقف'))
-                                );
-                            }))
-                        )
-                    )
-                );
-            }
-
-            function OrdersTab(props) {
-                var orders = props.orders, couriers = props.couriers, setOrders = props.setOrders;
-                var _a = useState(""), search = _a[0], setSearch = _a[1];
-                var _b = useState("all"), filterStatus = _b[0], setFilterStatus = _b[1];
-                var _c = useState("all"), filterArea = _c[0], setFilterArea = _c[1];
-                var _d = useState("all"), filterWindow = _d[0], setFilterWindow = _d[1];
-                var _e = useState(false), showAdd = _e[0], setShowAdd = _e[1];
-                var _f = useState(null), assignOrder = _f[0], setAssignOrder = _f[1];
-                var _g = useState(null), qrOrder = _g[0], setQrOrder = _g[1];
-                var cm={};couriers.forEach(function(c){cm[c.id]=c.name;});
-                var filtered=orders.filter(function(o){
-                    var ms=!search||o.customer.indexOf(search)!==-1||o.id.indexOf(search)!==-1||o.phone.indexOf(search)!==-1;
-                    var fw=filterWindow==="all"||(o.deliveryWindow||"")===filterWindow;
-                    return ms&&(filterStatus==="all"||o.status===filterStatus)&&(filterArea==="all"||o.area===filterArea)&&fw;
-                });
-                var addOrder=function(o){setOrders(function(p){return [o].concat(p);});};
-                var assignCourier=function(oid,cid){setOrders(function(p){return p.map(function(o){if(o.id!==oid)return o;var c=cloneOrder(o);c.courierId=cid;c.status="assigned";return c;});});};
-                return h('div',null,
-                    showAdd&&h(AddOrderModal,{onClose:function(){setShowAdd(false);},onSave:addOrder}),
-                    assignOrder&&h(AssignModal,{order:assignOrder,couriers:couriers,onClose:function(){setAssignOrder(null);},onAssign:assignCourier}),
-                    qrOrder&&h(QRModal,{order:qrOrder,onClose:function(){setQrOrder(null);}}),
-                    h('div',{className:'sec-header'},
-                        h('span',{className:'sec-title'},'📦 الأوردرات (',filtered.length,')'),
-                        h('div',{style:{display:'flex',gap:8}},
-                            h('button',{className:'btn btn-ghost btn-sm',onClick:function(){downloadCSV(orders,couriers);}},'📊 تقرير CSV'),
-                            h('button',{className:'btn btn-primary btn-sm',onClick:function(){setShowAdd(true);}},'+ أوردر جديد')
-                        )
-                    ),
-                    h('div',{className:'filter-bar'},
-                        h('input',{className:'filter-input',placeholder:'🔍 ابحث باسم العميل أو رقم الأوردر...',value:search,onChange:function(e){setSearch(e.target.value);}}),
-                        h('select',{className:'filter-select',value:filterStatus,onChange:function(e){setFilterStatus(e.target.value);}},h('option',{value:'all'},'كل الحالات'),Object.entries(statusLabel).map(function(_a){var k=_a[0],v=_a[1];return h('option',{key:k,value:k},v);})),
-                        h('select',{className:'filter-select',value:filterArea,onChange:function(e){setFilterArea(e.target.value);}},h('option',{value:'all'},'كل المناطق'),AREAS.map(function(a){return h('option',{key:a},a);})),
-                        h('select',{className:'filter-select',value:filterWindow,onChange:function(e){setFilterWindow(e.target.value);}},h('option',{value:'all'},'كل المواعيد'),DELIVERY_WINDOWS.map(function(w){return h('option',{key:w},w);}))
-                    ),
-                    h('div',{className:'table-wrap'},
-                        h('table',null,
-                            h('thead',null,h('tr',null,h('th',null,'رقم الأوردر'),h('th',null,'العميل'),h('th',null,'المنطقة'),h('th',null,'الموعد'),h('th',null,'الشحنة'),h('th',null,'القيمة'),h('th',null,'ملاحظات'),h('th',null,'المندوب'),h('th',null,'الحالة'),h('th',null,'QR'),h('th',null,'إجراء'))),
-                            h('tbody',null,filtered.length===0?h('tr',null,h('td',{colSpan:11},h('div',{className:'empty'},h('div',{className:'empty-icon'},'📦'),'لا توجد أوردرات'))):
-                            filtered.map(function(o){return h('tr',{key:o.id},
-                                h('td',{className:'td-id'},o.id),
-                                h('td',null,h('div',{className:'td-customer'},o.customer),h('div',{className:'td-sub'},o.phone)),
-                                h('td',{className:'td-sub'},o.area),
-                                h('td',{style:{fontSize:11,color:'var(--blue)',fontWeight:600}},o.deliveryWindow||h('span',{style:{color:'var(--text-muted)',fontWeight:400}},'—')),
-                                h('td',{style:{fontSize:12}},o.description),
-                                h('td',{className:'td-amount'},o.amount.toLocaleString(),' ج'),
-                                h('td',null,o.notes?h('span',{className:'td-note'},o.notes):h('span',{style:{color:'var(--text-muted)',fontSize:11}},'—')),
-                                h('td',{className:'td-sub'},o.courierId?cm[o.courierId]:h('span',{style:{color:'var(--text-muted)'}},'غير معين')),
-                                h('td',null,h(Badge,{status:o.status})),
-                                h('td',null,h('button',{className:'btn btn-sm btn-ghost',style:{fontSize:16},onClick:function(){setQrOrder(o);}},'📱')),
-                                h('td',null,
-                                    (o.status==="pending"||o.status==="assigned"||o.status==="picked_up"||o.status==="in_transit")&&h('button',{className:'btn btn-outline-orange btn-sm',onClick:function(){setAssignOrder(o);}},'تعيين'),
-                                    o.status==="returned"&&h('span',{className:'td-sub'},o.returnReason)
-                                )
-                            );}))
-                        )
-                    )
-                );
-            }
-
-            function CouriersTab(props) {
-                var couriers = props.couriers, setCouriers = props.setCouriers, orders = props.orders;
-                var _a = useState(false), showAdd = _a[0], setShowAdd = _a[1];
-                var toggle=function(id){setCouriers(function(p){return p.map(function(c){return c.id===id?{id:c.id,name:c.name,phone:c.phone,area:c.area,active:!c.active}:c;});});};
-                return h('div',null,
-                    showAdd&&h(AddCourierModal,{onClose:function(){setShowAdd(false);},onSave:function(c){setCouriers(function(p){return p.concat([c]);});}}),
-                    h('div',{className:'sec-header'},h('span',{className:'sec-title'},'🏍️ المناديب (',couriers.length,')'),h('button',{className:'btn btn-primary btn-sm',onClick:function(){setShowAdd(true);}},'+ مندوب جديد')),
-                    h('div',{className:'courier-grid'},couriers.map(function(c){
-                        var mo=orders.filter(function(o){return o.courierId===c.id;});
-                        return h('div',{className:'courier-card',key:c.id},
-                            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}},
-                                h('div',null,h('div',{className:'courier-name'},c.name),h('div',{className:'courier-info'},'📞 ',c.phone),h('div',{className:'courier-info'},'📍 ',c.area)),
-                                h('span',{className:'badge ' + (c.active?"badge-delivered":"badge-returned")},h('span',{className:'dot'}),c.active?'نشط':'غير نشط')
-                            ),
-                            h('div',{className:'courier-stats'},
-                                h('span',{className:'courier-stat green'},'✅ ',mo.filter(function(o){return o.status==="delivered";}).length,' تسليم'),
-                                h('span',{className:'courier-stat red'},'↩️ ',mo.filter(function(o){return o.status==="returned";}).length,' مرتجع'),
-                                h('span',{className:'courier-stat blue'},'🏍️ ',mo.filter(function(o){return o.status==="assigned";}).length,' جاري')
-                            ),
-                            h('div',{style:{fontSize:11,color:'var(--text-muted)',fontFamily:'monospace'}},'يوزر: courier',c.id,' / 123456'),
-                            h('button',{className:'btn btn-sm ' + (c.active?"btn-ghost":"btn-success"),onClick:function(){toggle(c.id);}},c.active?'⏸️ إيقاف':'▶️ تفعيل')
-                        );
-                    }))
-                );
-            }
-
-            function MapView(props) {
-                var orders = props.orders, couriers = props.couriers, tracking = props.tracking;
-                var mapInstance = useRef(null);
-                var markers = useRef({});
-                useEffect(function() {
-                    if (mapInstance.current) return;
-                    if (!window.L) return;
-                    var m = L.map('live-map', {center:[30.044,31.235], zoom:12, zoomControl:true});
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap', maxZoom:19}).addTo(m);
-                    mapInstance.current = m;
-                    return function() { m.remove(); };
-                }, []);
-                useEffect(function() {
-                    if (!mapInstance.current || !window.L) return;
-                    var m = mapInstance.current;
-                    Object.keys(markers.current).forEach(function(k) { m.removeLayer(markers.current[k]); });
-                    markers.current = {};
-                    couriers.forEach(function(c) {
-                        var t = tracking && tracking['c' + c.id];
-                        if (t && t.lat && t.lng) {
-                            var activeOrders = orders.filter(function(o){return o.courierId===c.id && o.status!=="delivered"&&o.status!=="returned";}).length;
-                            var icon = L.divIcon({
-                                className:'',
-                                html:'<div style="background:#1a1a1a;color:white;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🏍️ ' + c.name + ' (' + activeOrders + ')</div>',
-                                iconSize:[0,0], iconAnchor:[0,0]
-                            });
-                            var marker = L.marker([t.lat, t.lng], {icon:icon}).addTo(m);
-                            marker.bindPopup('<div style="font-family:Cairo;direction:rtl;text-align:right;font-size:13px;"><strong>' + c.name + '</strong><br/>📞 ' + c.phone + '<br/>📍 ' + c.area + '<br/>🕐 ' + (t.updatedAt?new Date(t.updatedAt).toLocaleTimeString('ar-EG'):'') + '<br/>📦 أوردرات: ' + activeOrders + ' نشطة</div>');
-                            markers.current['c' + c.id] = marker;
-                        }
-                    });
-                }, [couriers, tracking, orders]);
-                return h('div',{style:{borderRadius:'var(--radius-lg)',overflow:'hidden',border:'1px solid var(--border)'}},
-                    h('div',{id:'live-map',style:{height:'500px',width:'100%'}}),
-                    h('div',{style:{fontSize:11,color:'var(--text-muted)',padding:'6px 12px',textAlign:'center',background:'var(--bg-card)'}},'🏍️ مواقع المناديب الحية · التحديث كل 5 ثوانٍ')
-                );
-            }
-
-            function AdminPanel(props) {
-                var user = props.user, orders = props.orders, setOrders = props.setOrders, couriers = props.couriers, setCouriers = props.setCouriers, tracking = props.tracking, onLogout = props.onLogout, users = props.users || [], setUsers = props.setUsers, journalEntries = props.journalEntries || [], setJournalEntries = props.setJournalEntries;
-                var _a = useState("dashboard"), tab = _a[0], setTab = _a[1];
-                var _b = useState(""), syncMsg = _b[0], setSyncMsg = _b[1];
-                // Profile edit state
-                var _c = useState(""), editName = _c[0], setEditName = _c[1];
-                var _d = useState(""), oldPass = _d[0], setOldPass = _d[1];
-                var _e = useState(""), newPass = _e[0], setNewPass = _e[1];
-                var _f = useState(""), profileMsg = _f[0], setProfileMsg = _f[1];
-                // User management state
-                var _g = useState(""), newEmail = _g[0], setNewEmail = _g[1];
-                var _h = useState(""), newName = _h[0], setNewName = _h[1];
-                var _i = useState(""), newPassU = _i[0], setNewPassU = _i[1];
-                var _j = useState("courier"), newRole = _j[0], setNewRole = _j[1];
-                var _k = useState(""), userMsg = _k[0], setUserMsg = _k[1];
-                var _l = useState(null), editUser = _l[0], setEditUser = _l[1];
-                var tabs=[{id:"dashboard",label:"📊 الرئيسية"},{id:"orders",label:"📦 الأوردرات"},{id:"couriers",label:"🏍️ المناديب"},{id:"map",label:"🗺️ الخريطة"},{id:"profile",label:"👤 الملف الشخصي"}];
-                if (user.role === "chairman") { tabs.push({id:"users",label:"👥 إدارة المستخدمين"}); tabs.push({id:"accounting",label:"📒 المحاسبة"}); tabs.push({id:"profits",label:"📊 أرباح المناديب"}); }
-                function forceSync() {
-                    setSyncMsg("جاري المزامنة...");
-                    var o = {}; orders.forEach(function(v){o[v.id]=v;});
-                    var c = {}; couriers.forEach(function(v){c['c'+v.id]=v;});
-                    Promise.all([
-                        fetch("https://flash-go-b7d17-default-rtdb.europe-west1.firebasedatabase.app/flashgo/orders.json",{method:"PUT",body:JSON.stringify(o),headers:{"Content-Type":"application/json"}}),
-                        fetch("https://flash-go-b7d17-default-rtdb.europe-west1.firebasedatabase.app/flashgo/couriers.json",{method:"PUT",body:JSON.stringify(c),headers:{"Content-Type":"application/json"}})
-                    ]).then(function() { setSyncMsg("✅ تمت المزامنة مع Firebase"); setTimeout(function(){setSyncMsg("");},3000); })
-                    .catch(function() { setSyncMsg("❌ فشلت المزامنة"); });
-                }
-                function handleUpdateProfile() {
-                    var cur = users.find(function(u){return u.id===user.id;});
-                    if (!cur) { setProfileMsg("❌ لم يتم العثور على المستخدم"); return; }
-                    if (oldPass && oldPass !== cur.password) { setProfileMsg("❌ كلمة المرور القديمة غير صحيحة"); return; }
-                    var updated = users.map(function(u){
-                        if (u.id !== user.id) return u;
-                        var nu = {}; for (var k in u) nu[k] = u[k];
-                        if (editName) nu.name = editName;
-                        if (newPass) nu.password = newPass;
-                        return nu;
-                    });
-                    setUsers(updated);
-                    var nu = updated.find(function(u){return u.id===user.id;});
-                    if (props.onLogin) props.onLogin(nu);
-                    setProfileMsg("✅ تم تحديث الملف الشخصي");
-                    setOldPass(""); setNewPass(""); setEditName("");
-                }
-                return h('div',{style:{display:'flex',flexDirection:'column',minHeight:'100vh'}},
-                    h('nav',{className:'nav'},
-                        h('div',{className:'logo'},'FLASH ',h('span',null,'GO')),
-                        h('div',{className:'nav-user'},
-                            h('div',{style:{textAlign:'left'}},h('div',{style:{fontSize:13,fontWeight:700,color:'var(--black)'}},user.name),h('div',{className:'nav-info'},user.role==="chairman"?'رئيس مجلس الإدارة':'المدير العام')),
-                            h('div',{className:'avatar'},user.name.charAt(0)),
-                            h('button',{className:'btn btn-sm btn-outline-orange',style:{fontSize:11},onClick:forceSync},'📡 مزامنة'),
-                            syncMsg && h('span',{style:{fontSize:11,color:'var(--green)',fontWeight:600}},syncMsg),
-                            h('button',{className:'btn btn-ghost btn-sm',onClick:onLogout},'🚪 خروج')
-                        )
-                    ),
-                    h('div',{className:'tabs'},tabs.map(function(t){return h('button',{key:t.id,className:'tab ' + (tab===t.id?"active":""),onClick:function(){setTab(t.id);}},t.label);})),
-                    h('div',{className:'main'},
-                        tab==="dashboard"&&h(DashboardTab,{orders:orders,couriers:couriers}),
-                        tab==="orders"&&h(OrdersTab,{orders:orders,couriers:couriers,setOrders:setOrders}),
-                        tab==="couriers"&&h(CouriersTab,{couriers:couriers,setCouriers:setCouriers,orders:orders}),
-                        tab==="map"&&h('div',null,
-                            h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:14}},
-                                h('button',{className:'btn btn-ghost btn-sm',style:{fontSize:13,fontWeight:700},onClick:function(){setTab('dashboard');}},'← رجوع'),
-                                h('span',{style:{fontSize:16,fontWeight:800}},'🗺️ الخريطة')
-                            ),
-                            h(MapView,{orders:orders,couriers:couriers,tracking:tracking})
-                        ),
-                        tab==="profile" && h('div',{style:{maxWidth:500,margin:'0 auto'}},
-                            h('div',{className:'sec-title',style:{marginBottom:18}},'👤 الملف الشخصي'),
-                            profileMsg && h('div',{className:'alert ' + (profileMsg.indexOf('✅')!==-1?'alert-success':'alert-error')},profileMsg),
-                            h('div',{className:'table-wrap',style:{padding:24}},
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'📧 البريد الإلكتروني'),h('input',{className:'form-input',value:user.email,disabled:true,style:{opacity:0.6}})),
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'👤 الاسم'),h('input',{className:'form-input',value:editName||user.name,onChange:function(e){setEditName(e.target.value);},placeholder:'الاسم الجديد'})),
-                                h('div',{style:{height:1,background:'var(--border)',margin:'20px 0'}}),
-                                h('div',{style:{fontSize:14,fontWeight:700,marginBottom:12,color:'var(--black)'}},'🔑 تغيير كلمة المرور'),
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'🔒 كلمة المرور القديمة'),h('input',{className:'form-input',type:'password',value:oldPass,onChange:function(e){setOldPass(e.target.value);},placeholder:'أدخل كلمة المرور الحالية'})),
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'🆕 كلمة المرور الجديدة'),h('input',{className:'form-input',type:'password',value:newPass,onChange:function(e){setNewPass(e.target.value);},placeholder:'كلمة المرور الجديدة'})),
-                                h('button',{className:'btn btn-primary btn-block',onClick:handleUpdateProfile},'💾 حفظ التغييرات')
-                            )
-                        ),
-                        tab==="users" && user.role==="chairman" && h('div',null,
-                            editUser ? h('div',null,
-                                h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:18}},
-                                    h('button',{className:'btn btn-ghost btn-sm',style:{fontSize:13,fontWeight:700},onClick:function(){setEditUser(null);}},'← رجوع'),
-                                    h('span',{style:{fontSize:16,fontWeight:800}},'✏️ تعديل المستخدم')
-                                ),
-                                userMsg && h('div',{className:'alert ' + (userMsg.indexOf('✅')!==-1?'alert-success':'alert-error')},userMsg),
-                                h('div',{className:'table-wrap',style:{padding:24}},
-                                    h('div',{style:{display:'flex',flexDirection:'column',gap:16,marginBottom:20,background:'var(--bg-secondary)',padding:14,borderRadius:'var(--radius-lg)'}},
-                                        h('div',{style:{fontSize:13,fontWeight:700,color:'var(--text-muted)'}},'بيانات الحساب'),
-                                        h('div',{style:{fontSize:18,fontWeight:800}},editUser.name),
-                                        h('div',{style:{fontSize:14,display:'flex',gap:12,flexWrap:'wrap'}},
-                                            h('span',{style:{display:'flex',alignItems:'center',gap:4}},'📧 ',editUser.email),
-                                            h('span',{className:'badge ' + (editUser.role==='chairman'?'badge-assigned':editUser.role==='gm'?'badge-pending':'badge-delivered')},editUser.role==='chairman'?'رئيس':editUser.role==='gm'?'مدير':'مندوب'),
-                                            h('span',{style:{fontSize:12,color:'var(--text-muted)'}},'🔑 كلمة المرور: ',editUser.password)
-                                        )
-                                    ),
-                                    h('div',{style:{fontSize:14,fontWeight:700,marginBottom:14}},'تعديل البيانات'),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📧 البريد الإلكتروني'),h('input',{className:'form-input',dir:'ltr',style:{textAlign:'left'},value:newEmail,onChange:function(e){setNewEmail(e.target.value);}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'👤 الاسم'),h('input',{className:'form-input',value:newName,onChange:function(e){setNewName(e.target.value);}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🔒 كلمة المرور (اتركه فارغاً إذا لم ترد التغيير)'),h('input',{className:'form-input',value:newPassU,onChange:function(e){setNewPassU(e.target.value);},placeholder:'اتركه فارغاً إذا لم ترد التغيير'})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🎭 الدور'),h('select',{className:'form-select',value:newRole,onChange:function(e){setNewRole(e.target.value);}},h('option',{value:'courier'},'مندوب'),h('option',{value:'gm'},'مدير عام'),h('option',{value:'chairman'},'رئيس'))),
-                                    h('div',{style:{display:'flex',gap:8,marginTop:8}},
-                                        h('button',{className:'btn btn-primary',style:{flex:1,justifyContent:'center',padding:'12px 0'},onClick:function(){
-                                            if (!newEmail||!newName) { setUserMsg('❌ البريد الإلكتروني والاسم مطلوبان'); return; }
-                                            var dup = users.find(function(u){return u.email===newEmail && u.id!==editUser.id;});
-                                            if (dup) { setUserMsg('❌ البريد الإلكتروني موجود مسبقاً'); return; }
-                                            setUsers(users.map(function(u){
-                                                if (u.id !== editUser.id) return u;
-                                                var nu = {}; for (var k in u) nu[k] = u[k];
-                                                nu.email = newEmail; nu.name = newName; nu.role = newRole;
-                                                if (newPassU) nu.password = newPassU;
-                                                return nu;
-                                            }));
-                                            setUserMsg('✅ تم تعديل المستخدم بنجاح');
-                                            setEditUser(null); setNewEmail(''); setNewName(''); setNewPassU(''); setNewRole('courier');
-                                            setTimeout(function(){setUserMsg('');},3000);
-                                        }},'💾 حفظ التعديلات'),
-                                        h('button',{className:'btn btn-ghost',style:{padding:'12px 24px',justifyContent:'center'},onClick:function(){
-                                            setEditUser(null); setNewEmail(''); setNewName(''); setNewPassU(''); setNewRole('courier');
-                                        }},'✕ إلغاء')
-                                    )
-                                )
-                            ) : h('div',null,
-                                h('div',{className:'sec-title',style:{marginBottom:18}},'👥 إدارة المستخدمين'),
-                                userMsg && h('div',{className:'alert ' + (userMsg.indexOf('✅')!==-1?'alert-success':'alert-error')},userMsg),
-                                h('div',{className:'table-wrap',style:{marginBottom:24}},
-                                    h('table',null,
-                                        h('thead',null,h('tr',null,h('th',null,'البريد الإلكتروني'),h('th',null,'الاسم'),h('th',null,'الدور'),h('th',null,'إجراء'))),
-                                        h('tbody',null,users.map(function(u){return h('tr',{key:u.id},
-                                            h('td',{dir:'ltr',style:{textAlign:'left',fontSize:12}},u.email),
-                                            h('td',null,u.name),
-                                            h('td',null,h('span',{className:'badge ' + (u.role==='chairman'?'badge-assigned':u.role==='gm'?'badge-pending':'badge-delivered')},u.role==='chairman'?'رئيس':u.role==='gm'?'مدير':'مندوب')),
-                                            h('td',null,
-                                                u.id!=='u1'&&h('button',{className:'btn btn-sm btn-outline',style:{marginLeft:4,fontSize:11,padding:'4px 8px'},onClick:function(){
-                                                    setEditUser(u); setNewEmail(u.email); setNewName(u.name); setNewPassU(''); setNewRole(u.role);
-                                                }},'✏️ تعديل'),
-                                                u.id!=='u1'&&h('button',{className:'btn btn-sm btn-danger',style:{fontSize:11,padding:'4px 8px'},onClick:function(){
-                                                    if (!confirm('تأكيد حذف المستخدم '+u.name+'؟')) return;
-                                                    setUsers(users.filter(function(x){return x.id!==u.id;}));
-                                                    setUserMsg('✅ تم حذف المستخدم');
-                                                    setTimeout(function(){setUserMsg('');},3000);
-                                                }},'🗑️ حذف')
-                                            )
-                                        );}))
-                                    )
-                                ),
-                                h('div',{className:'sec-title',style:{marginBottom:14}},'➕ إضافة مستخدم جديد'),
-                                h('div',{className:'table-wrap',style:{padding:24}},
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📧 البريد الإلكتروني'),h('input',{className:'form-input',dir:'ltr',style:{textAlign:'left'},value:newEmail,onChange:function(e){setNewEmail(e.target.value);},placeholder:'email@example.com'})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'👤 الاسم'),h('input',{className:'form-input',value:newName,onChange:function(e){setNewName(e.target.value);},placeholder:'الاسم الكامل'})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🔒 كلمة المرور'),h('input',{className:'form-input',value:newPassU,onChange:function(e){setNewPassU(e.target.value);},placeholder:'كلمة المرور'})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🎭 الدور'),h('select',{className:'form-select',value:newRole,onChange:function(e){setNewRole(e.target.value);}},h('option',{value:'courier'},'مندوب'),h('option',{value:'gm'},'مدير عام'),h('option',{value:'chairman'},'رئيس'))),
-                                    h('button',{className:'btn btn-primary btn-block',onClick:function(){
-                                        if (!newEmail||!newName||!newPassU) { setUserMsg('❌ يرجى ملء جميع الحقول'); return; }
-                                        if (users.find(function(u){return u.email===newEmail;})) { setUserMsg('❌ البريد الإلكتروني موجود مسبقاً'); return; }
-                                        var newId = 'u' + (Date.now());
-                                        setUsers(users.concat([{id:newId, email:newEmail, password:newPassU, name:newName, role:newRole}]));
-                                        setUserMsg('✅ تم إضافة المستخدم بنجاح');
-                                        setNewEmail(''); setNewName(''); setNewPassU(''); setNewRole('courier');
-                                        setTimeout(function(){setUserMsg('');},3000);
-                                    }},'💾 حفظ المستخدم')
-                                )
-                            )
-                        ),
-                        tab==="accounting" && user.role==="chairman" && h(AccountingTab,{journalEntries:journalEntries,setJournalEntries:setJournalEntries,orders:orders,couriers:couriers}),
-                        tab==="profits" && user.role==="chairman" && h(CourierProfitsTab,{orders:orders,couriers:couriers,setCouriers:setCouriers})
                     )
                 );
             }
@@ -2354,723 +1818,16 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 );
             }
 
-            // ── Courier Profits Tab ─────────────────────────────────────
-            function CourierProfitsTab(props) {
-                var orders = props.orders, couriers = props.couriers, setCouriers = props.setCouriers;
-                var _a = useState("monthly"), subTab = _a[0], setSubTab = _a[1];
-                var _b = useState("all"), filterC = _b[0], setFilterC = _b[1];
-                var _c = useState(""), monthFilter = _c[0], setMonthFilter = _c[1];
-                var _d = useState(""), dayFilter = _d[0], setDayFilter = _d[1];
-                var _e = useState(null), editC = _e[0], setEditC = _e[1];
-                var _f = useState(""), editMsg = _f[0], setEditMsg = _f[1];
-                var _g = useState(""), logMsg = _g[0], setLogMsg = _g[1];
-                var _h = useState({}), discForm = _h[0], setDiscForm = _h[1];
-                var _i = useState({}), logForm = _i[0], setLogForm = _i[1];
-                var savedDisc = []; try{var _sd=localStorage.getItem('fg_discounts');if(_sd)savedDisc=JSON.parse(_sd);}catch(e){}
-                var savedLogs = []; try{var _sl=localStorage.getItem('fg_dailylogs');if(_sl)savedLogs=JSON.parse(_sl);}catch(e){}
-                var _j = useState(savedDisc), discounts = _j[0], setDiscounts = _j[1];
-                var _k = useState(savedLogs), dailyLogs = _k[0], setDailyLogs = _k[1];
-                useEffect(function(){localStorage.setItem('fg_discounts',JSON.stringify(discounts));},[discounts]);
-                useEffect(function(){localStorage.setItem('fg_dailylogs',JSON.stringify(dailyLogs));},[dailyLogs]);
-                function getC(cId){return couriers.find(function(c){return c.id===cId;});}
-                var now = new Date(), thisMonth = now.toISOString().slice(0,7), today = now.toISOString().slice(0,10);
-                var mf = monthFilter || thisMonth;
-                var monthlyRows = [];
-                var filteredCouriers = filterC==="all"?couriers:[getC(filterC)].filter(Boolean);
-                filteredCouriers.forEach(function(c){
-                    var cLogs = dailyLogs.filter(function(l){return l.courierId===c.id && l.date.slice(0,7)===mf;});
-                    if (cLogs.length===0) return;
-                    var days = {}; cLogs.forEach(function(l){days[l.date]=true;});
-                    var total = cLogs.reduce(function(s,l){return s+(parseInt(l.shipments)||0);},0);
-                    var delivered = cLogs.reduce(function(s,l){return s+(parseInt(l.deliveries)||0);},0);
-                    var returned = cLogs.reduce(function(s,l){return s+(parseInt(l.returns)||0);},0);
-                    var gross = cLogs.reduce(function(s,l){return s+((parseInt(l.deliveries)||0)*(parseFloat(l.pricePerShipment)||0));},0);
-                    var extraExp = cLogs.reduce(function(s,l){return s+(parseFloat(l.expenses)||0);},0);
-                    var monthDisc = discounts.filter(function(d){return d.courierId===c.id && d.month===mf;});
-                    var discSum = monthDisc.reduce(function(s,d){return s+(parseFloat(d.amount)||0);},0);
-                    var bs = parseFloat(c.baseSalary)||0;
-                    var net = gross - discSum + bs - extraExp;
-                    monthlyRows.push({courier:c,workingDays:Object.keys(days).length,total:total,delivered:delivered,returned:returned,gross:gross,discounts:discSum,baseSalary:bs,expenses:extraExp,net:net,monthDiscs:monthDisc,logs:cLogs});
-                });
-                monthlyRows.sort(function(a,b){return b.net-a.net;});
-                var filteredLogs = dailyLogs.slice();
-                if (filterC!=="all") filteredLogs = filteredLogs.filter(function(l){return l.courierId===filterC;});
-                if (dayFilter) filteredLogs = filteredLogs.filter(function(l){return l.date===dayFilter;});
-                filteredLogs.sort(function(a,b){return b.date.localeCompare(a.date) || a.courierId-b.courierId;});
-                function addLog() {
-                    if (!logForm.courierId || !logForm.date) { setLogMsg('❌ المندوب والتاريخ مطلوبان'); setTimeout(function(){setLogMsg('');},2000); return; }
-                    setDailyLogs(function(p){return p.concat([{
-                        id:Date.now(), date:logForm.date, courierId:logForm.courierId,
-                        company:logForm.company||'', shipments:parseInt(logForm.shipments)||0,
-                        deliveries:parseInt(logForm.deliveries)||0, returns:parseInt(logForm.returns)||0,
-                        pricePerShipment:parseFloat(logForm.pricePerShipment)||0,
-                        expenses:parseFloat(logForm.expenses)||0, note:logForm.note||''
-                    }]);});
-                    setLogMsg('✅ تم إضافة السجل اليومي');
-                    setLogForm({});
-                    setTimeout(function(){setLogMsg('');},2000);
-                }
-                function deleteLog(id){setDailyLogs(function(p){return p.filter(function(l){return l.id!==id;});});}
-                function addDiscount() {
-                    if (!discForm.courierId || !discForm.amount) return;
-                    setDiscounts(function(p){return p.concat([{id:Date.now(),courierId:discForm.courierId,month:discForm.month||thisMonth,amount:parseFloat(discForm.amount)||0,reason:discForm.reason||''}]);});
-                    setDiscForm({}); setLogMsg('✅ تم إضافة الخصم');
-                    setTimeout(function(){setLogMsg('');},2000);
-                }
-                function deleteDisc(id){setDiscounts(function(p){return p.filter(function(d){return d.id!==id;});});}
-                function saveCourierEdit(){
-                    if (!editC) return;
-                    var cid = editC.id;
-                    setCouriers(function(prev){return prev.map(function(c){if(c.id!==cid)return c;return Object.assign({},c,{name:editC.name,phone:editC.phone,area:editC.area,code:editC.code,nationalId:editC.nationalId,referrer:editC.referrer,hireDate:editC.hireDate,pricePerShipment:editC.pricePerShipment,baseSalary:editC.baseSalary,vehicleType:editC.vehicleType,plateNumber:editC.plateNumber,active:editC.active,notes:editC.notes});});});
-                    setEditMsg('✅ تم حفظ بيانات المندوب');
-                    setEditC(null);
-                    setTimeout(function(){setEditMsg('');},2000);
-                }
-                return h('div',null,
-                    h('div',{className:'sec-title',style:{marginBottom:14}},'📊 أرباح المناديب'),
-                    h('div',{className:'cp-tabs'},
-                        h('button',{className:'cp-tab'+(subTab==='monthly'?' active':''),onClick:function(){setSubTab('monthly');}},'📆 الحساب الشهري'),
-                        h('button',{className:'cp-tab'+(subTab==='daily'?' active':''),onClick:function(){setSubTab('daily');}},'📋 السجل اليومي'),
-                        h('button',{className:'cp-tab'+(subTab==='data'?' active':''),onClick:function(){setSubTab('data');}},'👤 بيانات المناديب')
-                    ),
-                    subTab==='monthly' && h('div',null,
-                        h('div',{className:'cp-filter-bar'},
-                            h('label',{style:{fontSize:13,fontWeight:600}},'المندوب:'),
-                            h('select',{className:'form-select',value:filterC,onChange:function(e){setFilterC(e.target.value);}},
-                                h('option',{value:'all'},'الكل'),
-                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},(c.code||'')+' - '+c.name);})
-                            ),
-                            h('label',{style:{fontSize:13,fontWeight:600}},'الشهر:'),
-                            h('input',{type:'month',className:'form-input',style:{width:'auto',maxWidth:160},value:monthFilter,onChange:function(e){setMonthFilter(e.target.value);}})
-                        ),
-                        monthlyRows.length===0?h('div',{style:{padding:20,textAlign:'center',color:'var(--text-muted)'}},'لا توجد سجلات يومية لهذا الشهر'):
-                        h('div',{className:'table-wrap'},
-                            h('table',{className:'cp-table'},
-                                h('thead',null,h('tr',null,
-                                    h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'أيام العمل'),h('th',null,'إجمالي الشحنات'),
-                                    h('th',null,'تم التسليم'),h('th',null,'مرتجع'),h('th',null,'الإجمالي'),h('th',null,'مصاريف'),
-                                    h('th',null,'الخصم'),h('th',null,'الراتب'),h('th',null,'المستحق')
-                                )),
-                                h('tbody',null,monthlyRows.map(function(r){
-                                    return h('tr',{key:r.courier.id},
-                                        h('td',{style:{fontSize:11,fontWeight:600,color:'var(--text-muted)'}},r.courier.code||''),
-                                        h('td',{style:{fontWeight:600}},'🏍️ '+r.courier.name),
-                                        h('td',null,r.workingDays),
-                                        h('td',null,r.total),
-                                        h('td',{style:{color:'var(--green)',fontWeight:600}},r.delivered),
-                                        h('td',{style:{color:'var(--red)',fontWeight:600}},r.returned),
-                                        h('td',{style:{fontWeight:600}},r.gross.toLocaleString()+' ج'),
-                                        h('td',{style:{color:'var(--orange)'}},r.expenses>0?r.expenses.toLocaleString()+' ج':'—'),
-                                        h('td',{style:{color:'var(--red)'}},r.discounts>0?r.discounts.toLocaleString()+' ج':'—'),
-                                        h('td',null,r.baseSalary>0?r.baseSalary.toLocaleString()+' ج':'—'),
-                                        h('td',{className:'cp-due'},r.net.toLocaleString()+' ج')
-                                    );
-                                }))
-                            )
-                        ),
-                        h('div',{style:{marginTop:16}},
-                            h('div',{style:{fontSize:14,fontWeight:700,marginBottom:10}},'➕ خصومات / غرامات'),
-                            logMsg && h('div',{className:'alert '+(logMsg.indexOf('✅')!==-1?'alert-success':'alert-error'),style:{marginBottom:8}},logMsg),
-                            h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',alignItems:'end'}},
-                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
-                                    h('select',{className:'form-select',value:discForm.courierId||'',onChange:function(e){setDiscForm(function(f){return Object.assign({},f,{courierId:e.target.value,month:mf});});}},
-                                    h('option',{value:''},'المندوب'),
-                                    couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name);}))
-                                ),
-                                h('div',{className:'form-group',style:{flex:1,minWidth:100}},
-                                    h('input',{className:'form-input',type:'number',placeholder:'المبلغ',value:discForm.amount||'',onChange:function(e){setDiscForm(function(f){return Object.assign({},f,{amount:e.target.value});});}})
-                                ),
-                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
-                                    h('input',{className:'form-input',placeholder:'السبب',value:discForm.reason||'',onChange:function(e){setDiscForm(function(f){return Object.assign({},f,{reason:e.target.value});});}})
-                                ),
-                                h('button',{className:'btn btn-sm btn-primary',style:{padding:'8px 16px'},onClick:addDiscount},'💾 حفظ الخصم')
-                            ),
-                            discounts.filter(function(d){return d.month===mf;}).length>0 && h('div',{style:{marginTop:8,fontSize:12}},
-                                h('span',{style:{fontWeight:600}},'الخصومات المسجلة: '),
-                                discounts.filter(function(d){return d.month===mf;}).map(function(d,i){
-                                    var c = getC(d.courierId); return h('span',{key:d.id,style:{background:'var(--bg-secondary)',padding:'2px 8px',borderRadius:4,margin:'2px 4px',display:'inline-block'}},(c?c.name:'')+': '+d.amount+' ج'+(d.reason?' ('+d.reason+')':'')+' ',h('span',{style:{cursor:'pointer',color:'var(--red)',fontWeight:700},onClick:function(){deleteDisc(d.id);}},'×'));
-                                })
-                            )
-                        )
-                    ),
-                    subTab==='daily' && h('div',null,
-                        h('div',{style:{fontSize:15,fontWeight:800,marginBottom:12}},'➕ إدخال يومي جديد'),
-                        logMsg && h('div',{className:'alert '+(logMsg.indexOf('✅')!==-1?'alert-success':'alert-error'),style:{marginBottom:8}},logMsg),
-                        h('div',{className:'table-wrap',style:{padding:20,marginBottom:20}},
-                            h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:10}},
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'📅 التاريخ'),h('input',{type:'date',className:'form-input',value:logForm.date||today,onChange:function(e){setLogForm(function(f){return Object.assign({},f,{date:e.target.value});});}})),
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'🏍️ المندوب'),h('select',{className:'form-select',value:logForm.courierId||'',onChange:function(e){
-                                    var v=e.target.value;var c=getC(parseInt(v));setLogForm(function(f){return Object.assign({},f,{courierId:parseInt(v),pricePerShipment:c?c.pricePerShipment:0});});
-                                }},h('option',{value:''},'-- اختر --'),
-                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},(c.code||'')+' - '+c.name);}))),
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'🏢 الشركة'),h('input',{className:'form-input',value:logForm.company||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{company:e.target.value});});}})),
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'📦 عدد الشحنات'),h('input',{type:'number',className:'form-input',value:logForm.shipments||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{shipments:e.target.value});});}})),
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'✅ عدد التسليمات'),h('input',{type:'number',className:'form-input',value:logForm.deliveries||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{deliveries:e.target.value});});}})),
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'↩️ عدد المرتجعات'),h('input',{type:'number',className:'form-input',value:logForm.returns||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{returns:e.target.value});});}})),
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'💰 سعر الشحنة'),h('input',{type:'number',className:'form-input',value:logForm.pricePerShipment||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{pricePerShipment:e.target.value});});}})),
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'💸 مصاريف إضافية'),h('input',{type:'number',className:'form-input',value:logForm.expenses||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{expenses:e.target.value});});}})),
-                                h('div',{className:'form-group'},h('label',{className:'form-label'},'📝 ملاحظات'),h('input',{className:'form-input',value:logForm.note||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{note:e.target.value});});}}))
-                            ),
-                            h('button',{className:'btn btn-primary',style:{marginTop:12,justifyContent:'center'},onClick:addLog},'💾 حفظ السجل اليومي')
-                        ),
-                        h('div',{style:{fontSize:14,fontWeight:800,marginBottom:10}},'📋 السجلات المسجلة'),
-                        h('div',{className:'cp-filter-bar'},
-                            h('label',{style:{fontSize:13,fontWeight:600}},'المندوب:'),
-                            h('select',{className:'form-select',value:filterC,onChange:function(e){setFilterC(e.target.value);}},
-                                h('option',{value:'all'},'الكل'),
-                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},(c.code||'')+' - '+c.name);})
-                            ),
-                            h('label',{style:{fontSize:13,fontWeight:600}},'التاريخ:'),
-                            h('input',{type:'date',className:'form-input',style:{width:'auto'},value:dayFilter,onChange:function(e){setDayFilter(e.target.value);}})
-                        ),
-                        filteredLogs.length===0?h('div',{style:{padding:20,textAlign:'center',color:'var(--text-muted)'}},'لا توجد سجلات'):
-                        h('div',{className:'table-wrap'},
-                            h('table',{className:'cp-table'},
-                                h('thead',null,h('tr',null,
-                                    h('th',null,'التاريخ'),h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'الشركة'),
-                                    h('th',null,'الشحنات'),h('th',null,'التسليمات'),h('th',null,'مرتجع'),
-                                    h('th',null,'سعر الشحنة'),h('th',null,'مصاريف'),h('th',null,'الإجمالي'),h('th',null,'حذف')
-                                )),
-                                h('tbody',null,filteredLogs.map(function(l){
-                                    var c = getC(l.courierId);
-                                    var total = (parseInt(l.deliveries)||0)*(parseFloat(l.pricePerShipment)||0);
-                                    return h('tr',{key:l.id},
-                                        h('td',{style:{fontWeight:600}},l.date),
-                                        h('td',{style:{fontSize:11,color:'var(--text-muted)'}},c?c.code:''),
-                                        h('td',null,c?c.name:''),
-                                        h('td',null,l.company||'—'),
-                                        h('td',null,l.shipments),
-                                        h('td',{style:{color:'var(--green)',fontWeight:600}},l.deliveries),
-                                        h('td',{style:{color:'var(--red)',fontWeight:600}},l.returns),
-                                        h('td',null,(parseFloat(l.pricePerShipment)||0).toLocaleString()+' ج'),
-                                        h('td',{style:{color:'var(--orange)'}},(parseFloat(l.expenses)||0).toLocaleString()+' ج'),
-                                        h('td',{style:{fontWeight:600}},total.toLocaleString()+' ج'),
-                                        h('td',null,h('button',{className:'btn btn-sm btn-danger',style:{fontSize:10,padding:'2px 6px'},onClick:function(){deleteLog(l.id);}},'🗑️'))
-                                    );
-                                }))
-                            )
-                        )
-                    ),
-                    subTab==='data' && h('div',null,
-                        editC ? h('div',null,
-                            h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:16}},
-                                h('button',{className:'btn btn-ghost btn-sm',style:{fontSize:13,fontWeight:700},onClick:function(){setEditC(null);}},'← رجوع'),
-                                h('span',{style:{fontSize:16,fontWeight:800}},'✏️ تعديل بيانات المندوب')
-                            ),
-                            editMsg && h('div',{className:'alert alert-success',style:{marginBottom:10}},editMsg),
-                            h('div',{className:'table-wrap',style:{padding:20}},
-                                h('div',{className:'cp-edit-form'},
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🏷️ كود المندوب'),h('input',{className:'form-input',value:editC.code||'',onChange:function(e){setEditC(Object.assign({},editC,{code:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'👤 الاسم'),h('input',{className:'form-input',value:editC.name||'',onChange:function(e){setEditC(Object.assign({},editC,{name:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📞 الهاتف'),h('input',{className:'form-input',dir:'ltr',value:editC.phone||'',onChange:function(e){setEditC(Object.assign({},editC,{phone:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📍 المنطقة'),h('input',{className:'form-input',value:editC.area||'',onChange:function(e){setEditC(Object.assign({},editC,{area:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🆔 الرقم القومي'),h('input',{className:'form-input',dir:'ltr',value:editC.nationalId||'',onChange:function(e){setEditC(Object.assign({},editC,{nationalId:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🤝 المُرَشِّح'),h('input',{className:'form-input',value:editC.referrer||'',onChange:function(e){setEditC(Object.assign({},editC,{referrer:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📅 تاريخ التعيين'),h('input',{type:'date',className:'form-input',value:editC.hireDate||'',onChange:function(e){setEditC(Object.assign({},editC,{hireDate:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'💰 الراتب الأساسي'),h('input',{type:'number',className:'form-input',value:editC.baseSalary||0,onChange:function(e){setEditC(Object.assign({},editC,{baseSalary:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'💵 سعر الشحنة'),h('input',{type:'number',className:'form-input',value:editC.pricePerShipment||0,onChange:function(e){setEditC(Object.assign({},editC,{pricePerShipment:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🚗 وسيلة النقل'),h('select',{className:'form-select',value:editC.vehicleType||'motorcycle',onChange:function(e){setEditC(Object.assign({},editC,{vehicleType:e.target.value}));}},h('option',{value:'motorcycle'},'موتوسيكل'),h('option',{value:'car'},'عربية'),h('option',{value:'bicycle'},'عجلة'))),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🔖 رقم اللوحة'),h('input',{className:'form-input',dir:'ltr',value:editC.plateNumber||'',onChange:function(e){setEditC(Object.assign({},editC,{plateNumber:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'⚡ الحالة'),h('select',{className:'form-select',value:editC.active?'true':'false',onChange:function(e){setEditC(Object.assign({},editC,{active:e.target.value==='true'}));}},h('option',{value:'true'},'نشط'),h('option',{value:'false'},'غير نشط'))),
-                                    h('div',{className:'form-group full-width'},h('label',{className:'form-label'},'📝 ملاحظات'),h('input',{className:'form-input',value:editC.notes||'',onChange:function(e){setEditC(Object.assign({},editC,{notes:e.target.value}));}})),
-                                ),
-                                h('div',{style:{display:'flex',gap:8,marginTop:12}},
-                                    h('button',{className:'btn btn-primary',style:{flex:1,justifyContent:'center',padding:'12px 0'},onClick:saveCourierEdit},'💾 حفظ البيانات'),
-                                    h('button',{className:'btn btn-ghost',style:{padding:'12px 24px'},onClick:function(){setEditC(null);}},'✕ إلغاء')
-                                )
-                            )
-                        ) : h('div',null,
-                            h('div',{className:'cp-filter-bar'},
-                                h('label',{style:{fontSize:13,fontWeight:600}},'بحث:'),
-                                h('input',{className:'form-input',style:{maxWidth:250},placeholder:'ابحث بالاسم أو الكود',value:filterC==='all'?'':filterC==='active'?'':filterC,onChange:function(e){
-                                    var q=e.target.value;if(!q)setFilterC('all');else setFilterC(q);
-                                }})
-                            ),
-                            h('div',{className:'table-wrap'},
-                                h('table',{className:'cp-table'},
-                                    h('thead',null,h('tr',null,
-                                        h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'المنطقة'),h('th',null,'الراتب'),h('th',null,'سعر الشحنة'),h('th',null,'الحالة'),h('th',null,'إجراء')
-                                    )),
-                                    h('tbody',null,couriers.map(function(c){
-                                        return h('tr',{key:c.id},
-                                            h('td',{style:{fontSize:11,color:'var(--text-muted)',fontWeight:600}},c.code||''),
-                                            h('td',{style:{fontWeight:600}},'🏍️ '+c.name),
-                                            h('td',null,c.area),
-                                            h('td',null,(parseFloat(c.baseSalary)||0).toLocaleString()+' ج'),
-                                            h('td',null,(parseFloat(c.pricePerShipment)||0).toLocaleString()+' ج'),
-                                            h('td',null,h('span',{className:'badge '+(c.active?'badge-delivered':'badge-returned')},c.active?'نشط':'غير نشط')),
-                                            h('td',null,h('button',{className:'btn btn-sm btn-outline',style:{fontSize:11,padding:'4px 8px'},onClick:function(){setEditC(Object.assign({},c));}},'✏️ تعديل'))
-                                        );
-                                    }))
-                                )
-                            )
-                        )
-                    )
-                );
-            }
-                var _a = useState("monthly"), subTab = _a[0], setSubTab = _a[1];
-                var _b = useState("all"), filterC = _b[0], setFilterC = _b[1];
-                var _c = useState(""), monthFilter = _c[0], setMonthFilter = _c[1];
-                var _d = useState(""), dayFilter = _d[0], setDayFilter = _d[1];
-                var _e = useState(null), editC = _e[0], setEditC = _e[1];
-                var _f = useState(""), editMsg = _f[0], setEditMsg = _f[1];
-                var _g = useState({}), dForm = _g[0], setDForm = _g[1];
-                var _h = useState({}), discForm = _h[0], setDiscForm = _h[1];
-                var _i = useState(""), expMsg = _i[0], setExpMsg = _i[1];
-                var savedDisc = []; try{var _sd=localStorage.getItem('fg_discounts');if(_sd)savedDisc=JSON.parse(_sd);}catch(e){}
-                var savedExp = []; try{var _se=localStorage.getItem('fg_dailyexp');if(_se)savedExp=JSON.parse(_se);}catch(e){}
-                var _j = useState(savedDisc), discounts = _j[0], setDiscounts = _j[1];
-                var _k = useState(savedExp), dailyExp = _k[0], setDailyExp = _k[1];
-                useEffect(function(){localStorage.setItem('fg_discounts',JSON.stringify(discounts));},[discounts]);
-                useEffect(function(){localStorage.setItem('fg_dailyexp',JSON.stringify(dailyExp));},[dailyExp]);
-                function getC(cId) { return couriers.find(function(c){return c.id===cId;}); }
-                function monthKey(d) { return d ? d.slice(0,7) : ''; }
-                var now = new Date(), thisMonth = now.toISOString().slice(0,7);
-                var mf = monthFilter || thisMonth;
-                var monthlyRows = [];
-                var filteredCouriers = couriers;
-                if (filterC !== "all") filteredCouriers = [getC(filterC)].filter(Boolean);
-                filteredCouriers.forEach(function(c){
-                    var cOrders = orders.filter(function(o){return o.courierId===c.id;});
-                    var days = {}; cOrders.forEach(function(o){if(o.date)days[o.date]=true;});
-                    var monthOrders = cOrders.filter(function(o){return o.date && o.date.slice(0,7)===mf;});
-                    var total = monthOrders.length;
-                    var delivered = monthOrders.filter(function(o){return o.status==="delivered";}).length;
-                    var returned = monthOrders.filter(function(o){return o.status==="returned";}).length;
-                    if (total===0) return;
-                    var monthDisc = discounts.filter(function(d){return d.courierId===c.id && d.month===mf;});
-                    var discSum = monthDisc.reduce(function(s,d){return s+(parseFloat(d.amount)||0);},0);
-                    var bs = parseFloat(c.baseSalary)||0;
-                    var psp = parseFloat(c.pricePerShipment)||0;
-                    var gross = delivered * psp;
-                    var due = gross - discSum + bs;
-                    monthlyRows.push({courier:c,workingDays:Object.keys(days).length,total:total,delivered:delivered,returned:returned,pricePerShipment:psp,gross:gross,discounts:discSum,baseSalary:bs,due:due,monthDiscs:monthDisc});
-                });
-                monthlyRows.sort(function(a,b){return b.due-a.due;});
-                var dailyRows = [];
-                filteredCouriers.forEach(function(c){
-                    var cOrders = orders.filter(function(o){return o.courierId===c.id;});
-                    var dayGroups = {};
-                    cOrders.forEach(function(o){
-                        if (!o.date) return;
-                        if (dayFilter && o.date !== dayFilter) return;
-                        if (!dayGroups[o.date]) dayGroups[o.date]={date:o.date,courier:c,total:0,delivered:0,returned:0};
-                        dayGroups[o.date].total++;
-                        if (o.status==="delivered") dayGroups[o.date].delivered++;
-                        if (o.status==="returned") dayGroups[o.date].returned++;
-                    });
-                    Object.keys(dayGroups).sort().forEach(function(d){
-                        var dg = dayGroups[d];
-                        var exp = dailyExp.filter(function(e){return e.date===d && e.courierId===c.id;});
-                        var expSum = exp.reduce(function(s,e){return s+(parseFloat(e.amount)||0);},0);
-                        dailyRows.push({date:d,courier:c,total:dg.total,delivered:dg.delivered,returned:dg.returned,pricePerShipment:parseFloat(c.pricePerShipment)||0,expenses:expSum,expItems:exp});
-                    });
-                });
-                dailyRows.sort(function(a,b){return b.date.localeCompare(a.date);});
-                function addDiscount() {
-                    if (!discForm.courierId || !discForm.amount) return;
-                    setDiscounts(function(p){return p.concat([{id:Date.now(),courierId:discForm.courierId,month:discForm.month||thisMonth,amount:parseFloat(discForm.amount)||0,reason:discForm.reason||''}]);});
-                    setDiscForm({}); setExpMsg('✅ تم إضافة الخصم');
-                    setTimeout(function(){setExpMsg('');},2000);
-                }
-                function addExpense() {
-                    if (!dForm.courierId || !dForm.date || !dForm.amount) return;
-                    setDailyExp(function(p){return p.concat([{id:Date.now(),courierId:dForm.courierId,date:dForm.date,amount:parseFloat(dForm.amount)||0,note:dForm.note||''}]);});
-                    setDForm({}); setExpMsg('✅ تم إضافة المصروف');
-                    setTimeout(function(){setExpMsg('');},2000);
-                }
-                function deleteDisc(id){setDiscounts(function(p){return p.filter(function(d){return d.id!==id;});});}
-                function deleteExp(id){setDailyExp(function(p){return p.filter(function(e){return e.id!==id;});});}
-                function saveCourierEdit(){
-                    if (!editC) return;
-                    var cid = editC.id;
-                    setCouriers(function(prev){return prev.map(function(c){if(c.id!==cid)return c;return Object.assign({},c,{name:editC.name,phone:editC.phone,area:editC.area,code:editC.code,nationalId:editC.nationalId,referrer:editC.referrer,hireDate:editC.hireDate,pricePerShipment:editC.pricePerShipment,baseSalary:editC.baseSalary,vehicleType:editC.vehicleType,plateNumber:editC.plateNumber,active:editC.active,notes:editC.notes});});});
-                    setEditMsg('✅ تم حفظ بيانات المندوب');
-                    setEditC(null);
-                    setTimeout(function(){setEditMsg('');},2000);
-                }
-                return h('div',null,
-                    h('div',{className:'sec-title',style:{marginBottom:14}},'📊 أرباح المناديب'),
-                    h('div',{className:'cp-tabs'},
-                        h('button',{className:'cp-tab'+(subTab==='monthly'?' active':''),onClick:function(){setSubTab('monthly');}},'📆 الحساب الشهري'),
-                        h('button',{className:'cp-tab'+(subTab==='daily'?' active':''),onClick:function(){setSubTab('daily');}},'📋 السجل اليومي'),
-                        h('button',{className:'cp-tab'+(subTab==='data'?' active':''),onClick:function(){setSubTab('data');}},'👤 بيانات المناديب')
-                    ),
-                    subTab==='monthly' && h('div',null,
-                        h('div',{className:'cp-filter-bar'},
-                            h('label',{style:{fontSize:13,fontWeight:600}},'المندوب:'),
-                            h('select',{className:'form-select',value:filterC,onChange:function(e){setFilterC(e.target.value);}},
-                                h('option',{value:'all'},'الكل'),
-                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},(c.code||'')+' - '+c.name);})
-                            ),
-                            h('label',{style:{fontSize:13,fontWeight:600}},'الشهر:'),
-                            h('input',{type:'month',className:'form-input',style:{width:'auto',maxWidth:160},value:monthFilter,onChange:function(e){setMonthFilter(e.target.value);}})
-                        ),
-                        monthlyRows.length===0?h('div',{style:{padding:20,textAlign:'center',color:'var(--text-muted)'}},'لا توجد بيانات للشهر المحدد'):
-                        h('div',{className:'table-wrap'},
-                            h('table',{className:'cp-table'},
-                                h('thead',null,h('tr',null,
-                                    h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'أيام العمل'),h('th',null,'إجمالي الشحنات'),h('th',null,'تم التسليم'),h('th',null,'مرتجع'),
-                                    h('th',null,'سعر الشحنة'),h('th',null,'الإجمالي'),h('th',null,'الخصم'),h('th',null,'الراتب'),h('th',null,'المستحق')
-                                )),
-                                h('tbody',null,monthlyRows.map(function(r){
-                                    return h('tr',{key:r.courier.id},
-                                        h('td',{style:{fontSize:11,fontWeight:600,color:'var(--text-muted)'}},r.courier.code||''),
-                                        h('td',{style:{fontWeight:600}},'🏍️ '+r.courier.name),
-                                        h('td',null,r.workingDays),
-                                        h('td',null,r.total),
-                                        h('td',{style:{color:'var(--green)',fontWeight:600}},r.delivered),
-                                        h('td',{style:{color:'var(--red)',fontWeight:600}},r.returned),
-                                        h('td',null,r.pricePerShipment+' ج'),
-                                        h('td',{style:{fontWeight:600}},r.gross.toLocaleString()+' ج'),
-                                        h('td',{style:{color:'var(--red)'}},r.discounts>0?r.discounts.toLocaleString()+' ج':'—'),
-                                        h('td',null,r.baseSalary>0?r.baseSalary.toLocaleString()+' ج':'—'),
-                                        h('td',{className:'cp-due'},r.due.toLocaleString()+' ج')
-                                    );
-                                }))
-                            )
-                        ),
-                        h('div',{style:{marginTop:16}},
-                            h('div',{style:{fontSize:14,fontWeight:700,marginBottom:10}},'➕ إضافة خصم / غرامة'),
-                            expMsg && h('div',{className:'alert alert-success',style:{marginBottom:8}},expMsg),
-                            h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',alignItems:'end'}},
-                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
-                                    h('select',{className:'form-select',value:dForm.courierId||discForm.courierId||'',onChange:function(e){
-                                        var v=e.target.value;setDiscForm(function(f){return Object.assign({},f,{courierId:v,month:monthFilter||thisMonth});});
-                                    }},h('option',{value:''},'المندوب'),
-                                    couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name);}))
-                                ),
-                                h('div',{className:'form-group',style:{flex:1,minWidth:100}},
-                                    h('input',{className:'form-input',type:'number',placeholder:'المبلغ',value:discForm.amount||'',onChange:function(e){setDiscForm(function(f){return Object.assign({},f,{amount:e.target.value});});}})
-                                ),
-                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
-                                    h('input',{className:'form-input',placeholder:'السبب',value:discForm.reason||'',onChange:function(e){setDiscForm(function(f){return Object.assign({},f,{reason:e.target.value});});}})
-                                ),
-                                h('button',{className:'btn btn-sm btn-primary',style:{padding:'8px 16px'},onClick:addDiscount},'💾 حفظ الخصم')
-                            )
-                        )
-                    ),
-                    subTab==='daily' && h('div',null,
-                        h('div',{className:'cp-filter-bar'},
-                            h('label',{style:{fontSize:13,fontWeight:600}},'المندوب:'),
-                            h('select',{className:'form-select',value:filterC,onChange:function(e){setFilterC(e.target.value);}},
-                                h('option',{value:'all'},'الكل'),
-                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},(c.code||'')+' - '+c.name);})
-                            ),
-                            h('label',{style:{fontSize:13,fontWeight:600}},'التاريخ:'),
-                            h('input',{type:'date',className:'form-input',style:{width:'auto',maxWidth:150},value:dayFilter,onChange:function(e){setDayFilter(e.target.value);}})
-                        ),
-                        dailyRows.length===0?h('div',{style:{padding:20,textAlign:'center',color:'var(--text-muted)'}},'لا توجد بيانات'):
-                        h('div',{className:'table-wrap'},
-                            h('table',{className:'cp-table'},
-                                h('thead',null,h('tr',null,
-                                    h('th',null,'التاريخ'),h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'الشحنات'),h('th',null,'تم التسليم'),h('th',null,'مرتجع'),h('th',null,'سعر الشحنة'),h('th',null,'مصاريف'),h('th',null,'صافي اليوم')
-                                )),
-                                h('tbody',null,dailyRows.map(function(r){
-                                    var net = (r.delivered*r.pricePerShipment)-r.expenses;
-                                    return h('tr',{key:r.date+r.courier.id},
-                                        h('td',{style:{fontWeight:600}},r.date),
-                                        h('td',{style:{fontSize:11,color:'var(--text-muted)'}},r.courier.code||''),
-                                        h('td',null,r.courier.name),
-                                        h('td',null,r.total),
-                                        h('td',{style:{color:'var(--green)',fontWeight:600}},r.delivered),
-                                        h('td',{style:{color:'var(--red)',fontWeight:600}},r.returned),
-                                        h('td',null,r.pricePerShipment+' ج'),
-                                        h('td',{style:{color:'var(--orange)'}},r.expenses>0?r.expenses.toLocaleString()+' ج':'—'),
-                                        h('td',{className:'cp-due'},net.toLocaleString()+' ج')
-                                    );
-                                }))
-                            )
-                        ),
-                        h('div',{style:{marginTop:16}},
-                            h('div',{style:{fontSize:14,fontWeight:700,marginBottom:10}},'➕ إضافة مصروفات يومية'),
-                            expMsg && h('div',{className:'alert alert-success',style:{marginBottom:8}},expMsg),
-                            h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',alignItems:'end'}},
-                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
-                                    h('select',{className:'form-select',value:dForm.courierId||'',onChange:function(e){setDForm(function(f){return Object.assign({},f,{courierId:e.target.value});});}},
-                                    h('option',{value:''},'المندوب'),
-                                    couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name);}))
-                                ),
-                                h('div',{className:'form-group',style:{flex:1,minWidth:110}},
-                                    h('input',{type:'date',className:'form-input',value:dForm.date||dayFilter||'',onChange:function(e){setDForm(function(f){return Object.assign({},f,{date:e.target.value});});}})
-                                ),
-                                h('div',{className:'form-group',style:{flex:1,minWidth:100}},
-                                    h('input',{className:'form-input',type:'number',placeholder:'المبلغ',value:dForm.amount||'',onChange:function(e){setDForm(function(f){return Object.assign({},f,{amount:e.target.value});});}})
-                                ),
-                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
-                                    h('input',{className:'form-input',placeholder:'السبب',value:dForm.note||'',onChange:function(e){setDForm(function(f){return Object.assign({},f,{note:e.target.value});});}})
-                                ),
-                                h('button',{className:'btn btn-sm btn-primary',style:{padding:'8px 16px'},onClick:addExpense},'💾 حفظ المصروف')
-                            )
-                        )
-                    ),
-                    subTab==='data' && h('div',null,
-                        editC ? h('div',null,
-                            h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:16}},
-                                h('button',{className:'btn btn-ghost btn-sm',style:{fontSize:13,fontWeight:700},onClick:function(){setEditC(null);}},'← رجوع'),
-                                h('span',{style:{fontSize:16,fontWeight:800}},'✏️ تعديل بيانات المندوب')
-                            ),
-                            editMsg && h('div',{className:'alert alert-success',style:{marginBottom:10}},editMsg),
-                            h('div',{className:'table-wrap',style:{padding:20}},
-                                h('div',{className:'cp-edit-form'},
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🏷️ كود المندوب'),h('input',{className:'form-input',value:editC.code||'',onChange:function(e){setEditC(Object.assign({},editC,{code:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'👤 الاسم'),h('input',{className:'form-input',value:editC.name||'',onChange:function(e){setEditC(Object.assign({},editC,{name:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📞 الهاتف'),h('input',{className:'form-input',dir:'ltr',value:editC.phone||'',onChange:function(e){setEditC(Object.assign({},editC,{phone:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📍 المنطقة'),h('input',{className:'form-input',value:editC.area||'',onChange:function(e){setEditC(Object.assign({},editC,{area:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🆔 الرقم القومي'),h('input',{className:'form-input',dir:'ltr',value:editC.nationalId||'',onChange:function(e){setEditC(Object.assign({},editC,{nationalId:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🤝 المُرَشِّح'),h('input',{className:'form-input',value:editC.referrer||'',onChange:function(e){setEditC(Object.assign({},editC,{referrer:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📅 تاريخ التعيين'),h('input',{type:'date',className:'form-input',value:editC.hireDate||'',onChange:function(e){setEditC(Object.assign({},editC,{hireDate:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'💰 الراتب الأساسي'),h('input',{type:'number',className:'form-input',value:editC.baseSalary||0,onChange:function(e){setEditC(Object.assign({},editC,{baseSalary:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'💵 سعر الشحنة'),h('input',{type:'number',className:'form-input',value:editC.pricePerShipment||0,onChange:function(e){setEditC(Object.assign({},editC,{pricePerShipment:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🚗 وسيلة النقل'),h('select',{className:'form-select',value:editC.vehicleType||'motorcycle',onChange:function(e){setEditC(Object.assign({},editC,{vehicleType:e.target.value}));}},h('option',{value:'motorcycle'},'موتوسيكل'),h('option',{value:'car'},'عربية'),h('option',{value:'bicycle'},'عجلة'))),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🔖 رقم اللوحة'),h('input',{className:'form-input',dir:'ltr',value:editC.plateNumber||'',onChange:function(e){setEditC(Object.assign({},editC,{plateNumber:e.target.value}));}})),
-                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'⚡ الحالة'),h('select',{className:'form-select',value:editC.active?'true':'false',onChange:function(e){setEditC(Object.assign({},editC,{active:e.target.value==='true'}));}},h('option',{value:'true'},'نشط'),h('option',{value:'false'},'غير نشط'))),
-                                    h('div',{className:'form-group full-width'},h('label',{className:'form-label'},'📝 ملاحظات'),h('input',{className:'form-input',value:editC.notes||'',onChange:function(e){setEditC(Object.assign({},editC,{notes:e.target.value}));}})),
-                                ),
-                                h('div',{style:{display:'flex',gap:8,marginTop:12}},
-                                    h('button',{className:'btn btn-primary',style:{flex:1,justifyContent:'center',padding:'12px 0'},onClick:saveCourierEdit},'💾 حفظ البيانات'),
-                                    h('button',{className:'btn btn-ghost',style:{padding:'12px 24px'},onClick:function(){setEditC(null);}},'✕ إلغاء')
-                                )
-                            )
-                        ) : h('div',null,
-                            h('div',{className:'cp-filter-bar'},
-                                h('label',{style:{fontSize:13,fontWeight:600}},'بحث:'),
-                                h('input',{className:'form-input',style:{maxWidth:250},placeholder:'ابحث بالاسم أو الكود',value:filterC==='all'?'':filterC==='active'?'':filterC,onChange:function(e){
-                                    var q=e.target.value;if(!q)setFilterC('all');else setFilterC(q);
-                                }})
-                            ),
-                            h('div',{className:'table-wrap'},
-                                h('table',{className:'cp-table'},
-                                    h('thead',null,h('tr',null,
-                                        h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'المنطقة'),h('th',null,'الراتب'),h('th',null,'سعر الشحنة'),h('th',null,'الحالة'),h('th',null,'إجراء')
-                                    )),
-                                    h('tbody',null,couriers.map(function(c){
-                                        return h('tr',{key:c.id},
-                                            h('td',{style:{fontSize:11,color:'var(--text-muted)',fontWeight:600}},c.code||''),
-                                            h('td',{style:{fontWeight:600}},'🏍️ '+c.name),
-                                            h('td',null,c.area),
-                                            h('td',null,(parseFloat(c.baseSalary)||0).toLocaleString()+' ج'),
-                                            h('td',null,(parseFloat(c.pricePerShipment)||0).toLocaleString()+' ج'),
-                                            h('td',null,h('span',{className:'badge '+(c.active?'badge-delivered':'badge-returned')},c.active?'نشط':'غير نشط')),
-                                            h('td',null,h('button',{className:'btn btn-sm btn-outline',style:{fontSize:11,padding:'4px 8px'},onClick:function(){setEditC(Object.assign({},c));}},'✏️ تعديل'))
-                                        );
-                                    }))
-                                )
-                            )
-                        )
-                    )
-                );
-            }
-            // ── Accounting Tab ──────────────────────────────────────────
-            function AccountingTab(props) {
-                var journalEntries = props.journalEntries, setJournalEntries = props.setJournalEntries, orders = props.orders, couriers = props.couriers;
-                var _a = useState("all"), filterCourier = _a[0], setFilterCourier = _a[1];
-                var _b = useState(null), expandedEntry = _b[0], setExpandedEntry = _b[1];
-                var _c = useState(false), showSettle = _c[0], setShowSettle = _c[1];
-                var _d = useState(""), settleCourier = _d[0], setSettleCourier = _d[1];
-                var _e = useState(""), settleAmount = _e[0], setSettleAmount = _e[1];
-                var _f = useState(""), settleDesc = _f[0], setSettleDesc = _f[1];
-                var _g = useState(""), settleMsg = _g[0], setSettleMsg = _g[1];
-                var _h = useState("all"), statementCourier = _h[0], setStatementCourier = _h[1];
-                var _i = useState(""), dateFrom = _i[0], setDateFrom = _i[1];
-                var _j = useState(""), dateTo = _j[0], setDateTo = _j[1];
-                var accLabels = {'101':'💰 الخزينة','201':'📋 ذمم المناديب','301':'🏦 رأس المال','401':'📈 إيرادات التوصيل','501':'💸 مصروفات'};
-                function getJournalEntries() {
-                    var e = journalEntries.slice();
-                    if (filterCourier !== "all") e = e.filter(function(x){return x.courierId===filterCourier;});
-                    e.sort(function(a,b){return b.date.localeCompare(a.date);});
-                    return e;
-                }
-                function getCourierBalance(cId) {
-                    var bal = 0;
-                    journalEntries.forEach(function(e){
-                        if (e.courierId !== cId) return;
-                        e.lines.forEach(function(l){if(l.account==='201')bal+=l.debit-l.credit;});
-                    });
-                    return bal;
-                }
-                var totalOutstanding = 0;
-                couriers.forEach(function(c){var b=getCourierBalance(c.id);if(b>0)totalOutstanding+=b;});
-                var totalCash = 0;
-                journalEntries.forEach(function(e){e.lines.forEach(function(l){if(l.account==='101')totalCash+=l.debit-l.credit;});});
-                var totalRevenue = 0;
-                journalEntries.forEach(function(e){e.lines.forEach(function(l){if(l.account==='401')totalRevenue+=l.credit;});});
-                var filtered = getJournalEntries();
-                function handleSettle() {
-                    if (!settleCourier || !settleAmount) { setSettleMsg("❌ اختر المندوب وأدخل المبلغ"); return; }
-                    var bal = getCourierBalance(settleCourier);
-                    var amt = parseFloat(settleAmount);
-                    if (isNaN(amt) || amt <= 0) { setSettleMsg("❌ المبلغ غير صحيح"); return; }
-                    if (amt > bal) { setSettleMsg("❌ المبلغ ("+amt+") أكبر من المستحق ("+bal+") على المندوب"); return; }
-                    var courier = couriers.find(function(c){return c.id===settleCourier;});
-                    setJournalEntries(function(prev){return prev.concat([{
-                        id:'je_'+Date.now(), date:new Date().toISOString().split('T')[0], type:'settlement',
-                        orderId:null, courierId:settleCourier,
-                        description:settleDesc||'تسوية مندوب '+(courier?courier.name:settleCourier),
-                        lines:[{account:'101',debit:amt,credit:0},{account:'201',debit:0,credit:amt}]
-                    }]);});
-                    setSettleMsg("✅ تم تسجيل التسوية");
-                    setSettleAmount(""); setSettleDesc("");
-                    setTimeout(function(){setSettleMsg("");},3000);
-                }
-                var statementData = [];
-                if (statementCourier !== "all") {
-                    var stmt = journalEntries.filter(function(e){return e.courierId===statementCourier;});
-                    stmt.sort(function(a,b){return a.date.localeCompare(b.date);});
-                    var running = 0;
-                    stmt.forEach(function(e){
-                        var dr = 0, cr = 0;
-                        e.lines.forEach(function(l){if(l.account==='201'){dr+=l.debit;cr+=l.credit;}});
-                        running += dr - cr;
-                        if (dateFrom && e.date < dateFrom) return;
-                        if (dateTo && e.date > dateTo) return;
-                        statementData.push({entry:e, debit:dr, credit:cr, balance:running});
-                    });
-                }
-                function deleteEntry(id) {
-                    if (!confirm('تأكيد حذف القيد المحاسبي؟')) return;
-                    setJournalEntries(function(prev){return prev.filter(function(e){return e.id!==id;});});
-                }
-                return h('div',null,
-                    h('div',{className:'sec-title',style:{marginBottom:18}},'📒 دفتر الأستاذ (محاسبة ثلاثية)'),
-                    // Summary cards
-                    h('div',{className:'acc-summary'},
-                        h('div',{className:'acc-card'},h('div',{className:'acc-card-label'},'💰 إجمالي الخزينة'),h('div',{className:'acc-card-value'},totalCash.toLocaleString(),' ج')),
-                        h('div',{className:'acc-card'},h('div',{className:'acc-card-label'},'📈 إجمالي الإيرادات'),h('div',{className:'acc-card-value',style:{color:'var(--green)'}},totalRevenue.toLocaleString(),' ج')),
-                        h('div',{className:'acc-card'},h('div',{className:'acc-card-label'},'📋 ذمم المناديب'),h('div',{className:'acc-card-value',style:{color:totalOutstanding>0?'var(--orange)':'var(--text-muted)'}},totalOutstanding.toLocaleString(),' ج')),
-                        h('div',{className:'acc-card'},h('div',{className:'acc-card-label'},'📦 إجمالي القيود'),h('div',{className:'acc-card-value',style:{color:'var(--blue)'}},journalEntries.length))
-                    ),
-                    // Filter bar
-                    h('div',{className:'acc-filter-bar'},
-                        h('label',{style:{fontSize:13,fontWeight:600}},'🔍 تصفية:'),
-                        h('select',{className:'form-select',style:{width:'auto',flex:1},value:filterCourier,onChange:function(e){setFilterCourier(e.target.value);}},
-                            h('option',{value:'all'},'جميع المناديب'),
-                            couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name);})
-                        ),
-                        h('button',{className:'acc-btn acc-btn-primary',onClick:function(){setShowSettle(!showSettle);}},showSettle?'✕ إلغاء':'💰 تسوية مندوب')
-                    ),
-                    // Settlement form
-                    showSettle && h('div',{className:'acc-settle-form'},
-                        h('div',{style:{fontSize:15,fontWeight:800,marginBottom:14}},'💰 تسوية مندوب'),
-                        settleMsg && h('div',{className:'alert '+(settleMsg.indexOf('✅')!==-1?'alert-success':'alert-error')},settleMsg),
-                        h('div',{className:'form-group'},
-                            h('label',{className:'form-label'},'المندوب'),
-                            h('select',{className:'form-select',value:settleCourier,onChange:function(e){setSettleCourier(e.target.value);}},
-                                h('option',{value:''},'-- اختر مندوب --'),
-                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name+' ('+getCourierBalance(c.id).toLocaleString()+' ج مستحق)');})
-                            )
-                        ),
-                        h('div',{className:'form-group'},
-                            h('label',{className:'form-label'},'المبلغ'),
-                            h('input',{className:'form-input',type:'number',value:settleAmount,onChange:function(e){setSettleAmount(e.target.value);},placeholder:'المبلغ المسدد'})
-                        ),
-                        h('div',{className:'form-group'},
-                            h('label',{className:'form-label'},'ملاحظات'),
-                            h('input',{className:'form-input',value:settleDesc,onChange:function(e){setSettleDesc(e.target.value);},placeholder:'اختياري'})
-                        ),
-                        h('button',{className:'btn btn-primary btn-block',onClick:handleSettle},'💾 تسجيل التسوية')
-                    ),
-                    // Journal entries table
-                    h('div',{className:'table-wrap',style:{marginTop:16}},
-                        h('table',{className:'acc-journal-table'},
-                            h('thead',null,h('tr',null,
-                                h('th',null,'التاريخ'),
-                                h('th',null,'النوع'),
-                                h('th',null,'البيان'),
-                                h('th',null,'مندوب'),
-                                h('th',null,'مدين'),
-                                h('th',null,'دائن'),
-                                h('th',null,'حذف')
-                            )),
-                            h('tbody',null,
-                                filtered.length===0?h('tr',null,h('td',{colSpan:7,style:{padding:20,color:'var(--text-muted)'}},'لا توجد قيود محاسبية')):
-                                filtered.map(function(e){
-                                    var courier = couriers.find(function(c){return c.id===e.courierId;});
-                                    var totalDr = 0, totalCr = 0;
-                                    e.lines.forEach(function(l){totalDr+=l.debit;totalCr+=l.credit;});
-                                    return [
-                                        h('tr',{key:e.id,style:{cursor:'pointer'},onClick:function(){setExpandedEntry(expandedEntry===e.id?null:e.id);}},
-                                            h('td',{style:{fontSize:12,fontWeight:600}},e.date),
-                                            h('td',null,h('span',{className:'acc-entry-type acc-type-'+e.type},e.type==='delivery'?'تحصيل':e.type==='settlement'?'تسوية':e.type==='expense'?'مصروف':'رأس مال')),
-                                            h('td',{style:{textAlign:'right',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},e.description),
-                                            h('td',null,courier?courier.name:''),
-                                            h('td',{className:'acc-debit'},totalDr>0?totalDr.toLocaleString()+' ج':''),
-                                            h('td',{className:'acc-credit'},totalCr>0?totalCr.toLocaleString()+' ج':''),
-                                            h('td',null,h('button',{className:'acc-btn acc-btn-outline',style:{fontSize:10,padding:'2px 8px'},onClick:function(ev){ev.stopPropagation();deleteEntry(e.id);}},'🗑️'))
-                                        ),
-                                        expandedEntry===e.id && h('tr',{key:e.id+'_details'},
-                                            h('td',{colSpan:7,className:'entry-detail',style:{padding:'8px 16px'}},
-                                                h('div',{style:{display:'flex',flexDirection:'column',gap:4,textAlign:'right',fontSize:12}},
-                                                    e.lines.map(function(l,i){
-                                                        var label = accLabels[l.account]||'حساب '+l.account;
-                                                        return h('div',{key:i,style:{display:'flex',justifyContent:'space-between',padding:'2px 0',borderBottom:'1px solid var(--border)'}},
-                                                            h('span',null,h('span',{className:'acc-account-badge'},l.account),' ',label),
-                                                            h('span',null,l.debit>0?h('span',{className:'acc-debit'},l.debit.toLocaleString(),' ج مدين'):h('span',{className:'acc-credit'},l.credit.toLocaleString(),' ج دائن'))
-                                                        );
-                                                    })
-                                                )
-                                            )
-                                        )
-                                    ];
-                                })
-                            )
-                        )
-                    ),
-                    // Courier statement section
-                    h('div',{style:{marginTop:24}},
-                        h('div',{className:'sec-title',style:{marginBottom:14}},'📋 كشف حساب مندوب'),
-                        h('div',{className:'acc-filter-bar'},
-                            h('label',{style:{fontSize:13,fontWeight:600}},'المندوب:'),
-                            h('select',{className:'form-select',style:{width:'auto',flex:1},value:statementCourier,onChange:function(e){setStatementCourier(e.target.value);}},
-                                h('option',{value:'all'},'-- اختر مندوب --'),
-                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name+' ('+getCourierBalance(c.id).toLocaleString()+' ج)');})
-                            ),
-                            h('label',{style:{fontSize:13,fontWeight:600}},'من:'),
-                            h('input',{type:'date',className:'form-input',style:{width:'auto',maxWidth:140},value:dateFrom,onChange:function(e){setDateFrom(e.target.value);}}),
-                            h('label',{style:{fontSize:13,fontWeight:600}},'إلى:'),
-                            h('input',{type:'date',className:'form-input',style:{width:'auto',maxWidth:140},value:dateTo,onChange:function(e){setDateTo(e.target.value);}})
-                        ),
-                        statementCourier !== "all" && h('div',{className:'table-wrap'},
-                            h('table',{className:'acc-statement-table'},
-                                h('thead',null,h('tr',null,
-                                    h('th',null,'التاريخ'),
-                                    h('th',null,'البيان'),
-                                    h('th',null,'مدين (عليه)'),
-                                    h('th',null,'دائن (له)'),
-                                    h('th',null,'الرصيد')
-                                )),
-                                h('tbody',null,
-                                    statementData.length===0?h('tr',null,h('td',{colSpan:5,style:{padding:20,color:'var(--text-muted)'}},'لا توجد بيانات لهذا المندوب')):
-                                    statementData.map(function(s,i){
-                                        var balClass = s.balance>0?'acc-balance-positive':s.balance<0?'acc-balance-negative':'';
-                                        return h('tr',{key:s.entry.id},
-                                            h('td',{style:{fontSize:12,fontWeight:600}},s.entry.date),
-                                            h('td',{style:{textAlign:'right'}},s.entry.description),
-                                            h('td',{className:'acc-debit'},s.debit>0?s.debit.toLocaleString()+' ج':''),
-                                            h('td',{className:'acc-credit'},s.credit>0?s.credit.toLocaleString()+' ج':''),
-                                            h('td',{className:balClass},s.balance.toLocaleString(),' ج')
-                                        );
-                                    })
-                                )
-                            )
-                        )
-                    )
-                );
-            }
+            var urlMode = "courier";
 
             function App() {
-                var urlParams = new URLSearchParams(window.location.search);
-                var urlMode = urlParams.get('mode') || "";
                 var _a = useState(null), user = _a[0], setUser = _a[1];
                 var _b = useState([]), orders = _b[0], setOrders = _b[1];
                 var _c = useState([]), couriers = _c[0], setCouriers = _c[1];
                 var _d = useState(true), loading = _d[0], setLoading = _d[1];
                 var _e = useState(""), fbError = _e[0], setFbError = _e[1];
-                var _f = useState({}), tracking = _f[0], setTracking = _f[1];
-                var _g = useState([]), users = _g[0], setUsers = _g[1];
-                var _h = useState([]), journalEntries = _h[0], setJournalEntries = _h[1];
-                var _i = useState(false), journalLoaded = _i[0], setJournalLoaded = _i[1];
-                var pollOrders = useRef(""); // last known Firebase snapshot (for polling)
+                var _f = useState([]), users = _f[0], setUsers = _f[1];
+                var pollOrders = useRef("");
                 var pollCouriers = useRef("");
 
                 function objToArr(obj) { return obj ? Object.keys(obj).map(function(k){return obj[k];}) : []; }
@@ -3131,27 +1888,22 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     return function() { clearInterval(timer); };
                 }, []);
 
-                // Poll for tracking data
-                useEffect(function() {
-                    var timer = setInterval(function() {
-                        fbGet("flashgo/tracking").then(function(val) {
-                            if (!val) return;
-                            setTracking(val);
-                        }).catch(function(){});
-                    }, 5000);
-                    return function() { clearInterval(timer); };
-                }, []);
-
-                // Save orders to Firebase (always write on change)
+                // Save orders to Firebase with debounce
+                var ordersTimer = useRef(null);
                 useEffect(function() {
                     if (loading) return;
-                    fbPut("flashgo/orders", arrToObj(orders)).catch(function(){});
+                    if (ordersTimer.current) clearTimeout(ordersTimer.current);
+                    ordersTimer.current = setTimeout(function(){ fbPut("flashgo/orders", arrToObj(orders)).catch(function(){}); }, 500);
+                    return function(){ if(ordersTimer.current) clearTimeout(ordersTimer.current); };
                 }, [orders]);
 
-                // Save couriers to Firebase (always write on change)
+                // Save couriers to Firebase with debounce
+                var couriersTimer = useRef(null);
                 useEffect(function() {
                     if (loading) return;
-                    fbPut("flashgo/couriers", arrToObj(couriers, 'c')).catch(function(){});
+                    if (couriersTimer.current) clearTimeout(couriersTimer.current);
+                    couriersTimer.current = setTimeout(function(){ fbPut("flashgo/couriers", arrToObj(couriers, 'c')).catch(function(){}); }, 500);
+                    return function(){ if(couriersTimer.current) clearTimeout(couriersTimer.current); };
                 }, [couriers]);
 
                 // Load / seed users from localStorage
@@ -3160,145 +1912,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     if (stored) {
                         try { var parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length > 0) { setUsers(parsed); return; } } catch(e) {}
                     }
-                    var seed = [
-                        {id:"u1", email:"chairman@flashgo.com", password:"admin123", name:"رئيس مجلس الإدارة", role:"chairman"},
-                        {id:"u2", email:"gm@flashgo.com", password:"gm123", name:"المدير العام", role:"gm"},
-                    ];
-                    MOCK_COURIERS.forEach(function(c) { seed.push({id:'c'+c.id, email:'courier'+c.id+'@flashgo.com', password:'123456', name:c.name, role:'courier', courierId:c.id}); });
-                    localStorage.setItem('fg_users', JSON.stringify(seed));
-                    setUsers(seed);
-                }, []);
-                // Persist users when changed
-                useEffect(function() {
-                    if (users.length > 0) localStorage.setItem('fg_users', JSON.stringify(users));
-                }, [users]);
-
-                // Load journal entries from localStorage
-                useEffect(function() {
-                    var stored = localStorage.getItem('fg_journal');
-                    if (stored) {
-                        try { var parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length > 0) { setJournalEntries(parsed); } } catch(e) {}
-                    }
-                    setJournalLoaded(true);
-                }, []);
-                // Persist journal entries when changed
-                useEffect(function() {
-                    if (journalEntries.length > 0) localStorage.setItem('fg_journal', JSON.stringify(journalEntries));
-                }, [journalEntries]);
-
-                // Auto-journal: detect newly delivered orders
-                useEffect(function() {
-                    if (loading || !journalLoaded) return;
-                    var newEntries = [];
-                    var existingOrderIds = {};
-                    journalEntries.forEach(function(e) {
-                        if (e.type === 'delivery' && e.orderId) existingOrderIds[e.orderId] = true;
-                    });
-                    orders.forEach(function(o) {
-                        if (o.status === 'delivered' && !existingOrderIds[o.id]) {
-                            newEntries.push({
-                                id: 'je_' + Date.now() + '_' + o.id,
-                                date: (o.date || new Date().toISOString().split('T')[0]),
-                                type: 'delivery',
-                                orderId: o.id,
-                                courierId: o.courierId,
-                                description: 'تحصيل طلب ' + o.id + ' - ' + (o.customer || ''),
-                                lines: [
-                                    { account: '201', debit: o.amount, credit: 0 },
-                                    { account: '401', debit: 0, credit: o.amount }
-                                ]
-                            });
-                        }
-                    });
-                    if (newEntries.length > 0) {
-                        setJournalEntries(function(prev) { return prev.concat(newEntries); });
-                    }
-                }, [orders, loading, journalLoaded]);
-
-                if (loading) return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)'}},'⏳ جاري التحميل...');
-                if (fbError) return h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',padding:20,textAlign:'center'}},
-                    h('div',{style:{fontSize:48,marginBottom:16}},'⚠️'),
-                    h('div',{style:{fontSize:18,fontWeight:700,color:'var(--red)',marginBottom:8}},fbError),
-                    h('div',{style:{fontSize:13,color:'var(--text-muted)',marginBottom:20,maxWidth:400}},'تأكد من اتصالك بالإنترنت وأن الموقع يعمل على HTTPS ثم أعد تحميل الصفحة'),
-                    h('button',{className:'btn btn-primary',onClick:function(){window.location.reload();}},'🔄 إعادة تحميل')
-                );
-                if(!user)return h(LoginScreen,{onLogin:setUser,mode:urlMode,users:users,setUsers:setUsers});
-                if(user.role==="courier")return h(CourierApp,{user:user,orders:orders,setOrders:setOrders,onLogout:function(){setUser(null);}});
-                return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,tracking:tracking,users:users,setUsers:setUsers,journalEntries:journalEntries,setJournalEntries:setJournalEntries,onLogin:setUser,onLogout:function(){setUser(null);}});
-            }
-                        done();
-                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); });
-
-                    fbGet("flashgo/couriers").then(function(val) {
-                        if (val && Object.keys(val).length > 0) {
-                            pollCouriers.current = JSON.stringify(val);
-                            setCouriers(objToArr(val));
-                        } else {
-                            var seed = arrToObj(MOCK_COURIERS, 'c');
-                            fbPut("flashgo/couriers", seed);
-                            pollCouriers.current = JSON.stringify(seed);
-                            setCouriers(MOCK_COURIERS);
-                        }
-                        done();
-                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); });
-                }, []);
-
-                // Poll for remote changes
-                useEffect(function() {
-                    var timer = setInterval(function() {
-                        fbGet("flashgo/orders").then(function(val) {
-                            if (!val) return;
-                            var s = JSON.stringify(val);
-                            if (s !== pollOrders.current) {
-                                pollOrders.current = s;
-                                setOrders(objToArr(val));
-                            }
-                        }).catch(function(){});
-                        fbGet("flashgo/couriers").then(function(val) {
-                            if (!val) return;
-                            var s = JSON.stringify(val);
-                            if (s !== pollCouriers.current) {
-                                pollCouriers.current = s;
-                                setCouriers(objToArr(val));
-                            }
-                        }).catch(function(){});
-                    }, 2000);
-                    return function() { clearInterval(timer); };
-                }, []);
-
-                // Poll for tracking data
-                useEffect(function() {
-                    var timer = setInterval(function() {
-                        fbGet("flashgo/tracking").then(function(val) {
-                            if (!val) return;
-                            setTracking(val);
-                        }).catch(function(){});
-                    }, 5000);
-                    return function() { clearInterval(timer); };
-                }, []);
-
-                // Save orders to Firebase (always write on change)
-                useEffect(function() {
-                    if (loading) return;
-                    fbPut("flashgo/orders", arrToObj(orders)).catch(function(){});
-                }, [orders]);
-
-                // Save couriers to Firebase (always write on change)
-                useEffect(function() {
-                    if (loading) return;
-                    fbPut("flashgo/couriers", arrToObj(couriers, 'c')).catch(function(){});
-                }, [couriers]);
-
-                // Load / seed users from localStorage
-                useEffect(function() {
-                    var stored = localStorage.getItem('fg_users');
-                    if (stored) {
-                        try { var parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length > 0) { setUsers(parsed); return; } } catch(e) {}
-                    }
-                    var seed = [
-                        {id:"u1", email:"chairman@flashgo.com", password:"admin123", name:"رئيس مجلس الإدارة", role:"chairman"},
-                        {id:"u2", email:"gm@flashgo.com", password:"gm123", name:"المدير العام", role:"gm"},
-                    ];
+                    var seed = [];
                     MOCK_COURIERS.forEach(function(c) { seed.push({id:'c'+c.id, email:'courier'+c.id+'@flashgo.com', password:'123456', name:c.name, role:'courier', courierId:c.id}); });
                     localStorage.setItem('fg_users', JSON.stringify(seed));
                     setUsers(seed);
@@ -3316,13 +1930,13 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     h('button',{className:'btn btn-primary',onClick:function(){window.location.reload();}},'🔄 إعادة تحميل')
                 );
                 if(!user)return h(LoginScreen,{onLogin:setUser,mode:urlMode,users:users,setUsers:setUsers});
-                if(user.role==="courier")return h(CourierApp,{user:user,orders:orders,setOrders:setOrders,onLogout:function(){setUser(null);}});
-                return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,tracking:tracking,users:users,setUsers:setUsers,onLogin:setUser,onLogout:function(){setUser(null);}});
+                return h(CourierApp,{user:user,orders:orders,setOrders:setOrders,onLogout:function(){setUser(null);}});
             }
 
-            // Redirect to admin mode
-            if (!window.location.search.includes('mode=admin') && !window.location.search.includes('mode=courier')) {
-                window.location.replace('admin.html?mode=admin');
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('sw.js').catch(function(){});
+                });
             }
 
             createRoot(document.getElementById('root')).render(h(App));

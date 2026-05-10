@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Flash Go — نظام إدارة التوصيل</title>
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
     <script>
         // Unregister all service workers (no reload to avoid infinite loops)
         if ('serviceWorker' in navigator) {
@@ -723,6 +724,26 @@ svg.leaflet-image-layer.leaflet-interactive path {
             --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
             --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        html.dark-mode {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-card: #252525;
+            --bg-card-hover: #2a2a2a;
+            --bg-elevated: #2d2d2d;
+            --bg-input: #333333;
+            --border: #333333;
+            --border-light: #3a3a3a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --text-muted: #777777;
+            --white: #1e1e1e;
+            --black: #e0e0e0;
+            --cream: #1e1e1e;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+        }
         body {
             font-family: 'Cairo', sans-serif;
             background: var(--bg-primary);
@@ -847,7 +868,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         .courier-stat.red { color: var(--red); }
         .courier-stat.blue { color: var(--blue); }
         .courier-app { min-height: 100vh; background: var(--bg-primary); display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.06); }
-        .courier-header { background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+        .courier-header { background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
         .courier-logo { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 900; letter-spacing: 2px; color: var(--black); text-transform: uppercase; }
         .courier-logo span { color: var(--orange); }
         .courier-summary-strip { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; gap: 20px; flex-wrap: wrap; }
@@ -859,6 +880,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
         .summary-value.blue { color: var(--blue); }
         .summary-divider { width: 1px; background: var(--border); flex-shrink: 0; }
         .courier-body { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        .courier-active-layout { flex-direction: row; padding: 0; overflow: hidden; }
+        .courier-active-layout .route-sidebar { width: 280px; flex-shrink: 0; overflow-y: auto; padding: 12px; background: var(--bg-card); border-right: 1px solid var(--border); }
+        .courier-active-layout .orders-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .stop-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .stop-item:hover { opacity: 0.8; }
+        .stop-number { width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+        .stop-name { font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .order-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; display: flex; flex-direction: column; gap: 12px; transition: var(--transition); }
         .order-card:hover { border-color: var(--border-light); box-shadow: var(--shadow); }
         .order-card-header { display: flex; justify-content: space-between; align-items: center; }
@@ -873,10 +901,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
         .order-actions-row { display: flex; gap: 8px; }
         .order-actions-row .btn { flex: 1; justify-content: center; font-size: 13px; padding: 11px 16px; }
         .return-reason-tag { font-size: 12px; color: var(--red); background: var(--red-glow); padding: 8px 12px; border-radius: 6px; font-weight: 600; }
-        .bottom-nav { background: var(--bg-secondary); border-top: 1px solid var(--border); display: flex; padding: 6px 0 2px; }
-        .bottom-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; color: var(--text-muted); font-family: 'Cairo', sans-serif; font-size: 10px; cursor: pointer; padding: 6px 0; transition: var(--transition); font-weight: 600; }
-        .bottom-btn.active { color: var(--black); }
-        .bottom-icon { font-size: 22px; line-height: 1; }
+.bottom-nav { background: var(--bg-secondary); border-top: 1px solid var(--border); display: flex; padding: 1px 0 0; position: sticky; bottom: 0; z-index: 100; }
+.bottom-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0; background: none; border: none; color: var(--text-muted); font-family: 'Cairo', sans-serif; font-size: 8px; cursor: pointer; padding: 2px 0; transition: var(--transition); font-weight: 600; }
+.bottom-btn.active { color: var(--black); }
+.bottom-icon { font-size: 16px; line-height: 1; }
         .alert { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px; border: 1px solid; font-weight: 600; }
         .alert-success { background: var(--green-glow); border-color: var(--green); color: var(--green); }
         .alert-error { background: var(--red-glow); border-color: var(--red); color: var(--red); }
@@ -917,6 +945,60 @@ svg.leaflet-image-layer.leaflet-interactive path {
         .location-input-group { display: flex; gap: 8px; }
         .location-input-group .form-input { flex: 1; }
         .loc-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+        /* Accounting styles */
+        .acc-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .acc-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; text-align: center; }
+        .acc-card-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+        .acc-card-value { font-size: 24px; font-weight: 800; }
+        .acc-filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+        .acc-filter-bar select { max-width: 250px; }
+        .acc-journal-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .acc-journal-table th { background: var(--bg-secondary); font-weight: 700; padding: 10px 12px; text-align: center; border-bottom: 2px solid var(--border); white-space: nowrap; }
+        .acc-journal-table td { padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--border); }
+        .acc-journal-table tr:hover td { background: var(--bg-hover); }
+        .acc-journal-table .entry-detail { background: var(--bg-secondary); }
+        .acc-entry-type { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .acc-type-delivery { background: #e8f5e9; color: #2e7d32; }
+        .acc-type-settlement { background: #e3f2fd; color: #1565c0; }
+        .acc-type-expense { background: #fff3e0; color: #e65100; }
+        .acc-type-capital { background: #f3e5f5; color: #7b1fa2; }
+        .acc-debit { color: var(--red); font-weight: 600; }
+        .acc-credit { color: var(--green); font-weight: 600; }
+        .acc-account-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; background: var(--bg-secondary); color: var(--text-muted); margin-left: 4px; }
+        .acc-settle-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-top: 16px; max-width: 500px; }
+        .acc-btn { cursor: pointer; border: none; border-radius: var(--radius-sm); padding: 6px 14px; font-size: 12px; font-family: 'Cairo', sans-serif; font-weight: 600; transition: var(--transition); }
+        .acc-btn-primary { background: var(--black); color: #fff; }
+        .acc-btn-primary:hover { opacity: 0.85; }
+        .acc-btn-outline { background: none; border: 1px solid var(--border); color: var(--text-primary); }
+        .acc-btn-outline:hover { border-color: var(--black); }
+        .acc-statement { margin-top: 20px; }
+        .acc-statement-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .acc-statement-table th { background: var(--bg-secondary); font-weight: 700; padding: 8px 10px; text-align: center; border-bottom: 2px solid var(--border); }
+        .acc-statement-table td { padding: 6px 10px; text-align: center; border-bottom: 1px solid var(--border); }
+        .acc-balance-positive { color: var(--green); font-weight: 700; }
+        .acc-balance-negative { color: var(--red); font-weight: 700; }
+        /* Courier Profits styles */
+        .cp-tabs { display: flex; gap: 4px; margin-bottom: 18px; }
+        .cp-tab { padding: 8px 18px; font-size: 13px; font-family: 'Cairo', sans-serif; font-weight: 600; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-muted); cursor: pointer; transition: var(--transition); }
+        .cp-tab.active { background: var(--black); color: #fff; border-color: var(--black); }
+        .cp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .cp-table th { background: var(--bg-secondary); font-weight: 700; padding: 8px 10px; text-align: center; border-bottom: 2px solid var(--border); white-space: nowrap; font-size: 12px; }
+        .cp-table td { padding: 6px 8px; text-align: center; border-bottom: 1px solid var(--border); font-size: 12px; }
+        .cp-table tr:hover td { background: var(--bg-hover); }
+        .cp-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 12px; }
+        .cp-card-label { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+        .cp-card-value { font-size: 20px; font-weight: 800; }
+        .cp-filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+        .cp-filter-bar select { max-width: 200px; }
+        .cp-edit-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .cp-edit-form .full-width { grid-column: 1 / -1; }
+        .cp-due { color: var(--green); font-weight: 700; font-size: 15px; }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: flex; justify-content: flex-start; }
+        .sidebar-panel { width: 320px; max-width: 85vw; background: var(--bg-card); height: 100%; overflow-y: auto; padding: 20px; box-shadow: 4px 0 20px rgba(0,0,0,0.15); animation: slideIn 0.2s ease; }
+        @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 15px; font-weight: 700; color: var(--text-primary); transition: var(--transition); }
+        .sidebar-item:hover { background: var(--bg-secondary); }
+        .sidebar-item.active { background: var(--orange-glow-strong); color: var(--orange); }
     </style>
 </head>
 <body>
@@ -1231,6 +1313,8 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 //# sourceMappingURL=leaflet.js.map</script>
     <noscript><div style="font-size:20px;padding:40px;text-align:center;font-family:sans-serif">⚠️ JavaScript غير مفعل. يرجى تفعيل JavaScript لعرض التطبيق.</div></noscript>
 
+    <script>/* QR Code Generator (c) Kazuhiko Arase, MIT */var qrcode=function(){function r(t,e){if(void 0===t.length)throw new Error(t.length+"/"+e);var n=function(){for(var r=0;r<t.length&&0==t[r];)r+=1;for(var n=new Array(t.length-r+e),o=0;o<t.length-r;o+=1)n[o]=t[o+r];return n}(),o={};return o.getAt=function(r){return n[r]},o.getLength=function(){return n.length},o.multiply=function(t){for(var e=new Array(o.getLength()+t.getLength()-1),n=0;n<o.getLength();n+=1)for(var a=0;a<t.getLength();a+=1)e[n+a]^=i.gexp(i.glog(o.getAt(n))+i.glog(t.getAt(a)));return r(e,0)},o.mod=function(t){if(o.getLength()-t.getLength()<0)return o;for(var e=i.glog(o.getAt(0))-i.glog(t.getAt(0)),n=new Array(o.getLength()),a=0;a<o.getLength();a+=1)n[a]=o.getAt(a);for(var a=0;a<t.getLength();a+=1)n[a]^=i.gexp(i.glog(t.getAt(a))+e);return r(n,0).mod(t)},o}var t=function(t,e){var o=t,i=n[e],c=null,h=0,v=null,l=new Array,w={},d=function(r,t){h=4*o+17,c=function(r){for(var t=new Array(r),e=0;e<r;e+=1){t[e]=new Array(r);for(var n=0;n<r;n+=1)t[e][n]=null}return t}(h),y(0,0),y(h-7,0),y(0,h-7),E(),B(),T(r,t),o>=7&&p(r),null==v&&(v=k(o,i,l)),M(v,t)},y=function(r,t){for(var e=-1;e<=7;e+=1)if(!(r+e<=-1||h<=r+e))for(var n=-1;n<=7;n+=1)t+n<=-1||h<=t+n||(c[r+e][t+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},A=function(){for(var r=0,t=0,e=0;e<8;e+=1){d(!0,e);var n=a.getLostPoint(w);(0==e||r>n)&&(r=n,t=e)}return t},B=function(){for(var r=8;r<h-8;r+=1)null==c[r][6]&&(c[r][6]=r%2==0);for(var t=8;t<h-8;t+=1)null==c[6][t]&&(c[6][t]=t%2==0)},E=function(){for(var r=a.getPatternPosition(o),t=0;t<r.length;t+=1)for(var e=0;e<r.length;e+=1){var n=r[t],i=r[e];if(null==c[n][i])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)c[n+u][i+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},p=function(r){for(var t=a.getBCHTypeNumber(o),e=0;e<18;e+=1){var n=!r&&1==(t>>e&1);c[Math.floor(e/3)][e%3+h-8-3]=n}for(var e=0;e<18;e+=1){var n=!r&&1==(t>>e&1);c[e%3+h-8-3][Math.floor(e/3)]=n}},T=function(r,t){for(var e=i<<3|t,n=a.getBCHTypeInfo(e),o=0;o<15;o+=1){var u=!r&&1==(n>>o&1);o<6?c[o][8]=u:o<8?c[o+1][8]=u:c[h-15+o][8]=u}for(var o=0;o<15;o+=1){var u=!r&&1==(n>>o&1);o<8?c[8][h-o-1]=u:o<9?c[8][15-o-1+1]=u:c[8][15-o-1]=u}c[h-8][8]=!r},M=function(r,t){for(var e=-1,n=h-1,o=7,i=0,u=a.getMaskFunction(t),f=h-1;f>0;f-=2)for(6==f&&(f-=1);;){for(var g=0;g<2;g+=1)if(null==c[n][f-g]){var v=!1;i<r.length&&(v=1==(r[i]>>>o&1));var l=u(n,f-g);l&&(v=!v),c[n][f-g]=v,o-=1,-1==o&&(i+=1,o=7)}if((n+=e)<0||h<=n){n-=e,e=-e;break}}},D=function(t,e){for(var n=0,o=0,i=0,u=new Array(e.length),f=new Array(e.length),g=0;g<e.length;g+=1){var c=e[g].dataCount,h=e[g].totalCount-c;o=Math.max(o,c),i=Math.max(i,h),u[g]=new Array(c);for(var v=0;v<u[g].length;v+=1)u[g][v]=255&t.getBuffer()[v+n];n+=c;var l=a.getErrorCorrectPolynomial(h),s=r(u[g],l.getLength()-1),w=s.mod(l);f[g]=new Array(l.getLength()-1);for(var v=0;v<f[g].length;v+=1){var d=v+w.getLength()-f[g].length;f[g][v]=d>=0?w.getAt(d):0}}for(var y=0,v=0;v<e.length;v+=1)y+=e[v].totalCount;for(var A=new Array(y),B=0,v=0;v<o;v+=1)for(var g=0;g<e.length;g+=1)v<u[g].length&&(A[B]=u[g][v],B+=1);for(var v=0;v<i;v+=1)for(var g=0;g<e.length;g+=1)v<f[g].length&&(A[B]=f[g][v],B+=1);return A},k=function(r,t,e){for(var n=u.getRSBlocks(r,t),o=f(),i=0;i<e.length;i+=1){var g=e[i];o.put(g.getMode(),4),o.put(g.getLength(),a.getLengthInBits(g.getMode(),r)),g.write(o)}for(var c=0,i=0;i<n.length;i+=1)c+=n[i].dataCount;if(o.getLengthInBits()>8*c)throw new Error("code length overflow. ("+o.getLengthInBits()+">"+8*c+")");for(o.getLengthInBits()+4<=8*c&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;;){if(o.getLengthInBits()>=8*c)break;if(o.put(236,8),o.getLengthInBits()>=8*c)break;o.put(17,8)}return D(o,n)};return w.addData=function(r){var t=g(r);l.push(t),v=null},w.isDark=function(r,t){if(r<0||h<=r||t<0||h<=t)throw new Error(r+","+t);return c[r][t]},w.getModuleCount=function(){return h},w.make=function(){d(!1,A())},w.createTableTag=function(r,t){r=r||2,t=void 0===t?4*r:t;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+t+"px;",e+='">',e+="<tbody>";for(var n=0;n<w.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<w.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+r+"px;",e+=" height: "+r+"px;",e+=" background-color: ",e+=w.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},w.createSvgTag=function(r,t){r=r||2,t=void 0===t?4*r:t;var e,n,o,a,i,u=w.getModuleCount()*r+2*t,f="";for(i="l"+r+",0 0,"+r+" -"+r+",0 0,-"+r+"z ",f+="<svg",f+=' width="'+u+'px"',f+=' height="'+u+'px"',f+=' xmlns="http://www.w3.org/2000/svg"',f+=">",f+='<path d="',o=0;o<w.getModuleCount();o+=1)for(a=o*r+t,e=0;e<w.getModuleCount();e+=1)w.isDark(o,e)&&(n=e*r+t,f+="M"+n+","+a+i);return f+='" stroke="transparent" fill="black"/>',f+="</svg>"},w.createImgTag=function(r,t){r=r||2,t=void 0===t?4*r:t;var e=w.getModuleCount()*r+2*t,n=t,o=e-t;return s(e,e,function(t,e){if(n<=t&&t<o&&n<=e&&e<o){var a=Math.floor((t-n)/r),i=Math.floor((e-n)/r);return w.isDark(i,a)?0:1}return 1})},w};t.stringToBytes=function(r){for(var t=new Array,e=0;e<r.length;e+=1){var n=r.charCodeAt(e);t.push(255&n)}return t},t.createStringToBytes=function(r,t){var e=function(){for(var e=v(r),n=function(){var r=e.read();if(-1==r)throw new Error;return r},o=0,a={};;){var i=e.read();if(-1==i)break;var u=n(),f=n(),g=n(),c=String.fromCharCode(i<<8|u),h=f<<8|g;a[c]=h,o+=1}if(o!=t)throw new Error(o+" != "+t);return a}(),n="?".charCodeAt(0);return function(r){for(var t=new Array,o=0;o<r.length;o+=1){var a=r.charCodeAt(o);if(a<128)t.push(a);else{var i=e[r.charAt(o)];"number"==typeof i?(255&i)==i?t.push(i):(t.push(i>>>8),t.push(255&i)):t.push(n)}}return t}};var e={MODE_NUMBER:1,MODE_ALPHA_NUM:2,MODE_8BIT_BYTE:4,MODE_KANJI:8},n={L:1,M:0,Q:3,H:2},o={PATTERN000:0,PATTERN001:1,PATTERN010:2,PATTERN011:3,PATTERN100:4,PATTERN101:5,PATTERN110:6,PATTERN111:7},a=function(){var t=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],n={},a=function(r){for(var t=0;0!=r;)t+=1,r>>>=1;return t};return n.getBCHTypeInfo=function(r){for(var t=r<<10;a(t)-a(1335)>=0;)t^=1335<<a(t)-a(1335);return 21522^(r<<10|t)},n.getBCHTypeNumber=function(r){for(var t=r<<12;a(t)-a(7973)>=0;)t^=7973<<a(t)-a(7973);return r<<12|t},n.getPatternPosition=function(r){return t[r-1]},n.getMaskFunction=function(r){switch(r){case o.PATTERN000:return function(r,t){return(r+t)%2==0};case o.PATTERN001:return function(r,t){return r%2==0};case o.PATTERN010:return function(r,t){return t%3==0};case o.PATTERN011:return function(r,t){return(r+t)%3==0};case o.PATTERN100:return function(r,t){return(Math.floor(r/2)+Math.floor(t/3))%2==0};case o.PATTERN101:return function(r,t){return r*t%2+r*t%3==0};case o.PATTERN110:return function(r,t){return(r*t%2+r*t%3)%2==0};case o.PATTERN111:return function(r,t){return(r*t%3+(r+t)%2)%2==0};default:throw new Error("bad maskPattern:"+r)}},n.getErrorCorrectPolynomial=function(t){for(var e=r([1],0),n=0;n<t;n+=1)e=e.multiply(r([1,i.gexp(n)],0));return e},n.getLengthInBits=function(r,t){if(1<=t&&t<10)switch(r){case e.MODE_NUMBER:return 10;case e.MODE_ALPHA_NUM:return 9;case e.MODE_8BIT_BYTE:case e.MODE_KANJI:return 8;default:throw new Error("mode:"+r)}else if(t<27)switch(r){case e.MODE_NUMBER:return 12;case e.MODE_ALPHA_NUM:return 11;case e.MODE_8BIT_BYTE:return 16;case e.MODE_KANJI:return 10;default:throw new Error("mode:"+r)}else{if(!(t<41))throw new Error("type:"+t);switch(r){case e.MODE_NUMBER:return 14;case e.MODE_ALPHA_NUM:return 13;case e.MODE_8BIT_BYTE:return 16;case e.MODE_KANJI:return 12;default:throw new Error("mode:"+r)}}},n.getLostPoint=function(r){for(var t=r.getModuleCount(),e=0,n=0;n<t;n+=1)for(var o=0;o<t;o+=1){for(var a=0,i=r.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||t<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||t<=o+f||0==u&&0==f||i==r.isDark(n+u,o+f)&&(a+=1);a>5&&(e+=3+a-5)}for(var n=0;n<t-1;n+=1)for(var o=0;o<t-1;o+=1){var g=0;r.isDark(n,o)&&(g+=1),r.isDark(n+1,o)&&(g+=1),r.isDark(n,o+1)&&(g+=1),r.isDark(n+1,o+1)&&(g+=1),0!=g&&4!=g||(e+=3)}for(var n=0;n<t;n+=1)for(var o=0;o<t-6;o+=1)r.isDark(n,o)&&!r.isDark(n,o+1)&&r.isDark(n,o+2)&&r.isDark(n,o+3)&&r.isDark(n,o+4)&&!r.isDark(n,o+5)&&r.isDark(n,o+6)&&(e+=40);for(var o=0;o<t;o+=1)for(var n=0;n<t-6;n+=1)r.isDark(n,o)&&!r.isDark(n+1,o)&&r.isDark(n+2,o)&&r.isDark(n+3,o)&&r.isDark(n+4,o)&&!r.isDark(n+5,o)&&r.isDark(n+6,o)&&(e+=40);for(var c=0,o=0;o<t;o+=1)for(var n=0;n<t;n+=1)r.isDark(n,o)&&(c+=1);return e+=Math.abs(100*c/t/t-50)/5*10},n}(),i=function(){for(var r=new Array(256),t=new Array(256),e=0;e<8;e+=1)r[e]=1<<e;for(var e=8;e<256;e+=1)r[e]=r[e-4]^r[e-5]^r[e-6]^r[e-8];for(var e=0;e<255;e+=1)t[r[e]]=e;var n={};return n.glog=function(r){if(r<1)throw new Error("glog("+r+")");return t[r]},n.gexp=function(t){for(;t<0;)t+=255;for(;t>=256;)t-=255;return r[t]},n}(),u=function(){var r=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],t=function(r,t){var e={};return e.totalCount=r,e.dataCount=t,e},e={},o=function(t,e){switch(e){case n.L:return r[4*(t-1)+0];case n.M:return r[4*(t-1)+1];case n.Q:return r[4*(t-1)+2];case n.H:return r[4*(t-1)+3];default:return}};return e.getRSBlocks=function(r,e){var n=o(r,e);if(void 0===n)throw new Error("bad rs block @ typeNumber:"+r+"/errorCorrectionLevel:"+e);for(var a=n.length/3,i=new Array,u=0;u<a;u+=1)for(var f=n[3*u+0],g=n[3*u+1],c=n[3*u+2],h=0;h<f;h+=1)i.push(t(g,c));return i},e}(),f=function(){var r=new Array,t=0,e={};return e.getBuffer=function(){return r},e.getAt=function(t){var e=Math.floor(t/8);return 1==(r[e]>>>7-t%8&1)},e.put=function(r,t){for(var n=0;n<t;n+=1)e.putBit(1==(r>>>t-n-1&1))},e.getLengthInBits=function(){return t},e.putBit=function(e){var n=Math.floor(t/8);r.length<=n&&r.push(0),e&&(r[n]|=128>>>t%8),t+=1},e},g=function(r){var n=e.MODE_8BIT_BYTE,o=t.stringToBytes(r),a={};return a.getMode=function(){return n},a.getLength=function(r){return o.length},a.write=function(r){for(var t=0;t<o.length;t+=1)r.put(o[t],8)},a},c=function(){var r=new Array,t={};return t.writeByte=function(t){r.push(255&t)},t.writeShort=function(r){t.writeByte(r),t.writeByte(r>>>8)},t.writeBytes=function(r,e,n){e=e||0,n=n||r.length;for(var o=0;o<n;o+=1)t.writeByte(r[o+e])},t.writeString=function(r){for(var e=0;e<r.length;e+=1)t.writeByte(r.charCodeAt(e))},t.toByteArray=function(){return r},t.toString=function(){var t="";t+="[";for(var e=0;e<r.length;e+=1)e>0&&(t+=","),t+=r[e];return t+="]"},t},h=function(){var r=0,t=0,e=0,n="",o={},a=function(r){n+=String.fromCharCode(i(63&r))},i=function(r){if(r<0);else{if(r<26)return 65+r;if(r<52)return r-26+97;if(r<62)return r-52+48;if(62==r)return 43;if(63==r)return 47}throw new Error("n:"+r)};return o.writeByte=function(n){for(r=r<<8|255&n,t+=8,e+=1;t>=6;)a(r>>>t-6),t-=6},o.flush=function(){if(t>0&&(a(r<<6-t),r=0,t=0),e%3!=0)for(var o=3-e%3,i=0;i<o;i+=1)n+="="},o.toString=function(){return n},o},v=function(r){var t=r,e=0,n=0,o=0,a={};a.read=function(){for(;o<8;){if(e>=t.length){if(0==o)return-1;throw new Error("unexpected end of file./"+o)}var r=t.charAt(e);if(e+=1,"="==r)return o=0,-1;r.match(/^\s$/)||(n=n<<6|i(r.charCodeAt(0)),o+=6)}var a=n>>>o-8&255;return o-=8,a};var i=function(r){if(65<=r&&r<=90)return r-65;if(97<=r&&r<=122)return r-97+26;if(48<=r&&r<=57)return r-48+52;if(43==r)return 62;if(47==r)return 63;throw new Error("c:"+r)};return a},l=function(r,t){var e=r,n=t,o=new Array(r*t),a={};a.setPixel=function(r,t,n){o[t*e+r]=n},a.write=function(r){r.writeString("GIF87a"),r.writeShort(e),r.writeShort(n),r.writeByte(128),r.writeByte(0),r.writeByte(0),r.writeByte(0),r.writeByte(0),r.writeByte(0),r.writeByte(255),r.writeByte(255),r.writeByte(255),r.writeString(","),r.writeShort(0),r.writeShort(0),r.writeShort(e),r.writeShort(n),r.writeByte(0);var t=u(2);r.writeByte(2);for(var o=0;t.length-o>255;)r.writeByte(255),r.writeBytes(t,o,255),o+=255;r.writeByte(t.length-o),r.writeBytes(t,o,t.length-o),r.writeByte(0),r.writeString(";")};var i=function(r){var t=r,e=0,n=0,o={};return o.write=function(r,o){if(r>>>o!=0)throw new Error("length over");for(;e+o>=8;)t.writeByte(255&(r<<e|n)),o-=8-e,r>>>=8-e,n=0,e=0;n|=r<<e,e+=o},o.flush=function(){e>0&&t.writeByte(n)},o},u=function(r){for(var t=1<<r,e=1+(1<<r),n=r+1,a=f(),u=0;u<t;u+=1)a.add(String.fromCharCode(u));a.add(String.fromCharCode(t)),a.add(String.fromCharCode(e));var g=c(),h=i(g);h.write(t,n);var v=0,l=String.fromCharCode(o[v]);for(v+=1;v<o.length;){var s=String.fromCharCode(o[v]);v+=1,a.contains(l+s)?l+=s:(h.write(a.indexOf(l),n),a.size()<4095&&(a.size()==1<<n&&(n+=1),a.add(l+s)),l=s)}return h.write(a.indexOf(l),n),h.write(e,n),h.flush(),g.toByteArray()},f=function(){var r={},t=0,e={};return e.add=function(n){if(e.contains(n))throw new Error("dup key:"+n);r[n]=t,t+=1},e.size=function(){return t},e.indexOf=function(t){return r[t]},e.contains=function(t){return void 0!==r[t]},e};return a},s=function(r,t,e,n){for(var o=l(r,t),a=0;a<t;a+=1)for(var i=0;i<r;i+=1)o.setPixel(i,a,e(i,a));var u=c();o.write(u);for(var f=h(),g=u.toByteArray(),v=0;v<g.length;v+=1)f.writeByte(g[v]);f.flush();var s="";s+="<img",s+=' src="',s+="data:image/gif;base64,",s+=f,s+='"',s+=' width="',s+=r,s+='"',s+=' height="',s+=t,s+='"',n&&(s+=' alt="',s+=n,s+='"'),s+="/>";return s};return t}();</script>
+
     <script>
         function _fgBootApp() {
             (function() {
@@ -1276,10 +1360,10 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
             }
 
             const MOCK_COURIERS = [
-                {id:1,name:"أحمد محمد",phone:"01001234567",area:"المعادي",active:true},
-                {id:2,name:"محمود علي",phone:"01112345678",area:"مدينة نصر",active:true},
-                {id:3,name:"كريم سامي",phone:"01223456789",area:"الزيتون",active:false},
-                {id:4,name:"عمر خالد",phone:"01534567890",area:"شبرا",active:true},
+                {id:1,name:"أحمد محمد",phone:"01001234567",area:"المعادي",active:true,code:"C001",nationalId:"",referrer:"",hireDate:"",pricePerShipment:15,baseSalary:0,vehicleType:"motorcycle",plateNumber:"",notes:""},
+                {id:2,name:"محمود علي",phone:"01112345678",area:"مدينة نصر",active:true,code:"C002",nationalId:"",referrer:"",hireDate:"",pricePerShipment:15,baseSalary:0,vehicleType:"motorcycle",plateNumber:"",notes:""},
+                {id:3,name:"كريم سامي",phone:"01223456789",area:"الزيتون",active:false,code:"C003",nationalId:"",referrer:"",hireDate:"",pricePerShipment:15,baseSalary:0,vehicleType:"motorcycle",plateNumber:"",notes:""},
+                {id:4,name:"عمر خالد",phone:"01534567890",area:"شبرا",active:true,code:"C004",nationalId:"",referrer:"",hireDate:"",pricePerShipment:15,baseSalary:0,vehicleType:"motorcycle",plateNumber:"",notes:""},
             ];
             function makeOrder(id,customer,phone,address,area,desc,amount,courierId,status,date,notes,returnReason,lat,lng,deliveryWindow) {
                 return {id:id, customer:customer, phone:phone, address:address, area:area, description:desc, amount:amount, courierId:courierId, status:status, date:date, notes:notes||"", returnReason:returnReason||"", lat:lat||null, lng:lng||null, deliveryWindow:deliveryWindow||""};
@@ -1330,26 +1414,6 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 URL.revokeObjectURL(url);
             }
 
-            function generateQRData(order) {
-                var data = {
-                    id: order.id,
-                    addr: order.address,
-                    cust: order.customer,
-                    phone: order.phone,
-                    area: order.area,
-                    desc: order.description,
-                    amount: order.amount,
-                    notes: order.notes || "",
-                    status: order.status
-                };
-                if (order.lat && order.lng) { data.lat = order.lat; data.lng = order.lng; }
-                return JSON.stringify(data);
-            }
-
-            function parseQRData(str) {
-                try { return JSON.parse(str); } catch(e) { return null; }
-            }
-
             function parseLocationInput(val) {
                 if (!val || !val.trim()) return {lat: null, lng: null};
                 var s = val.trim();
@@ -1375,12 +1439,24 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 return {lat: null, lng: null};
             }
 
-            function openAddressInGPS(address, lat, lng) {
-                if (lat && lng) {
-                    window.open("https://www.google.com/maps?q=" + lat + "," + lng, "_blank");
-                } else {
-                    window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(address), "_blank");
-                }
+            function generateQRData(order) {
+                var data = {
+                    id: order.id,
+                    addr: order.address,
+                    cust: order.customer,
+                    phone: order.phone,
+                    area: order.area,
+                    desc: order.description,
+                    amount: order.amount,
+                    notes: order.notes || "",
+                    status: order.status
+                };
+                if (order.lat && order.lng) { data.lat = order.lat; data.lng = order.lng; }
+                return JSON.stringify(data);
+            }
+
+            function parseQRData(str) {
+                try { return JSON.parse(str); } catch(e) { return null; }
             }
 
             function getMapUrl(address, lat, lng) {
@@ -1389,8 +1465,35 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
             }
 
             function QRCodeDisplay(props) {
-                var qrUrl = "https://chart.googleapis.com/chart?chs=" + (props.size || 140) + "x" + (props.size || 140) + "&cht=qr&chl=" + encodeURIComponent(props.data) + "&choe=UTF-8";
-                return h('img',{src: qrUrl, width: props.size || 140, height: props.size || 140, alt: 'QR', style: {borderRadius: 8, border: '2px solid var(--border)'}});
+                var data = props.data;
+                var displaySize = props.size || 140;
+                var qr, ver, moduleCount, padding, cellSize, canvasSize, canvas, ctx, r, c;
+                for (ver = 1; ver <= 20; ver++) {
+                    try {
+                        qr = qrcode(ver, 'M');
+                        qr.addData(data);
+                        qr.make();
+                        break;
+                    } catch(e) { if (ver === 20) throw e; }
+                }
+                moduleCount = qr.getModuleCount();
+                padding = 2;
+                cellSize = Math.floor(displaySize / (moduleCount + 2 * padding));
+                if (cellSize < 1) cellSize = 1;
+                canvasSize = cellSize * (moduleCount + 2 * padding);
+                canvas = document.createElement('canvas');
+                canvas.width = canvasSize;
+                canvas.height = canvasSize;
+                ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, canvasSize, canvasSize);
+                ctx.fillStyle = '#000';
+                for (r = 0; r < moduleCount; r++) {
+                    for (c = 0; c < moduleCount; c++) {
+                        if (qr.isDark(r, c)) { ctx.fillRect(cellSize * (padding + c), cellSize * (padding + r), cellSize, cellSize); }
+                    }
+                }
+                return h('img',{src: canvas.toDataURL(), width: displaySize, height: displaySize, alt: 'QR', style: {borderRadius: 8, border: '2px solid var(--border)'}});
             }
 
             function QRModal(props) {
@@ -1415,44 +1518,28 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
             }
 
             function LoginScreen(props) {
-                var mode = props.mode || "";
-                var defaultRole = (mode==="courier") ? "courier" : "admin";
-                var _a = useState(defaultRole), role = _a[0], setRole = _a[1];
-                var _b = useState(""), username = _b[0], setUsername = _b[1];
-                var _c = useState(""), password = _c[0], setPassword = _c[1];
-                var _d = useState(""), error = _d[0], setError = _d[1];
-                var USERS = {
-                    admin:[
-                        {user:"chairman",pass:"admin123",name:"رئيس مجلس الإدارة",role:"chairman"},
-                        {user:"gm",pass:"gm123",name:"المدير العام",role:"gm"},
-                    ],
-                    courier:MOCK_COURIERS.map(function(c){return {user:'courier' + c.id,pass:"123456",name:c.name,courierId:c.id,role:"courier"};}),
-                };
+                var _a = useState(""), email = _a[0], setEmail = _a[1];
+                var _b = useState(""), password = _b[0], setPassword = _b[1];
+                var _c = useState(""), error = _c[0], setError = _c[1];
                 var handleLogin = function() {
-                    var found = (USERS[role]||[]).find(function(u){return u.user===username&&u.pass===password;});
-                    if(found){setError("");props.onLogin(found);}else setError("اسم المستخدم أو كلمة المرور غير صحيحة");
+                    var found = (props.users||[]).find(function(u){
+                        return (u.role==="chairman"||u.role==="gm") && u.email===email && u.password===password;
+                    });
+                    if(found){setError("");props.onLogin(found);}else setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");
                 };
+                var adminUsers = (props.users||[]).filter(function(u){return u.role==="chairman"||u.role==="gm";});
                 return h('div',{className:'login-screen'},
                     h('div',{className:'login-card'},
                         h('div',{className:'login-logo'},'FLASH ',h('span',null,'GO')),
-                        h('div',{className:'login-sub'},mode==="courier"?'تطبيق المندوب':'نظام إدارة التوصيل الذكي'),
-                        (mode===""||mode==="both") && h('div',{className:'login-role-tabs'},
-                            h('button',{className:'role-tab ' + (role==="admin"?"active":""),onClick:function(){setRole("admin");setUsername("");setPassword("");setError("");}},'لوحة الإدارة'),
-                            h('button',{className:'role-tab ' + (role==="courier"?"active":""),onClick:function(){setRole("courier");setUsername("");setPassword("");setError("");}},'تطبيق المندوب')
-                        ),
+                        h('div',{className:'login-sub'},'نظام إدارة التوصيل الذكي'),
                         error && h('div',{className:'alert alert-error'},error),
-                        h('div',{className:'form-group'},h('label',{className:'form-label'},'اسم المستخدم'),h('input',{className:'form-input',value:username,onChange:function(e){setUsername(e.target.value);},placeholder:role==="admin"?"chairman أو gm":"courier1 ... courier4"})),
-                        h('div',{className:'form-group'},h('label',{className:'form-label'},'كلمة المرور'),h('input',{className:'form-input',type:'password',value:password,onChange:function(e){setPassword(e.target.value);},onKeyDown:function(e){if(e.key==="Enter")handleLogin();},placeholder:'••••••'})),
+                        h('div',{className:'form-group'},h('label',{className:'form-label'},'📧 البريد الإلكتروني'),h('input',{className:'form-input',value:email,onChange:function(e){setEmail(e.target.value);},placeholder:'email@example.com',dir:'ltr',style:{textAlign:'left'}})),
+                        h('div',{className:'form-group'},h('label',{className:'form-label'},'🔒 كلمة المرور'),h('input',{className:'form-input',type:'password',value:password,onChange:function(e){setPassword(e.target.value);},onKeyDown:function(e){if(e.key==="Enter")handleLogin();},placeholder:'••••••'})),
                         h('button',{className:'btn btn-primary btn-block btn-lg',onClick:handleLogin},'🚀 دخول'),
                         h('div',{className:'login-divider'}),
-                            h('div',{style:{fontSize:11,color:'var(--text-muted)',lineHeight:1.8}},
-                                mode!=="courier" && h('div',null,'👨‍💼 إدارة: chairman / admin123 | gm / gm123'),
-                                mode!=="admin" && h('div',null,'🏍️ مندوب: courier1 ... courier4 / 123456')
-                            ),
-                            h('div',{style:{fontSize:10,color:'var(--orange)',marginTop:8,lineHeight:1.6}},
-                                h('div',null,'🔗 رابط الإدارة: ?mode=admin'),
-                                h('div',null,'🔗 رابط المندوب: ?mode=courier')
-                            )
+                        h('div',{style:{fontSize:11,color:'var(--text-muted)',lineHeight:1.8}},
+                            h('div',null,'👨‍💼 إدارة: ',adminUsers.map(function(u){return u.email+' / '+u.password;}).join(' | '))
+                        )
                     )
                 );
             }
@@ -1700,11 +1787,9 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
             function CouriersTab(props) {
                 var couriers = props.couriers, setCouriers = props.setCouriers, orders = props.orders;
-                var _a = useState(false), showAdd = _a[0], setShowAdd = _a[1];
                 var toggle=function(id){setCouriers(function(p){return p.map(function(c){return c.id===id?{id:c.id,name:c.name,phone:c.phone,area:c.area,active:!c.active}:c;});});};
                 return h('div',null,
-                    showAdd&&h(AddCourierModal,{onClose:function(){setShowAdd(false);},onSave:function(c){setCouriers(function(p){return p.concat([c]);});}}),
-                    h('div',{className:'sec-header'},h('span',{className:'sec-title'},'🏍️ المناديب (',couriers.length,')'),h('button',{className:'btn btn-primary btn-sm',onClick:function(){setShowAdd(true);}},'+ مندوب جديد')),
+                    h('div',{className:'sec-header'},h('span',{className:'sec-title'},'🏍️ المناديب (',couriers.length,')')),
                     h('div',{className:'courier-grid'},couriers.map(function(c){
                         var mo=orders.filter(function(o){return o.courierId===c.id;});
                         return h('div',{className:'courier-card',key:c.id},
@@ -1763,10 +1848,24 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
             }
 
             function AdminPanel(props) {
-                var user = props.user, orders = props.orders, setOrders = props.setOrders, couriers = props.couriers, setCouriers = props.setCouriers, tracking = props.tracking, onLogout = props.onLogout;
+                var user = props.user, orders = props.orders, setOrders = props.setOrders, couriers = props.couriers, setCouriers = props.setCouriers, tracking = props.tracking, onLogout = props.onLogout, users = props.users || [], setUsers = props.setUsers, journalEntries = props.journalEntries || [], setJournalEntries = props.setJournalEntries;
                 var _a = useState("dashboard"), tab = _a[0], setTab = _a[1];
                 var _b = useState(""), syncMsg = _b[0], setSyncMsg = _b[1];
+                // Profile edit state
+                var _c = useState(""), editName = _c[0], setEditName = _c[1];
+                var _d = useState(""), oldPass = _d[0], setOldPass = _d[1];
+                var _e = useState(""), newPass = _e[0], setNewPass = _e[1];
+                var _f = useState(""), profileMsg = _f[0], setProfileMsg = _f[1];
+                // User management state
+                var _g = useState(""), newEmail = _g[0], setNewEmail = _g[1];
+                var _h = useState(""), newName = _h[0], setNewName = _h[1];
+                var _i = useState(""), newPassU = _i[0], setNewPassU = _i[1];
+                var _j = useState("courier"), newRole = _j[0], setNewRole = _j[1];
+                var _k = useState(""), userMsg = _k[0], setUserMsg = _k[1];
+                var _l = useState(null), editUser = _l[0], setEditUser = _l[1];
+                var _m = useState(false), menuOpen = _m[0], setMenuOpen = _m[1];
                 var tabs=[{id:"dashboard",label:"📊 الرئيسية"},{id:"orders",label:"📦 الأوردرات"},{id:"couriers",label:"🏍️ المناديب"},{id:"map",label:"🗺️ الخريطة"}];
+                if (user.role === "chairman") { tabs.push({id:"users",label:"👥 إدارة المستخدمين"}); tabs.push({id:"accounting",label:"📒 المحاسبة"}); tabs.push({id:"profits",label:"📊 أرباح المناديب"}); }
                 function forceSync() {
                     setSyncMsg("جاري المزامنة...");
                     var o = {}; orders.forEach(function(v){o[v.id]=v;});
@@ -1777,225 +1876,634 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     ]).then(function() { setSyncMsg("✅ تمت المزامنة مع Firebase"); setTimeout(function(){setSyncMsg("");},3000); })
                     .catch(function() { setSyncMsg("❌ فشلت المزامنة"); });
                 }
+                function handleUpdateProfile() {
+                    var cur = users.find(function(u){return u.id===user.id;});
+                    if (!cur) { setProfileMsg("❌ لم يتم العثور على المستخدم"); return; }
+                    if (oldPass && oldPass !== cur.password) { setProfileMsg("❌ كلمة المرور القديمة غير صحيحة"); return; }
+                    var updated = users.map(function(u){
+                        if (u.id !== user.id) return u;
+                        var nu = {}; for (var k in u) nu[k] = u[k];
+                        if (editName) nu.name = editName;
+                        if (newPass) nu.password = newPass;
+                        return nu;
+                    });
+                    setUsers(updated);
+                    var nu = updated.find(function(u){return u.id===user.id;});
+                    if (props.onLogin) props.onLogin(nu);
+                    setProfileMsg("✅ تم تحديث الملف الشخصي");
+                    setOldPass(""); setNewPass(""); setEditName("");
+                }
                 return h('div',{style:{display:'flex',flexDirection:'column',minHeight:'100vh'}},
                     h('nav',{className:'nav'},
                         h('div',{className:'logo'},'FLASH ',h('span',null,'GO')),
                         h('div',{className:'nav-user'},
-                            h('div',{style:{textAlign:'left'}},h('div',{style:{fontSize:13,fontWeight:700,color:'var(--black)'}},user.name),h('div',{className:'nav-info'},user.role==="chairman"?'رئيس مجلس الإدارة':'المدير العام')),
+                            h('div',{style:{textAlign:'left',cursor:'pointer'},onClick:function(){setTab('profile');}},h('div',{style:{fontSize:13,fontWeight:700,color:'var(--black)'}},user.name),h('div',{className:'nav-info'},user.role==="chairman"?'رئيس مجلس الإدارة':'المدير العام')),
                             h('div',{className:'avatar'},user.name.charAt(0)),
+                            h('button',{className:'btn btn-ghost btn-sm',onClick:function(){setMenuOpen(true);}},'☰'),
                             h('button',{className:'btn btn-sm btn-outline-orange',style:{fontSize:11},onClick:forceSync},'📡 مزامنة'),
                             syncMsg && h('span',{style:{fontSize:11,color:'var(--green)',fontWeight:600}},syncMsg),
                             h('button',{className:'btn btn-ghost btn-sm',onClick:onLogout},'🚪 خروج')
                         )
                     ),
-                    h('div',{className:'tabs'},tabs.map(function(t){return h('button',{key:t.id,className:'tab ' + (tab===t.id?"active":""),onClick:function(){setTab(t.id);}},t.label);})),
+                    menuOpen && h('div',{className:'sidebar-overlay',onClick:function(){setMenuOpen(false);}},
+                        h('div',{className:'sidebar-panel',onClick:function(e){e.stopPropagation();}},
+                            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,padding:'10px 0'}},
+                                h('span',{style:{fontSize:18,fontWeight:900,fontFamily:'Outfit',letterSpacing:2}},'FLASH ',h('span',{style:{color:'var(--orange)'}},'GO')),
+                                h('button',{className:'btn btn-ghost btn-sm',onClick:function(){setMenuOpen(false);}},'✕')
+                            ),
+                            tabs.map(function(t){
+                                return h('div',{key:t.id,className:'sidebar-item' + (tab===t.id?' active':''),onClick:function(){setTab(t.id);setMenuOpen(false);}},t.label);
+                            })
+                        )
+                    ),
                     h('div',{className:'main'},
                         tab==="dashboard"&&h(DashboardTab,{orders:orders,couriers:couriers}),
                         tab==="orders"&&h(OrdersTab,{orders:orders,couriers:couriers,setOrders:setOrders}),
                         tab==="couriers"&&h(CouriersTab,{couriers:couriers,setCouriers:setCouriers,orders:orders}),
-                        tab==="map"&&h(MapView,{orders:orders,couriers:couriers,tracking:tracking})
-                    )
-                );
-            }
-
-            function ScanQR(props) {
-                var orders = props.orders;
-                var _a = useState(null), scanResult = _a[0], setScanResult = _a[1];
-                var _b = useState(false), scanning = _b[0], setScanning = _b[1];
-                var _c = useState(""), error = _c[0], setError = _c[1];
-                var _d = useState(""), manualId = _d[0], setManualId = _d[1];
-                var scannerRef = useRef(null);
-                var html5QrRef = useRef(null);
-                function startScan() { setScanning(true); setError(""); setScanResult(null); }
-                function stopScan() {
-                    setScanning(false);
-                    if (html5QrRef.current) { try { html5QrRef.current.stop(); } catch(e) {} html5QrRef.current = null; }
-                }
-                function manualLookup() {
-                    setError(""); setScanResult(null);
-                    if (!manualId) { setError("يرجى إدخال رقم الأوردر"); return; }
-                    var found = orders.filter(function(o){return o.id.indexOf(manualId)!==-1 || o.customer.indexOf(manualId)!==-1 || o.phone.indexOf(manualId)!==-1 || o.address.indexOf(manualId)!==-1;});
-                    if (found.length === 1) {
-                        var o = found[0];
-                        setScanResult({id:o.id,cust:o.customer,phone:o.phone,addr:o.address,area:o.area,desc:o.description,amount:o.amount,notes:o.notes||"",status:o.status,lat:o.lat,lng:o.lng});
-                    } else if (found.length > 1) { setError("تم العثور على " + found.length + " نتائج. كن أكثر تحديداً."); }
-                    else { setError("لا يوجد أوردر بهذا الرقم"); }
-                }
-                useEffect(function() {
-                    if (!scanning) return;
-                    var el = document.getElementById("qr-scanner-reader");
-                    if (!el) { setError("عنصر المسح غير موجود"); setScanning(false); return; }
-                    if (typeof Html5Qrcode === "undefined") {
-                        // Try loading from fallback CDN
-                        var s = document.createElement("script");
-                        s.src = "https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js";
-                        s.onload = function() { setError(""); setScanning(true); };
-                        s.onerror = function() { setError("فشل تحميل مكتبة المسح. استخدم البحث اليدوي بالأسفل"); setScanning(false); };
-                        document.head.appendChild(s);
-                        return;
-                    }
-                    try {
-                        var scanner = new Html5Qrcode("qr-scanner-reader");
-                        html5QrRef.current = scanner;
-                        scanner.start(
-                            { facingMode: "environment" },
-                            { fps: 10, qrbox: { width: 250, height: 250 } },
-                            function(qrMessage) {
-                                var data = parseQRData(qrMessage);
-                                if (data && data.id) { setScanResult(data); stopScan(); }
-                                else { setError("رمز QR غير صالح لهذا النظام"); }
-                            },
-                            function(err) {}
-                        ).catch(function(err) { setError("تعذر الوصول إلى الكاميرا. تأكد من السماح بالكاميرا في إعدادات المتصفح"); setScanning(false); });
-                    } catch(e) { setError("خطأ: " + e.message); setScanning(false); }
-                    return function() { stopScan(); };
-                }, [scanning]);
-                if (scanResult) {
-                    return h('div',{style:{padding:16}},
-                        h('div',{className:'scan-result'},
-                            h('div',{style:{fontSize:18,fontWeight:800,marginBottom:12,color:'var(--green)'}},'✅ تم المسح'),
-                            h('div',{className:'info-row'},h('span',{className:'info-label'},'📦 رقم'),h('span',{className:'info-value'},scanResult.id)),
-                            h('div',{className:'info-row'},h('span',{className:'info-label'},'👤 العميل'),h('span',{className:'info-value'},scanResult.cust)),
-                            h('div',{className:'info-row'},h('span',{className:'info-label'},'📞 تليفون'),h('span',{className:'info-value'},scanResult.phone)),
-                            h('div',{className:'info-row'},h('span',{className:'info-label'},'📍 العنوان'),h('span',{className:'info-value'},scanResult.addr)),
-                            h('div',{className:'info-row'},h('span',{className:'info-label'},'📦 الشحنة'),h('span',{className:'info-value'},scanResult.desc||'—')),
-                            h('div',{className:'info-row'},h('span',{className:'info-label'},'💰 القيمة'),h('span',{className:'info-value',style:{color:'var(--green)',fontWeight:700}},scanResult.amount?scanResult.amount+' ج':'—')),
-                            scanResult.lat && scanResult.lng && h('div',{className:'info-row'},h('span',{className:'info-label'},'📍 GPS'),h('span',{className:'info-value',style:{fontSize:12,fontFamily:'monospace',direction:'ltr',display:'inline-block'}},scanResult.lat+', '+scanResult.lng)),
-                            scanResult.notes && h('div',{className:'order-note',style:{marginTop:8}},'📝 ',scanResult.notes),
-                            h('div',{style:{display:'flex',gap:8,marginTop:16}},
-                                h('button',{className:'btn btn-primary',style:{flex:1,justifyContent:'center'},onClick:function(){openAddressInGPS(scanResult.addr,scanResult.lat,scanResult.lng);}},'📍 GPS'),
-                                h('button',{className:'btn btn-ghost',style:{flex:1,justifyContent:'center'},onClick:function(){if(scanResult.phone)window.open('tel:'+scanResult.phone);}},'📞 اتصال')
+                        tab==="map"&&h('div',null,
+                            h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:14}},
+                                h('button',{className:'btn btn-ghost btn-sm',style:{fontSize:13,fontWeight:700},onClick:function(){setTab('dashboard');}},'← رجوع'),
+                                h('span',{style:{fontSize:16,fontWeight:800}},'🗺️ الخريطة')
                             ),
-                            h('button',{className:'btn btn-ghost btn-block',style:{marginTop:12},onClick:function(){setScanResult(null);}},'مسح جديد')
-                        )
-                    );
-                }
-                return h('div',null,
-                    !scanning && !scanResult && h('div',{style:{padding:16}},
-                        h('div',{style:{textAlign:'center',marginBottom:20}},
-                            h('div',{style:{fontSize:22,fontWeight:800,marginBottom:8}},'📷 مسح QR'),
-                            h('div',{style:{fontSize:13,color:'var(--text-muted)',marginBottom:8}},'وجه الكاميرا نحو QR المطبوع على الشحنة'),
-                            h('div',{style:{fontSize:12,color:'var(--text-muted)',marginBottom:20,background:'var(--bg-input)',padding:'8px 12px',borderRadius:6}},'يتطلب HTTPS. بديل: أدخل رقم الأوردر يدوياً'),
-                            h('button',{className:'btn btn-primary btn-lg',style:{width:'100%',justifyContent:'center',padding:'16px 0',fontSize:16},onClick:startScan},'📷 بدء المسح')
+                            h(MapView,{orders:orders,couriers:couriers,tracking:tracking})
                         ),
-                        h('div',{style:{display:'flex',alignItems:'center',gap:12,margin:'16px 0'}},
-                            h('hr',{style:{flex:1,border:'none',borderTop:'1px solid var(--border)'}}),
-                            h('span',{style:{fontSize:12,color:'var(--text-muted)',whiteSpace:'nowrap'}},'أو أدخل يدوياً'),
-                            h('hr',{style:{flex:1,border:'none',borderTop:'1px solid var(--border)'}})
+                        tab==="profile" && h('div',{style:{maxWidth:500,margin:'0 auto'}},
+                            h('div',{className:'sec-title',style:{marginBottom:18}},'👤 الملف الشخصي'),
+                            profileMsg && h('div',{className:'alert ' + (profileMsg.indexOf('✅')!==-1?'alert-success':'alert-error')},profileMsg),
+                            h('div',{className:'table-wrap',style:{padding:24}},
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'📧 البريد الإلكتروني'),h('input',{className:'form-input',value:user.email,disabled:true,style:{opacity:0.6}})),
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'👤 الاسم'),h('input',{className:'form-input',value:editName||user.name,onChange:function(e){setEditName(e.target.value);},placeholder:'الاسم الجديد'})),
+                                h('div',{style:{height:1,background:'var(--border)',margin:'20px 0'}}),
+                                h('div',{style:{fontSize:14,fontWeight:700,marginBottom:12,color:'var(--black)'}},'🔑 تغيير كلمة المرور'),
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'🔒 كلمة المرور القديمة'),h('input',{className:'form-input',type:'password',value:oldPass,onChange:function(e){setOldPass(e.target.value);},placeholder:'أدخل كلمة المرور الحالية'})),
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'🆕 كلمة المرور الجديدة'),h('input',{className:'form-input',type:'password',value:newPass,onChange:function(e){setNewPass(e.target.value);},placeholder:'كلمة المرور الجديدة'})),
+                                h('button',{className:'btn btn-primary btn-block',onClick:handleUpdateProfile},'💾 حفظ التغييرات')
+                            )
                         ),
-                        h('div',{style:{display:'flex',gap:8}},
-                            h('input',{className:'form-input',style:{flex:1},value:manualId,onChange:function(e){setManualId(e.target.value);},placeholder:'🔍 رقم الأوردر أو اسم العميل',onKeyDown:function(e){if(e.key==="Enter")manualLookup();}}),
-                            h('button',{className:'btn btn-primary',onClick:manualLookup},'بحث')
-                        ),
-                        error && h('div',{className:'alert alert-error',style:{marginTop:12}},error)
-                    ),
-                    scanning && h('div',null,
-                        h('div',{style:{padding:'8px 16px',textAlign:'center'}},h('div',{style:{fontSize:14,fontWeight:700,marginBottom:8}},'📷 المسح ...'),h('div',{style:{fontSize:12,color:'var(--text-muted)',marginBottom:8}},'وجه الكاميرا نحو QR')),
-                        h('div',{id:'qr-scanner-reader',ref:scannerRef,className:'scanner-wrap'}),
-                        h('div',{style:{textAlign:'center',padding:12}},h('button',{className:'btn btn-danger',onClick:stopScan},'⏹️ إيقاف'))
-                    )
-                );
-            }
-
-            function CourierApp(props) {
-                var user = props.user, orders = props.orders, setOrders = props.setOrders, onLogout = props.onLogout;
-                var _a = useState("active"), screen = _a[0], setScreen = _a[1];
-                var _b = useState(null), returnOrder = _b[0], setReturnOrder = _b[1];
-                var _c = useState(false), gpsActive = _c[0], setGpsActive = _c[1];
-                var courier = MOCK_COURIERS.find(function(c){return c.id===user.courierId;});
-                var myOrders=orders.filter(function(o){return o.courierId===user.courierId;});
-                var activeOrders=myOrders.filter(function(o){return o.status==="assigned"||o.status==="picked_up"||o.status==="in_transit";});
-                var doneOrders=myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";});
-                function advanceStatus(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);if(c.status==="assigned")c.status="picked_up";else if(c.status==="picked_up")c.status="in_transit";else if(c.status==="in_transit")c.status="delivered";return c;});}); }
-                function markReturn(id,reason) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="returned";c.returnReason=reason;return c;});}); }
-                // GPS tracking
-                useEffect(function() {
-                    if (!user || !user.courierId) return;
-                    if (!navigator.geolocation) return;
-                    var watch = navigator.geolocation.watchPosition(function(pos) {
-                        setGpsActive(true);
-                        var data = {lat:pos.coords.latitude, lng:pos.coords.longitude, updatedAt:new Date().toISOString(), courierId:user.courierId};
-                        fetch(FB_URL + "/flashgo/tracking/c" + user.courierId + ".json", {method:"PUT",body:JSON.stringify(data),headers:{"Content-Type":"application/json"}}).catch(function(){});
-                    }, function() { setGpsActive(false); }, {enableHighAccuracy:true, timeout:5000, maximumAge:10000});
-                    return function() { navigator.geolocation.clearWatch(watch); };
-                }, [user]);
-                var totalToCollect=myOrders.filter(function(o){return o.status!=="delivered"&&o.status!=="returned";}).reduce(function(s,o){return s+o.amount;},0);
-                var totalCollected=myOrders.filter(function(o){return o.status==="delivered";}).reduce(function(s,o){return s+o.amount;},0);
-                var displayOrders=screen==="active"?activeOrders:doneOrders;
-                var bottomTabs = [{id:"active",label:"نشط",icon:"🏍️"},{id:"scan",label:"مسح QR",icon:"📷"},{id:"history",label:"السجل",icon:"📋"},{id:"earnings",label:"الأرباح",icon:"💰"}];
-                return h('div',{className:'courier-app'},
-                    returnOrder&&h(ReturnModal,{order:returnOrder,onClose:function(){setReturnOrder(null);},onConfirm:markReturn}),
-                    h('div',{className:'courier-header'},
-                        h('div',{className:'courier-logo'},'FLASH ',h('span',null,'GO')),
-                        h('div',{style:{display:'flex',alignItems:'center',gap:10}},
-                            h('div',{style:{textAlign:'left'}},h('div',{style:{fontSize:13,fontWeight:700}},user.name),h('div',{style:{fontSize:11,color:'var(--text-muted)'}},'🏍️ ',(courier&&courier.area)||'')),
-                            h('span',{style:{fontSize:10,fontWeight:600,color:gpsActive?'var(--green)':'var(--red)'}},gpsActive?'📍 GPS':'📍 لا GPS'),
-                            h('button',{className:'btn btn-ghost btn-sm',onClick:onLogout},'🚪 خروج')
-                        )
-                    ),
-                    screen!=="scan" && screen!=="earnings" && h('div',{className:'courier-summary-strip'},
-                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'متوقع تحصيله'),h('span',{className:'summary-value orange'},totalToCollect.toLocaleString(),' ج')),
-                        h('div',{className:'summary-divider'}),
-                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'تم تحصيله'),h('span',{className:'summary-value green'},totalCollected.toLocaleString(),' ج')),
-                        h('div',{className:'summary-divider'}),
-                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'أوردرات نشطة'),h('span',{className:'summary-value blue'},myOrders.filter(function(o){return o.status!=="delivered"&&o.status!=="returned";}).length)),
-                        h('div',{className:'summary-divider'}),
-                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'إجمالي الكل'),h('span',{className:'summary-value',style:{color:'var(--text-muted)',fontSize:14}},orders.length)
-                        )
-                    ),
-                    screen==="scan"?h(ScanQR,{orders:orders}):
-                    screen==="earnings"?h('div',{className:'courier-body'},
-                        h('div',{className:'order-card',style:{marginBottom:14}},
-                            h('div',{style:{fontSize:14,fontWeight:800,marginBottom:12}},'💰 الأرباح'),
-                            h('div',{className:'info-row'},h('span',{className:'info-label'},'تم تحصيله'),h('span',{className:'info-value',style:{fontWeight:700,color:'var(--green)',fontSize:18}},totalCollected.toLocaleString(),' ج')),
-                            h('div',{className:'info-row'},h('span',{className:'info-label'},'متوقع'),h('span',{className:'info-value',style:{fontWeight:700,color:'var(--orange)',fontSize:18}},totalToCollect.toLocaleString(),' ج')),
-                            h('div',{className:'info-row'},h('span',{className:'info-label'},'تم التسليم'),h('span',{className:'info-value',style:{fontWeight:700}},myOrders.filter(function(o){return o.status==="delivered";}).length,' طلب')),
-                            h('div',{className:'info-row'},h('span',{className:'info-label'},'مرتجع'),h('span',{className:'info-value',style:{fontWeight:700,color:'var(--red)'}},myOrders.filter(function(o){return o.status==="returned";}).length,' طلب')),
-                        ),
-                        myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";}).length===0?h('div',{className:'empty'},h('div',{className:'empty-icon'},'💰'),'لا توجد معاملات بعد'):
-                        myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";}).map(function(o){return h('div',{className:'order-card',key:o.id,style:{padding:'12px 16px'}},
-                            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
-                                h('div',null,
-                                    h('div',{style:{fontWeight:700,fontSize:13}},o.customer),
-                                    h('div',{style:{fontSize:11,color:'var(--muted)'}},o.id,' · ',o.date)
+                        tab==="users" && user.role==="chairman" && h('div',null,
+                            editUser ? h('div',null,
+                                h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:18}},
+                                    h('button',{className:'btn btn-ghost btn-sm',style:{fontSize:13,fontWeight:700},onClick:function(){setEditUser(null);}},'← رجوع'),
+                                    h('span',{style:{fontSize:16,fontWeight:800}},'✏️ تعديل المستخدم')
                                 ),
-                                h('div',{style:{textAlign:'left'}},
-                                    h('div',{style:{fontWeight:700,color:o.status==="delivered"?"var(--green)":"var(--red)",fontSize:14}},o.status==="delivered"?"+"+o.amount.toLocaleString():"0"),' ج'),
-                                    h('div',{style:{fontSize:10,color:'var(--muted)'}},o.status==="delivered"?'تم التسليم':'مرتجع')
+                                userMsg && h('div',{className:'alert ' + (userMsg.indexOf('✅')!==-1?'alert-success':'alert-error')},userMsg),
+                                h('div',{className:'table-wrap',style:{padding:24}},
+                                    h('div',{style:{display:'flex',flexDirection:'column',gap:16,marginBottom:20,background:'var(--bg-secondary)',padding:14,borderRadius:'var(--radius-lg)'}},
+                                        h('div',{style:{fontSize:13,fontWeight:700,color:'var(--text-muted)'}},'بيانات الحساب'),
+                                        h('div',{style:{fontSize:18,fontWeight:800}},editUser.name),
+                                        h('div',{style:{fontSize:14,display:'flex',gap:12,flexWrap:'wrap'}},
+                                            h('span',{style:{display:'flex',alignItems:'center',gap:4}},'📧 ',editUser.email),
+                                            h('span',{className:'badge ' + (editUser.role==='chairman'?'badge-assigned':editUser.role==='gm'?'badge-pending':'badge-delivered')},editUser.role==='chairman'?'رئيس':editUser.role==='gm'?'مدير':'مندوب'),
+                                            h('span',{style:{fontSize:12,color:'var(--text-muted)'}},'🔑 كلمة المرور: ',editUser.password)
+                                        )
+                                    ),
+                                    h('div',{style:{fontSize:14,fontWeight:700,marginBottom:14}},'تعديل البيانات'),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📧 البريد الإلكتروني'),h('input',{className:'form-input',dir:'ltr',style:{textAlign:'left'},value:newEmail,onChange:function(e){setNewEmail(e.target.value);}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'👤 الاسم'),h('input',{className:'form-input',value:newName,onChange:function(e){setNewName(e.target.value);}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🔒 كلمة المرور (اتركه فارغاً إذا لم ترد التغيير)'),h('input',{className:'form-input',value:newPassU,onChange:function(e){setNewPassU(e.target.value);},placeholder:'اتركه فارغاً إذا لم ترد التغيير'})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🎭 الدور'),h('select',{className:'form-select',value:newRole,onChange:function(e){setNewRole(e.target.value);}},h('option',{value:'courier'},'مندوب'),h('option',{value:'gm'},'مدير عام'),h('option',{value:'chairman'},'رئيس'))),
+                                    h('div',{style:{display:'flex',gap:8,marginTop:8}},
+                                        h('button',{className:'btn btn-primary',style:{flex:1,justifyContent:'center',padding:'12px 0'},onClick:function(){
+                                            if (!newEmail||!newName) { setUserMsg('❌ البريد الإلكتروني والاسم مطلوبان'); return; }
+                                            var dup = users.find(function(u){return u.email===newEmail && u.id!==editUser.id;});
+                                            if (dup) { setUserMsg('❌ البريد الإلكتروني موجود مسبقاً'); return; }
+                                            setUsers(users.map(function(u){
+                                                if (u.id !== editUser.id) return u;
+                                                var nu = {}; for (var k in u) nu[k] = u[k];
+                                                nu.email = newEmail; nu.name = newName; nu.role = newRole;
+                                                if (newPassU) nu.password = newPassU;
+                                                return nu;
+                                            }));
+                                            setUserMsg('✅ تم تعديل المستخدم بنجاح');
+                                            setEditUser(null); setNewEmail(''); setNewName(''); setNewPassU(''); setNewRole('courier');
+                                            setTimeout(function(){setUserMsg('');},3000);
+                                        }},'💾 حفظ التعديلات'),
+                                        h('button',{className:'btn btn-ghost',style:{padding:'12px 24px',justifyContent:'center'},onClick:function(){
+                                            setEditUser(null); setNewEmail(''); setNewName(''); setNewPassU(''); setNewRole('courier');
+                                        }},'✕ إلغاء')
+                                    )
+                                )
+                            ) : h('div',null,
+                                h('div',{className:'sec-title',style:{marginBottom:18}},'👥 إدارة المستخدمين'),
+                                userMsg && h('div',{className:'alert ' + (userMsg.indexOf('✅')!==-1?'alert-success':'alert-error')},userMsg),
+                                h('div',{className:'table-wrap',style:{marginBottom:24}},
+                                    h('table',null,
+                                        h('thead',null,h('tr',null,h('th',null,'البريد الإلكتروني'),h('th',null,'الاسم'),h('th',null,'الدور'),h('th',null,'إجراء'))),
+                                        h('tbody',null,users.map(function(u){return h('tr',{key:u.id},
+                                            h('td',{dir:'ltr',style:{textAlign:'left',fontSize:12}},u.email),
+                                            h('td',null,u.name),
+                                            h('td',null,h('span',{className:'badge ' + (u.role==='chairman'?'badge-assigned':u.role==='gm'?'badge-pending':'badge-delivered')},u.role==='chairman'?'رئيس':u.role==='gm'?'مدير':'مندوب')),
+                                            h('td',null,
+                                                u.id!=='u1'&&h('button',{className:'btn btn-sm btn-outline',style:{marginLeft:4,fontSize:11,padding:'4px 8px'},onClick:function(){
+                                                    setEditUser(u); setNewEmail(u.email); setNewName(u.name); setNewPassU(''); setNewRole(u.role);
+                                                }},'✏️ تعديل'),
+                                                u.id!=='u1'&&h('button',{className:'btn btn-sm btn-danger',style:{fontSize:11,padding:'4px 8px'},onClick:function(){
+                                                    if (!confirm('تأكيد حذف المستخدم '+u.name+'؟')) return;
+                                                    setUsers(users.filter(function(x){return x.id!==u.id;}));
+                                                    if (u.role==='courier') {
+                                                        setCouriers(function(p){return p.filter(function(c){
+                                                            if (u.courierId) return c.id!==u.courierId;
+                                                            return c.name!==u.name;
+                                                        });});
+                                                    }
+                                                    setUserMsg('✅ تم حذف المستخدم');
+                                                    setTimeout(function(){setUserMsg('');},3000);
+                                                }},'🗑️ حذف')
+                                            )
+                                        );}))
+                                    )
+                                ),
+                                h('div',{className:'sec-title',style:{marginBottom:14}},'➕ إضافة مستخدم جديد'),
+                                h('div',{className:'table-wrap',style:{padding:24}},
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📧 البريد الإلكتروني'),h('input',{className:'form-input',dir:'ltr',style:{textAlign:'left'},value:newEmail,onChange:function(e){setNewEmail(e.target.value);},placeholder:'email@example.com'})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'👤 الاسم'),h('input',{className:'form-input',value:newName,onChange:function(e){setNewName(e.target.value);},placeholder:'الاسم الكامل'})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🔒 كلمة المرور'),h('input',{className:'form-input',value:newPassU,onChange:function(e){setNewPassU(e.target.value);},placeholder:'كلمة المرور'})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🎭 الدور'),h('select',{className:'form-select',value:newRole,onChange:function(e){setNewRole(e.target.value);}},h('option',{value:'courier'},'مندوب'),h('option',{value:'gm'},'مدير عام'),h('option',{value:'chairman'},'رئيس'))),
+                                    h('button',{className:'btn btn-primary btn-block',onClick:function(){
+                                        if (!newEmail||!newName||!newPassU) { setUserMsg('❌ يرجى ملء جميع الحقول'); return; }
+                                        if (users.find(function(u){return u.email===newEmail;})) { setUserMsg('❌ البريد الإلكتروني موجود مسبقاً'); return; }
+                                        var newId = 'u' + (Date.now());
+                                        var newUser = {id:newId, email:newEmail, password:newPassU, name:newName, role:newRole};
+                                        if (newRole==='courier') {
+                                            var cId = 'c'+Date.now();
+                                            newUser.courierId = cId;
+                                            setCouriers(function(p){return p.concat([{id:cId,name:newName,phone:'',area:'',code:'',nationalId:'',referrer:'',hireDate:'',pricePerShipment:0,baseSalary:0,vehicleType:'motorcycle',plateNumber:'',active:true,notes:''}]);});
+                                        }
+                                        setUsers(users.concat([newUser]));
+                                        setUserMsg('✅ تم إضافة المستخدم بنجاح');
+                                        setNewEmail(''); setNewName(''); setNewPassU(''); setNewRole('courier');
+                                        setTimeout(function(){setUserMsg('');},3000);
+                                    }},'💾 حفظ المستخدم')
                                 )
                             )
-                        );})
-                    ):
-                    h('div',{className:'courier-body'},
-                        displayOrders.length===0?h('div',{className:'empty'},h('div',{className:'empty-icon'},screen==="active"?'🏍️':'📋'),screen==="active"?'لا توجد أوردرات نشطة':'لا يوجد سجل'):
-                        displayOrders.map(function(o){return h('div',{className:'order-card',key:o.id},
-                            h('div',{className:'order-card-header'},h('span',{className:'order-id-text'},o.id),h(Badge,{status:o.status})),
-                            h('div',{className:'order-customer-name'},o.customer),
-                            h('div',{className:'order-address-line'},'📍 ',o.address),
-                            o.lat && o.lng && h('div',{style:{fontSize:11,color:'var(--text-muted)',fontFamily:'monospace',direction:'ltr',textAlign:'left'}},'📍 ',o.lat,', ',o.lng),
-                            h('div',{className:'order-desc'},'📦 ',o.description),
-                            o.deliveryWindow?h('div',{style:{fontSize:11,color:'var(--blue)',fontWeight:600,display:'flex',alignItems:'center',gap:4}},'⏰ ',o.deliveryWindow):null,
-                            o.notes?h('div',{className:'order-note'},'📝 ',o.notes):null,
-                            h('div',{className:'order-bottom'},
-                                h('div',null,h('div',{style:{fontSize:10,color:'var(--text-muted)',marginBottom:2}},'قيمة التحصيل'),h('div',{className:'order-amount-big'},o.amount.toLocaleString(),' ج')),
-                                h('div',{className:'order-phone'},h('a',{href:'tel:' + o.phone},'📞 ',o.phone))
-                            ),
-                            h('button',{className:'nav-address-btn btn-block',onClick:function(){openAddressInGPS(o.address,o.lat,o.lng);}},'📍 GPS - افتح في جوجل مابس'),
-                            o.status==="returned"&&h('div',{className:'return-reason-tag'},'↩️ ',o.returnReason),
-                            (o.status==="assigned"||o.status==="picked_up"||o.status==="in_transit")&&h('div',{className:'order-actions-row'},
-                                h('button',{className:'btn btn-success',onClick:function(){advanceStatus(o.id);}},
-                                    o.status==="assigned"?'📦 استلام الطرد':o.status==="picked_up"?'🚚 في الطريق':'✅ تم التسليم'),
-                                h('button',{className:'btn btn-danger',onClick:function(){setReturnOrder(o);}},'↩️ مرتجع')
-                            )
-                        );})
-                    ),
-                    h('div',{className:'bottom-nav'},bottomTabs.map(function(t){
-                        return h('button',{key:t.id,className:'bottom-btn ' + (screen===t.id?"active":""),onClick:function(){setScreen(t.id);}},h('span',{className:'bottom-icon'},t.icon),t.label);
-                    }))
+                        ),
+                        tab==="accounting" && user.role==="chairman" && h(AccountingTab,{journalEntries:journalEntries,setJournalEntries:setJournalEntries,orders:orders,couriers:couriers}),
+                        tab==="profits" && user.role==="chairman" && h(CourierProfitsTab,{orders:orders,couriers:couriers,setCouriers:setCouriers,users:users,setUsers:setUsers})
+                    )
                 );
             }
 
-            var urlMode = new URLSearchParams(window.location.search).get('mode') || "";
+            // ── Accounting Tab ──────────────────────────────────────────
+            function AccountingTab(props) {
+                var journalEntries = props.journalEntries, setJournalEntries = props.setJournalEntries, orders = props.orders, couriers = props.couriers;
+                var _a = useState("all"), filterCourier = _a[0], setFilterCourier = _a[1];
+                var _b = useState(null), expandedEntry = _b[0], setExpandedEntry = _b[1];
+                var _c = useState(false), showSettle = _c[0], setShowSettle = _c[1];
+                var _d = useState(""), settleCourier = _d[0], setSettleCourier = _d[1];
+                var _e = useState(""), settleAmount = _e[0], setSettleAmount = _e[1];
+                var _f = useState(""), settleDesc = _f[0], setSettleDesc = _f[1];
+                var _g = useState(""), settleMsg = _g[0], setSettleMsg = _g[1];
+                var _h = useState("all"), statementCourier = _h[0], setStatementCourier = _h[1];
+                var _i = useState(""), dateFrom = _i[0], setDateFrom = _i[1];
+                var _j = useState(""), dateTo = _j[0], setDateTo = _j[1];
+                var accLabels = {'101':'💰 الخزينة','201':'📋 ذمم المناديب','301':'🏦 رأس المال','401':'📈 إيرادات التوصيل','501':'💸 مصروفات'};
+                function getJournalEntries() {
+                    var e = journalEntries.slice();
+                    if (filterCourier !== "all") e = e.filter(function(x){return x.courierId===filterCourier;});
+                    e.sort(function(a,b){return b.date.localeCompare(a.date);});
+                    return e;
+                }
+                function getCourierBalance(cId) {
+                    var bal = 0;
+                    journalEntries.forEach(function(e){
+                        if (e.courierId !== cId) return;
+                        e.lines.forEach(function(l){if(l.account==='201')bal+=l.debit-l.credit;});
+                    });
+                    return bal;
+                }
+                var totalOutstanding = 0;
+                couriers.forEach(function(c){var b=getCourierBalance(c.id);if(b>0)totalOutstanding+=b;});
+                var totalCash = 0;
+                journalEntries.forEach(function(e){e.lines.forEach(function(l){if(l.account==='101')totalCash+=l.debit-l.credit;});});
+                var totalRevenue = 0;
+                journalEntries.forEach(function(e){e.lines.forEach(function(l){if(l.account==='401')totalRevenue+=l.credit;});});
+                var filtered = getJournalEntries();
+                function handleSettle() {
+                    if (!settleCourier || !settleAmount) { setSettleMsg("❌ اختر المندوب وأدخل المبلغ"); return; }
+                    var bal = getCourierBalance(settleCourier);
+                    var amt = parseFloat(settleAmount);
+                    if (isNaN(amt) || amt <= 0) { setSettleMsg("❌ المبلغ غير صحيح"); return; }
+                    if (amt > bal) { setSettleMsg("❌ المبلغ ("+amt+") أكبر من المستحق ("+bal+") على المندوب"); return; }
+                    var courier = couriers.find(function(c){return c.id===settleCourier;});
+                    setJournalEntries(function(prev){return prev.concat([{
+                        id:'je_'+Date.now(), date:new Date().toISOString().split('T')[0], type:'settlement',
+                        orderId:null, courierId:settleCourier,
+                        description:settleDesc||'تسوية مندوب '+(courier?courier.name:settleCourier),
+                        lines:[{account:'101',debit:amt,credit:0},{account:'201',debit:0,credit:amt}]
+                    }]);});
+                    setSettleMsg("✅ تم تسجيل التسوية");
+                    setSettleAmount(""); setSettleDesc("");
+                    setTimeout(function(){setSettleMsg("");},3000);
+                }
+                var statementData = [];
+                if (statementCourier !== "all") {
+                    var stmt = journalEntries.filter(function(e){return e.courierId===statementCourier;});
+                    stmt.sort(function(a,b){return a.date.localeCompare(b.date);});
+                    var running = 0;
+                    stmt.forEach(function(e){
+                        var dr = 0, cr = 0;
+                        e.lines.forEach(function(l){if(l.account==='201'){dr+=l.debit;cr+=l.credit;}});
+                        running += dr - cr;
+                        if (dateFrom && e.date < dateFrom) return;
+                        if (dateTo && e.date > dateTo) return;
+                        statementData.push({entry:e, debit:dr, credit:cr, balance:running});
+                    });
+                }
+                function deleteEntry(id) {
+                    if (!confirm('تأكيد حذف القيد المحاسبي؟')) return;
+                    setJournalEntries(function(prev){return prev.filter(function(e){return e.id!==id;});});
+                }
+                return h('div',null,
+                    h('div',{className:'sec-title',style:{marginBottom:18}},'📒 دفتر الأستاذ (محاسبة ثلاثية)'),
+                    // Summary cards
+                    h('div',{className:'acc-summary'},
+                        h('div',{className:'acc-card'},h('div',{className:'acc-card-label'},'💰 إجمالي الخزينة'),h('div',{className:'acc-card-value'},totalCash.toLocaleString(),' ج')),
+                        h('div',{className:'acc-card'},h('div',{className:'acc-card-label'},'📈 إجمالي الإيرادات'),h('div',{className:'acc-card-value',style:{color:'var(--green)'}},totalRevenue.toLocaleString(),' ج')),
+                        h('div',{className:'acc-card'},h('div',{className:'acc-card-label'},'📋 ذمم المناديب'),h('div',{className:'acc-card-value',style:{color:totalOutstanding>0?'var(--orange)':'var(--text-muted)'}},totalOutstanding.toLocaleString(),' ج')),
+                        h('div',{className:'acc-card'},h('div',{className:'acc-card-label'},'📦 إجمالي القيود'),h('div',{className:'acc-card-value',style:{color:'var(--blue)'}},journalEntries.length))
+                    ),
+                    // Filter bar
+                    h('div',{className:'acc-filter-bar'},
+                        h('label',{style:{fontSize:13,fontWeight:600}},'🔍 تصفية:'),
+                        h('select',{className:'form-select',style:{width:'auto',flex:1},value:filterCourier,onChange:function(e){setFilterCourier(e.target.value);}},
+                            h('option',{value:'all'},'جميع المناديب'),
+                            couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name);})
+                        ),
+                        h('button',{className:'acc-btn acc-btn-primary',onClick:function(){setShowSettle(!showSettle);}},showSettle?'✕ إلغاء':'💰 تسوية مندوب')
+                    ),
+                    // Settlement form
+                    showSettle && h('div',{className:'acc-settle-form'},
+                        h('div',{style:{fontSize:15,fontWeight:800,marginBottom:14}},'💰 تسوية مندوب'),
+                        settleMsg && h('div',{className:'alert '+(settleMsg.indexOf('✅')!==-1?'alert-success':'alert-error')},settleMsg),
+                        h('div',{className:'form-group'},
+                            h('label',{className:'form-label'},'المندوب'),
+                            h('select',{className:'form-select',value:settleCourier,onChange:function(e){setSettleCourier(e.target.value);}},
+                                h('option',{value:''},'-- اختر مندوب --'),
+                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name+' ('+getCourierBalance(c.id).toLocaleString()+' ج مستحق)');})
+                            )
+                        ),
+                        h('div',{className:'form-group'},
+                            h('label',{className:'form-label'},'المبلغ'),
+                            h('input',{className:'form-input',type:'number',value:settleAmount,onChange:function(e){setSettleAmount(e.target.value);},placeholder:'المبلغ المسدد'})
+                        ),
+                        h('div',{className:'form-group'},
+                            h('label',{className:'form-label'},'ملاحظات'),
+                            h('input',{className:'form-input',value:settleDesc,onChange:function(e){setSettleDesc(e.target.value);},placeholder:'اختياري'})
+                        ),
+                        h('button',{className:'btn btn-primary btn-block',onClick:handleSettle},'💾 تسجيل التسوية')
+                    ),
+                    // Journal entries table
+                    h('div',{className:'table-wrap',style:{marginTop:16}},
+                        h('table',{className:'acc-journal-table'},
+                            h('thead',null,h('tr',null,
+                                h('th',null,'التاريخ'),
+                                h('th',null,'النوع'),
+                                h('th',null,'البيان'),
+                                h('th',null,'مندوب'),
+                                h('th',null,'مدين'),
+                                h('th',null,'دائن'),
+                                h('th',null,'حذف')
+                            )),
+                            h('tbody',null,
+                                filtered.length===0?h('tr',null,h('td',{colSpan:7,style:{padding:20,color:'var(--text-muted)'}},'لا توجد قيود محاسبية')):
+                                filtered.map(function(e){
+                                    var courier = couriers.find(function(c){return c.id===e.courierId;});
+                                    var totalDr = 0, totalCr = 0;
+                                    e.lines.forEach(function(l){totalDr+=l.debit;totalCr+=l.credit;});
+                                    return [
+                                        h('tr',{key:e.id,style:{cursor:'pointer'},onClick:function(){setExpandedEntry(expandedEntry===e.id?null:e.id);}},
+                                            h('td',{style:{fontSize:12,fontWeight:600}},e.date),
+                                            h('td',null,h('span',{className:'acc-entry-type acc-type-'+e.type},e.type==='delivery'?'تحصيل':e.type==='settlement'?'تسوية':e.type==='expense'?'مصروف':'رأس مال')),
+                                            h('td',{style:{textAlign:'right',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},e.description),
+                                            h('td',null,courier?courier.name:''),
+                                            h('td',{className:'acc-debit'},totalDr>0?totalDr.toLocaleString()+' ج':''),
+                                            h('td',{className:'acc-credit'},totalCr>0?totalCr.toLocaleString()+' ج':''),
+                                            h('td',null,h('button',{className:'acc-btn acc-btn-outline',style:{fontSize:10,padding:'2px 8px'},onClick:function(ev){ev.stopPropagation();deleteEntry(e.id);}},'🗑️'))
+                                        ),
+                                        expandedEntry===e.id && h('tr',{key:e.id+'_details'},
+                                            h('td',{colSpan:7,className:'entry-detail',style:{padding:'8px 16px'}},
+                                                h('div',{style:{display:'flex',flexDirection:'column',gap:4,textAlign:'right',fontSize:12}},
+                                                    e.lines.map(function(l,i){
+                                                        var label = accLabels[l.account]||'حساب '+l.account;
+                                                        return h('div',{key:i,style:{display:'flex',justifyContent:'space-between',padding:'2px 0',borderBottom:'1px solid var(--border)'}},
+                                                            h('span',null,h('span',{className:'acc-account-badge'},l.account),' ',label),
+                                                            h('span',null,l.debit>0?h('span',{className:'acc-debit'},l.debit.toLocaleString(),' ج مدين'):h('span',{className:'acc-credit'},l.credit.toLocaleString(),' ج دائن'))
+                                                        );
+                                                    })
+                                                )
+                                            )
+                                        )
+                                    ];
+                                })
+                            )
+                        )
+                    ),
+                    // Courier statement section
+                    h('div',{style:{marginTop:24}},
+                        h('div',{className:'sec-title',style:{marginBottom:14}},'📋 كشف حساب مندوب'),
+                        h('div',{className:'acc-filter-bar'},
+                            h('label',{style:{fontSize:13,fontWeight:600}},'المندوب:'),
+                            h('select',{className:'form-select',style:{width:'auto',flex:1},value:statementCourier,onChange:function(e){setStatementCourier(e.target.value);}},
+                                h('option',{value:'all'},'-- اختر مندوب --'),
+                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name+' ('+getCourierBalance(c.id).toLocaleString()+' ج)');})
+                            ),
+                            h('label',{style:{fontSize:13,fontWeight:600}},'من:'),
+                            h('input',{type:'date',className:'form-input',style:{width:'auto',maxWidth:140},value:dateFrom,onChange:function(e){setDateFrom(e.target.value);}}),
+                            h('label',{style:{fontSize:13,fontWeight:600}},'إلى:'),
+                            h('input',{type:'date',className:'form-input',style:{width:'auto',maxWidth:140},value:dateTo,onChange:function(e){setDateTo(e.target.value);}})
+                        ),
+                        statementCourier !== "all" && h('div',{className:'table-wrap'},
+                            h('table',{className:'acc-statement-table'},
+                                h('thead',null,h('tr',null,
+                                    h('th',null,'التاريخ'),
+                                    h('th',null,'البيان'),
+                                    h('th',null,'مدين (عليه)'),
+                                    h('th',null,'دائن (له)'),
+                                    h('th',null,'الرصيد')
+                                )),
+                                h('tbody',null,
+                                    statementData.length===0?h('tr',null,h('td',{colSpan:5,style:{padding:20,color:'var(--text-muted)'}},'لا توجد بيانات لهذا المندوب')):
+                                    statementData.map(function(s,i){
+                                        var balClass = s.balance>0?'acc-balance-positive':s.balance<0?'acc-balance-negative':'';
+                                        return h('tr',{key:s.entry.id},
+                                            h('td',{style:{fontSize:12,fontWeight:600}},s.entry.date),
+                                            h('td',{style:{textAlign:'right'}},s.entry.description),
+                                            h('td',{className:'acc-debit'},s.debit>0?s.debit.toLocaleString()+' ج':''),
+                                            h('td',{className:'acc-credit'},s.credit>0?s.credit.toLocaleString()+' ج':''),
+                                            h('td',{className:balClass},s.balance.toLocaleString(),' ج')
+                                        );
+                                    })
+                                )
+                            )
+                        )
+                    )
+                );
+            }
+
+            // ── Courier Profits Tab ─────────────────────────────────────
+            function CourierProfitsTab(props) {
+                var orders = props.orders, couriers = props.couriers, setCouriers = props.setCouriers, users = props.users||[], setUsers = props.setUsers;
+                var _a = useState("monthly"), subTab = _a[0], setSubTab = _a[1];
+                var _b = useState("all"), filterC = _b[0], setFilterC = _b[1];
+                var _c = useState(""), monthFilter = _c[0], setMonthFilter = _c[1];
+                var _d = useState(""), dayFilter = _d[0], setDayFilter = _d[1];
+                var _e = useState(null), editC = _e[0], setEditC = _e[1];
+                var _f = useState(""), editMsg = _f[0], setEditMsg = _f[1];
+                var _g = useState(""), logMsg = _g[0], setLogMsg = _g[1];
+                var _h = useState({}), discForm = _h[0], setDiscForm = _h[1];
+                var _i = useState({}), logForm = _i[0], setLogForm = _i[1];
+                // Persisted data: discounts + daily logs (manual entry)
+                var savedDisc = []; try{var _sd=localStorage.getItem('fg_discounts');if(_sd)savedDisc=JSON.parse(_sd);}catch(e){}
+                var savedLogs = []; try{var _sl=localStorage.getItem('fg_dailylogs');if(_sl)savedLogs=JSON.parse(_sl);}catch(e){}
+                var _j = useState(savedDisc), discounts = _j[0], setDiscounts = _j[1];
+                var _k = useState(savedLogs), dailyLogs = _k[0], setDailyLogs = _k[1];
+                useEffect(function(){localStorage.setItem('fg_discounts',JSON.stringify(discounts));},[discounts]);
+                useEffect(function(){localStorage.setItem('fg_dailylogs',JSON.stringify(dailyLogs));},[dailyLogs]);
+                function getC(cId){return couriers.find(function(c){return c.id===cId;});}
+                var now = new Date(), thisMonth = now.toISOString().slice(0,7), today = now.toISOString().slice(0,10);
+                var mf = monthFilter || thisMonth;
+                // ── Monthly from daily logs ──
+                var monthlyRows = [];
+                var filteredCouriers = filterC==="all"?couriers:[getC(filterC)].filter(Boolean);
+                filteredCouriers.forEach(function(c){
+                    var cLogs = dailyLogs.filter(function(l){return l.courierId===c.id && l.date.slice(0,7)===mf;});
+                    if (cLogs.length===0) return;
+                    var days = {}; cLogs.forEach(function(l){days[l.date]=true;});
+                    var total = cLogs.reduce(function(s,l){return s+(parseInt(l.shipments)||0);},0);
+                    var delivered = cLogs.reduce(function(s,l){return s+(parseInt(l.deliveries)||0);},0);
+                    var returned = cLogs.reduce(function(s,l){return s+(parseInt(l.returns)||0);},0);
+                    var gross = cLogs.reduce(function(s,l){return s+((parseInt(l.deliveries)||0)*(parseFloat(l.pricePerShipment)||0));},0);
+                    var extraExp = cLogs.reduce(function(s,l){return s+(parseFloat(l.expenses)||0);},0);
+                    var monthDisc = discounts.filter(function(d){return d.courierId===c.id && d.month===mf;});
+                    var discSum = monthDisc.reduce(function(s,d){return s+(parseFloat(d.amount)||0);},0);
+                    var bs = parseFloat(c.baseSalary)||0;
+                    var net = gross - discSum + bs - extraExp;
+                    monthlyRows.push({courier:c,workingDays:Object.keys(days).length,total:total,delivered:delivered,returned:returned,gross:gross,discounts:discSum,baseSalary:bs,expenses:extraExp,net:net,monthDiscs:monthDisc,logs:cLogs});
+                });
+                monthlyRows.sort(function(a,b){return b.net-a.net;});
+                // ── Daily logs display ──
+                var filteredLogs = dailyLogs.slice();
+                if (filterC!=="all") filteredLogs = filteredLogs.filter(function(l){return l.courierId===filterC;});
+                if (dayFilter) filteredLogs = filteredLogs.filter(function(l){return l.date===dayFilter;});
+                filteredLogs.sort(function(a,b){return b.date.localeCompare(a.date) || a.courierId-b.courierId;});
+                // ── Handlers ──
+                function addLog() {
+                    if (!logForm.courierId || !(logForm.date || today)) { setLogMsg('❌ المندوب والتاريخ مطلوبان'); setTimeout(function(){setLogMsg('');},2000); return; }
+                    setDailyLogs(function(p){return p.concat([{
+                        id:Date.now(), date:logForm.date||today, courierId:logForm.courierId,
+                        company:logForm.company||'', shipments:parseInt(logForm.shipments)||0,
+                        deliveries:parseInt(logForm.deliveries)||0, returns:parseInt(logForm.returns)||0,
+                        pricePerShipment:parseFloat(logForm.pricePerShipment)||0,
+                        expenses:parseFloat(logForm.expenses)||0, note:logForm.note||''
+                    }]);});
+                    setLogMsg('✅ تم إضافة السجل اليومي');
+                    setLogForm({});
+                    setTimeout(function(){setLogMsg('');},2000);
+                }
+                function deleteLog(id){setDailyLogs(function(p){return p.filter(function(l){return l.id!==id;});});}
+                function addDiscount() {
+                    if (!discForm.courierId || !discForm.amount) return;
+                    setDiscounts(function(p){return p.concat([{id:Date.now(),courierId:discForm.courierId,month:discForm.month||thisMonth,amount:parseFloat(discForm.amount)||0,reason:discForm.reason||''}]);});
+                    setDiscForm({}); setLogMsg('✅ تم إضافة الخصم');
+                    setTimeout(function(){setLogMsg('');},2000);
+                }
+                function deleteDisc(id){setDiscounts(function(p){return p.filter(function(d){return d.id!==id;});});}
+                function saveCourierEdit(){
+                    if (!editC) return;
+                    var cid = editC.id;
+                    setCouriers(function(prev){return prev.map(function(c){if(c.id!==cid)return c;return Object.assign({},c,{name:editC.name,phone:editC.phone,area:editC.area,code:editC.code,nationalId:editC.nationalId,referrer:editC.referrer,hireDate:editC.hireDate,pricePerShipment:editC.pricePerShipment,baseSalary:editC.baseSalary,vehicleType:editC.vehicleType,plateNumber:editC.plateNumber,active:editC.active,notes:editC.notes});});});
+                    setUsers(function(prev){return prev.map(function(u){if(u.courierId!==cid)return u;return Object.assign({},u,{name:editC.name});});});
+                    setEditMsg('✅ تم حفظ بيانات المندوب');
+                    setEditC(null);
+                    setTimeout(function(){setEditMsg('');},2000);
+                }
+                return h('div',null,
+                    h('div',{className:'sec-title',style:{marginBottom:14}},'📊 أرباح المناديب'),
+                    h('div',{className:'cp-tabs'},
+                        h('button',{className:'cp-tab'+(subTab==='monthly'?' active':''),onClick:function(){setSubTab('monthly');}},'📆 الحساب الشهري'),
+                        h('button',{className:'cp-tab'+(subTab==='daily'?' active':''),onClick:function(){setSubTab('daily');}},'📋 السجل اليومي'),
+                        h('button',{className:'cp-tab'+(subTab==='data'?' active':''),onClick:function(){setSubTab('data');}},'👤 بيانات المناديب')
+                    ),
+                    // ── Monthly ──
+                    subTab==='monthly' && h('div',null,
+                        h('div',{className:'cp-filter-bar'},
+                            h('label',{style:{fontSize:13,fontWeight:600}},'المندوب:'),
+                            h('select',{className:'form-select',value:filterC,onChange:function(e){setFilterC(e.target.value);}},
+                                h('option',{value:'all'},'الكل'),
+                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},(c.code||'')+' - '+c.name);})
+                            ),
+                            h('label',{style:{fontSize:13,fontWeight:600}},'الشهر:'),
+                            h('input',{type:'month',className:'form-input',style:{width:'auto',maxWidth:160},value:monthFilter,onChange:function(e){setMonthFilter(e.target.value);}})
+                        ),
+                        monthlyRows.length===0?h('div',{style:{padding:20,textAlign:'center',color:'var(--text-muted)'}},'لا توجد سجلات يومية لهذا الشهر — أضف سجلات من تبويب "السجل اليومي"'):
+                        h('div',{className:'table-wrap'},
+                            h('table',{className:'cp-table'},
+                                h('thead',null,h('tr',null,
+                                    h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'أيام العمل'),h('th',null,'إجمالي الشحنات'),
+                                    h('th',null,'تم التسليم'),h('th',null,'مرتجع'),h('th',null,'الإجمالي'),h('th',null,'مصاريف'),
+                                    h('th',null,'الخصم'),h('th',null,'الراتب'),h('th',null,'المستحق')
+                                )),
+                                h('tbody',null,monthlyRows.map(function(r){
+                                    return h('tr',{key:r.courier.id},
+                                        h('td',{style:{fontSize:11,fontWeight:600,color:'var(--text-muted)'}},r.courier.code||''),
+                                        h('td',{style:{fontWeight:600}},'🏍️ '+r.courier.name),
+                                        h('td',null,r.workingDays),
+                                        h('td',null,r.total),
+                                        h('td',{style:{color:'var(--green)',fontWeight:600}},r.delivered),
+                                        h('td',{style:{color:'var(--red)',fontWeight:600}},r.returned),
+                                        h('td',{style:{fontWeight:600}},r.gross.toLocaleString()+' ج'),
+                                        h('td',{style:{color:'var(--orange)'}},r.expenses>0?r.expenses.toLocaleString()+' ج':'—'),
+                                        h('td',{style:{color:'var(--red)'}},r.discounts>0?r.discounts.toLocaleString()+' ج':'—'),
+                                        h('td',null,r.baseSalary>0?r.baseSalary.toLocaleString()+' ج':'—'),
+                                        h('td',{className:'cp-due'},r.net.toLocaleString()+' ج')
+                                    );
+                                }))
+                            )
+                        ),
+                        h('div',{style:{marginTop:16}},
+                            h('div',{style:{fontSize:14,fontWeight:700,marginBottom:10}},'➕ خصومات / غرامات'),
+                            logMsg && h('div',{className:'alert '+(logMsg.indexOf('✅')!==-1?'alert-success':'alert-error'),style:{marginBottom:8}},logMsg),
+                            h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',alignItems:'end'}},
+                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
+                                    h('select',{className:'form-select',value:discForm.courierId||'',onChange:function(e){setDiscForm(function(f){return Object.assign({},f,{courierId:e.target.value,month:mf});});}},
+                                    h('option',{value:''},'المندوب'),
+                                    couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name);}))
+                                ),
+                                h('div',{className:'form-group',style:{flex:1,minWidth:100}},
+                                    h('input',{className:'form-input',type:'number',placeholder:'المبلغ',value:discForm.amount||'',onChange:function(e){setDiscForm(function(f){return Object.assign({},f,{amount:e.target.value});});}})
+                                ),
+                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
+                                    h('input',{className:'form-input',placeholder:'السبب',value:discForm.reason||'',onChange:function(e){setDiscForm(function(f){return Object.assign({},f,{reason:e.target.value});});}})
+                                ),
+                                h('button',{className:'btn btn-sm btn-primary',style:{padding:'8px 16px'},onClick:addDiscount},'💾 حفظ الخصم')
+                            ),
+                            discounts.filter(function(d){return d.month===mf;}).length>0 && h('div',{style:{marginTop:8,fontSize:12}},
+                                h('span',{style:{fontWeight:600}},'الخصومات المسجلة لهذا الشهر: '),
+                                discounts.filter(function(d){return d.month===mf;}).map(function(d,i){
+                                    var c = getC(d.courierId); return h('span',{key:d.id,style:{background:'var(--bg-secondary)',padding:'2px 8px',borderRadius:4,margin:'2px 4px',display:'inline-block'}},(c?c.name:'مندوب')+': '+d.amount+' ج'+(d.reason?' ('+d.reason+')':'')+' ',h('span',{style:{cursor:'pointer',color:'var(--red)',fontWeight:700},onClick:function(){deleteDisc(d.id);}},'×'));
+                                })
+                            )
+                        )
+                    ),
+                    // ── Daily Log (manual entry) ──
+                    subTab==='daily' && h('div',null,
+                        h('div',{style:{fontSize:15,fontWeight:800,marginBottom:12}},'➕ إدخال يومي جديد'),
+                        logMsg && h('div',{className:'alert '+(logMsg.indexOf('✅')!==-1?'alert-success':'alert-error'),style:{marginBottom:8}},logMsg),
+                        h('div',{className:'table-wrap',style:{padding:20,marginBottom:20}},
+                            h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:10}},
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'📅 التاريخ'),h('input',{type:'date',className:'form-input',value:logForm.date||today,onChange:function(e){setLogForm(function(f){return Object.assign({},f,{date:e.target.value});});}})),
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'🏍️ المندوب'),h('select',{className:'form-select',value:logForm.courierId||'',onChange:function(e){
+                                    var v=e.target.value;var c=getC(v);setLogForm(function(f){return Object.assign({},f,{courierId:v,pricePerShipment:c?c.pricePerShipment:0});});
+                                }},h('option',{value:''},'-- اختر --'),
+                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},(c.code||'')+' - '+c.name);}))),
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'🏢 الشركة'),h('input',{className:'form-input',value:logForm.company||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{company:e.target.value});});}})),
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'📦 عدد الشحنات'),h('input',{type:'number',className:'form-input',value:logForm.shipments||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{shipments:e.target.value});});}})),
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'✅ عدد التسليمات'),h('input',{type:'number',className:'form-input',value:logForm.deliveries||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{deliveries:e.target.value});});}})),
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'↩️ عدد المرتجعات'),h('input',{type:'number',className:'form-input',value:logForm.returns||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{returns:e.target.value});});}})),
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'💰 سعر الشحنة'),h('input',{type:'number',className:'form-input',value:logForm.pricePerShipment||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{pricePerShipment:e.target.value});});}})),
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'💸 مصاريف إضافية'),h('input',{type:'number',className:'form-input',value:logForm.expenses||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{expenses:e.target.value});});}})),
+                                h('div',{className:'form-group'},h('label',{className:'form-label'},'📝 ملاحظات'),h('input',{className:'form-input',value:logForm.note||'',onChange:function(e){setLogForm(function(f){return Object.assign({},f,{note:e.target.value});});}}))
+                            ),
+                            h('button',{className:'btn btn-primary',style:{marginTop:12,justifyContent:'center'},onClick:addLog},'💾 حفظ السجل اليومي')
+                        ),
+                        h('div',{style:{fontSize:14,fontWeight:800,marginBottom:10}},'📋 السجلات المسجلة'),
+                        h('div',{className:'cp-filter-bar'},
+                            h('label',{style:{fontSize:13,fontWeight:600}},'المندوب:'),
+                            h('select',{className:'form-select',value:filterC,onChange:function(e){setFilterC(e.target.value);}},
+                                h('option',{value:'all'},'الكل'),
+                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},(c.code||'')+' - '+c.name);})
+                            ),
+                            h('label',{style:{fontSize:13,fontWeight:600}},'التاريخ:'),
+                            h('input',{type:'date',className:'form-input',style:{width:'auto'},value:dayFilter,onChange:function(e){setDayFilter(e.target.value);}})
+                        ),
+                        filteredLogs.length===0?h('div',{style:{padding:20,textAlign:'center',color:'var(--text-muted)'}},'لا توجد سجلات — أضف سجلاً يومياً جديداً من الأعلى'):
+                        h('div',{className:'table-wrap'},
+                            h('table',{className:'cp-table'},
+                                h('thead',null,h('tr',null,
+                                    h('th',null,'التاريخ'),h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'الشركة'),
+                                    h('th',null,'الشحنات'),h('th',null,'التسليمات'),h('th',null,'مرتجع'),
+                                    h('th',null,'سعر الشحنة'),h('th',null,'مصاريف'),h('th',null,'الإجمالي'),h('th',null,'حذف')
+                                )),
+                                h('tbody',null,filteredLogs.map(function(l){
+                                    var c = getC(l.courierId);
+                                    var total = (parseInt(l.deliveries)||0)*(parseFloat(l.pricePerShipment)||0);
+                                    return h('tr',{key:l.id},
+                                        h('td',{style:{fontWeight:600}},l.date),
+                                        h('td',{style:{fontSize:11,color:'var(--text-muted)'}},c?c.code:''),
+                                        h('td',null,c?c.name:''),
+                                        h('td',null,l.company||'—'),
+                                        h('td',null,l.shipments),
+                                        h('td',{style:{color:'var(--green)',fontWeight:600}},l.deliveries),
+                                        h('td',{style:{color:'var(--red)',fontWeight:600}},l.returns),
+                                        h('td',null,(parseFloat(l.pricePerShipment)||0).toLocaleString()+' ج'),
+                                        h('td',{style:{color:'var(--orange)'}},(parseFloat(l.expenses)||0).toLocaleString()+' ج'),
+                                        h('td',{style:{fontWeight:600}},total.toLocaleString()+' ج'),
+                                        h('td',null,h('button',{className:'btn btn-sm btn-danger',style:{fontSize:10,padding:'2px 6px'},onClick:function(){deleteLog(l.id);}},'🗑️'))
+                                    );
+                                }))
+                            )
+                        )
+                    ),
+                    // ── Courier Data ──
+                    subTab==='data' && h('div',null,
+                        editC ? h('div',null,
+                            h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:16}},
+                                h('button',{className:'btn btn-ghost btn-sm',style:{fontSize:13,fontWeight:700},onClick:function(){setEditC(null);}},'← رجوع'),
+                                h('span',{style:{fontSize:16,fontWeight:800}},'✏️ تعديل بيانات المندوب')
+                            ),
+                            editMsg && h('div',{className:'alert alert-success',style:{marginBottom:10}},editMsg),
+                            h('div',{className:'table-wrap',style:{padding:20}},
+                                h('div',{className:'cp-edit-form'},
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🏷️ كود المندوب'),h('input',{className:'form-input',value:editC.code||'',onChange:function(e){setEditC(Object.assign({},editC,{code:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'👤 الاسم'),h('input',{className:'form-input',value:editC.name||'',onChange:function(e){setEditC(Object.assign({},editC,{name:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📞 الهاتف'),h('input',{className:'form-input',dir:'ltr',value:editC.phone||'',onChange:function(e){setEditC(Object.assign({},editC,{phone:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📍 المنطقة'),h('input',{className:'form-input',value:editC.area||'',onChange:function(e){setEditC(Object.assign({},editC,{area:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🆔 الرقم القومي'),h('input',{className:'form-input',dir:'ltr',value:editC.nationalId||'',onChange:function(e){setEditC(Object.assign({},editC,{nationalId:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🤝 المُرَشِّح'),h('input',{className:'form-input',value:editC.referrer||'',onChange:function(e){setEditC(Object.assign({},editC,{referrer:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📅 تاريخ التعيين'),h('input',{type:'date',className:'form-input',value:editC.hireDate||'',onChange:function(e){setEditC(Object.assign({},editC,{hireDate:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'💰 الراتب الأساسي'),h('input',{type:'number',className:'form-input',value:editC.baseSalary||0,onChange:function(e){setEditC(Object.assign({},editC,{baseSalary:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'💵 سعر الشحنة'),h('input',{type:'number',className:'form-input',value:editC.pricePerShipment||0,onChange:function(e){setEditC(Object.assign({},editC,{pricePerShipment:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🚗 وسيلة النقل'),h('select',{className:'form-select',value:editC.vehicleType||'motorcycle',onChange:function(e){setEditC(Object.assign({},editC,{vehicleType:e.target.value}));}},h('option',{value:'motorcycle'},'موتوسيكل'),h('option',{value:'car'},'عربية'),h('option',{value:'bicycle'},'عجلة'))),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🔖 رقم اللوحة'),h('input',{className:'form-input',dir:'ltr',value:editC.plateNumber||'',onChange:function(e){setEditC(Object.assign({},editC,{plateNumber:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'⚡ الحالة'),h('select',{className:'form-select',value:editC.active?'true':'false',onChange:function(e){setEditC(Object.assign({},editC,{active:e.target.value==='true'}));}},h('option',{value:'true'},'نشط'),h('option',{value:'false'},'غير نشط'))),
+                                    h('div',{className:'form-group full-width'},h('label',{className:'form-label'},'📝 ملاحظات'),h('input',{className:'form-input',value:editC.notes||'',onChange:function(e){setEditC(Object.assign({},editC,{notes:e.target.value}));}})),
+                                ),
+                                h('div',{style:{display:'flex',gap:8,marginTop:12}},
+                                    h('button',{className:'btn btn-primary',style:{flex:1,justifyContent:'center',padding:'12px 0'},onClick:saveCourierEdit},'💾 حفظ البيانات'),
+                                    h('button',{className:'btn btn-ghost',style:{padding:'12px 24px'},onClick:function(){setEditC(null);}},'✕ إلغاء')
+                                )
+                            )
+                        ) : h('div',null,
+                            h('div',{className:'cp-filter-bar'},
+                                h('label',{style:{fontSize:13,fontWeight:600}},'بحث:'),
+                                h('input',{className:'form-input',style:{maxWidth:250},placeholder:'ابحث بالاسم أو الكود',value:filterC==='all'?'':filterC==='active'?'':filterC,onChange:function(e){
+                                    var q=e.target.value;if(!q)setFilterC('all');else setFilterC(q);
+                                }})
+                            ),
+                            h('div',{className:'table-wrap'},
+                                h('table',{className:'cp-table'},
+                                    h('thead',null,h('tr',null,
+                                        h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'المنطقة'),h('th',null,'الراتب'),h('th',null,'سعر الشحنة'),h('th',null,'الحالة'),h('th',null,'إجراء')
+                                    )),
+                                    h('tbody',null,couriers.map(function(c){
+                                        return h('tr',{key:c.id},
+                                            h('td',{style:{fontSize:11,color:'var(--text-muted)',fontWeight:600}},c.code||''),
+                                            h('td',{style:{fontWeight:600}},'🏍️ '+c.name),
+                                            h('td',null,c.area),
+                                            h('td',null,(parseFloat(c.baseSalary)||0).toLocaleString()+' ج'),
+                                            h('td',null,(parseFloat(c.pricePerShipment)||0).toLocaleString()+' ج'),
+                                            h('td',null,h('span',{className:'badge '+(c.active?'badge-delivered':'badge-returned')},c.active?'نشط':'غير نشط')),
+                                            h('td',null,h('button',{className:'btn btn-sm btn-outline',style:{fontSize:11,padding:'4px 8px'},onClick:function(){setEditC(Object.assign({},c));}},'✏️ تعديل'))
+                                        );
+                                    }))
+                                )
+                            )
+                        )
+                    )
+                );
+            }
+
+            var urlMode = "admin";
 
             function App() {
                 var _a = useState(null), user = _a[0], setUser = _a[1];
@@ -2004,6 +2512,9 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var _d = useState(true), loading = _d[0], setLoading = _d[1];
                 var _e = useState(""), fbError = _e[0], setFbError = _e[1];
                 var _f = useState({}), tracking = _f[0], setTracking = _f[1];
+                var _g = useState([]), users = _g[0], setUsers = _g[1];
+                var _h = useState([]), journalEntries = _h[0], setJournalEntries = _h[1];
+                var _i = useState(false), journalLoaded = _i[0], setJournalLoaded = _i[1];
                 var pollOrders = useRef(""); // last known Firebase snapshot (for polling)
                 var pollCouriers = useRef("");
 
@@ -2061,7 +2572,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                 setCouriers(objToArr(val));
                             }
                         }).catch(function(){});
-                    }, 2000);
+                    }, 1500);
                     return function() { clearInterval(timer); };
                 }, []);
 
@@ -2076,17 +2587,99 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     return function() { clearInterval(timer); };
                 }, []);
 
-                // Save orders to Firebase (always write on change)
+                // Save orders to Firebase with debounce
+                var ordersTimer = useRef(null);
                 useEffect(function() {
                     if (loading) return;
-                    fbPut("flashgo/orders", arrToObj(orders)).catch(function(){});
+                    if (ordersTimer.current) clearTimeout(ordersTimer.current);
+                    ordersTimer.current = setTimeout(function(){ fbPut("flashgo/orders", arrToObj(orders)).catch(function(){}); }, 500);
+                    return function(){ if(ordersTimer.current) clearTimeout(ordersTimer.current); };
                 }, [orders]);
 
-                // Save couriers to Firebase (always write on change)
+                // Save couriers to Firebase with debounce
+                var couriersTimer = useRef(null);
                 useEffect(function() {
                     if (loading) return;
-                    fbPut("flashgo/couriers", arrToObj(couriers, 'c')).catch(function(){});
+                    if (couriersTimer.current) clearTimeout(couriersTimer.current);
+                    couriersTimer.current = setTimeout(function(){ fbPut("flashgo/couriers", arrToObj(couriers, 'c')).catch(function(){}); }, 500);
+                    return function(){ if(couriersTimer.current) clearTimeout(couriersTimer.current); };
                 }, [couriers]);
+
+                // Load / seed users from localStorage
+                useEffect(function() {
+                    var stored = localStorage.getItem('fg_users');
+                    if (stored) {
+                        try { var parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length > 0) { setUsers(parsed); return; } } catch(e) {}
+                    }
+                    var seed = [
+                        {id:"u1", email:"chairman@flashgo.com", password:"admin123", name:"رئيس مجلس الإدارة", role:"chairman"},
+                        {id:"u2", email:"gm@flashgo.com", password:"gm123", name:"المدير العام", role:"gm"},
+                    ];
+                    MOCK_COURIERS.forEach(function(c) { seed.push({id:'c'+c.id, email:'courier'+c.id+'@flashgo.com', password:'123456', name:c.name, role:'courier', courierId:c.id}); });
+                    localStorage.setItem('fg_users', JSON.stringify(seed));
+                    setUsers(seed);
+                }, []);
+                // Persist users when changed
+                useEffect(function() {
+                    if (users.length > 0) localStorage.setItem('fg_users', JSON.stringify(users));
+                }, [users]);
+
+                // Migrate: auto-link courierId for existing courier users missing it
+                var courierSyncDone = useRef(false);
+                useEffect(function() {
+                    if (courierSyncDone.current || users.length === 0 || couriers.length === 0) return;
+                    var changed = false;
+                    var fixed = users.map(function(u) {
+                        if (u.role === 'courier' && !u.courierId) {
+                            var match = couriers.find(function(c){return c.name === u.name;});
+                            if (match) { changed = true; return Object.assign({}, u, {courierId: match.id}); }
+                        }
+                        return u;
+                    });
+                    if (changed) { courierSyncDone.current = true; setUsers(fixed); }
+                }, [users, couriers]);
+
+                // Load journal entries from localStorage
+                useEffect(function() {
+                    var stored = localStorage.getItem('fg_journal');
+                    if (stored) {
+                        try { var parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length > 0) { setJournalEntries(parsed); } } catch(e) {}
+                    }
+                    setJournalLoaded(true);
+                }, []);
+                // Persist journal entries when changed
+                useEffect(function() {
+                    if (journalEntries.length > 0) localStorage.setItem('fg_journal', JSON.stringify(journalEntries));
+                }, [journalEntries]);
+
+                // Auto-journal: detect newly delivered orders
+                useEffect(function() {
+                    if (loading || !journalLoaded) return;
+                    var newEntries = [];
+                    var existingOrderIds = {};
+                    journalEntries.forEach(function(e) {
+                        if (e.type === 'delivery' && e.orderId) existingOrderIds[e.orderId] = true;
+                    });
+                    orders.forEach(function(o) {
+                        if (o.status === 'delivered' && !existingOrderIds[o.id]) {
+                            newEntries.push({
+                                id: 'je_' + Date.now() + '_' + o.id,
+                                date: (o.date || new Date().toISOString().split('T')[0]),
+                                type: 'delivery',
+                                orderId: o.id,
+                                courierId: o.courierId,
+                                description: 'تحصيل طلب ' + o.id + ' - ' + (o.customer || ''),
+                                lines: [
+                                    { account: '201', debit: o.amount, credit: 0 },
+                                    { account: '401', debit: 0, credit: o.amount }
+                                ]
+                            });
+                        }
+                    });
+                    if (newEntries.length > 0) {
+                        setJournalEntries(function(prev) { return prev.concat(newEntries); });
+                    }
+                }, [orders, loading, journalLoaded]);
 
                 if (loading) return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)'}},'⏳ جاري التحميل...');
                 if (fbError) return h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',padding:20,textAlign:'center'}},
@@ -2095,16 +2688,8 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     h('div',{style:{fontSize:13,color:'var(--text-muted)',marginBottom:20,maxWidth:400}},'تأكد من اتصالك بالإنترنت وأن الموقع يعمل على HTTPS ثم أعد تحميل الصفحة'),
                     h('button',{className:'btn btn-primary',onClick:function(){window.location.reload();}},'🔄 إعادة تحميل')
                 );
-                if(!user)return h(LoginScreen,{onLogin:setUser,mode:urlMode});
-                if(user.role==="courier")return h(CourierApp,{user:user,orders:orders,setOrders:setOrders,onLogout:function(){setUser(null);}});
-                return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,tracking:tracking,onLogout:function(){setUser(null);}});
-            }
-
-            // Register SW only in courier mode
-            if ('serviceWorker' in navigator && urlMode === 'courier') {
-                window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('sw.js').catch(function(){});
-                });
+                if(!user)return h(LoginScreen,{onLogin:setUser,mode:urlMode,users:users,setUsers:setUsers});
+                return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,tracking:tracking,users:users,setUsers:setUsers,journalEntries:journalEntries,setJournalEntries:setJournalEntries,onLogin:setUser,onLogout:function(){setUser(null);}});
             }
 
             createRoot(document.getElementById('root')).render(h(App));
