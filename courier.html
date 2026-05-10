@@ -1523,6 +1523,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var _c = useState(""), error = _c[0], setError = _c[1];
                 var handleLogin = function() {
                     var found = (props.users||[]).find(function(u){
+                        if (props.mode==="courier") return u.role==="courier" && u.email===email && u.password===password;
                         return (u.role==="chairman"||u.role==="gm") && u.email===email && u.password===password;
                     });
                     if(found){setError("");props.onLogin(found);}else setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");
@@ -2276,6 +2277,47 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var mapH = props.fullHeight ? '100%' : 'calc(100vh - 140px)';
                 return h('div',{style:{height:mapH,width:'100%',borderRadius:'var(--radius-lg)',overflow:'hidden',border:'1px solid var(--border)'}},
                     h('div',{ref:mapRef,style:{height:'100%',width:'100%'}})
+                );
+            }
+
+            function ScanQR(props) {
+                var orders = props.orders;
+                var _a = useState(null), result = _a[0], setResult = _a[1];
+                var _b = useState(null), error = _b[0], setError = _b[1];
+                var scannerRef = useRef(null);
+                var readerRef = useRef(null);
+                useEffect(function() {
+                    if (!window.Html5Qrcode) return;
+                    var scanner = new Html5Qrcode("qr-reader");
+                    readerRef.current = scanner;
+                    scanner.start({facingMode:"environment"}, {fps:10,qrbox:{width:250,height:250}},
+                        function(text) {
+                            var data = parseQRData(text);
+                            if (data) {
+                                var order = orders.find(function(o){return o.id===data.id;});
+                                setResult({qr:data,order:order,raw:text});
+                                scanner.stop().catch(function(){});
+                            } else {
+                                setError("QR data غير صالح");
+                            }
+                        },
+                        function(err) { if (err.indexOf("No MultiFormat Readers") >= 0) setError("الكاميرا غير متوفرة"); }
+                    ).catch(function(e) { setError("فشل تشغيل الكاميرا: "+e); });
+                    return function() { scanner.stop().catch(function(){}); };
+                }, []);
+                return h('div',{style:{padding:16}},
+                    h('div',{id:"qr-reader",style:{width:'100%',maxWidth:400,margin:'0 auto 16px'}}),
+                    error && h('div',{className:'alert alert-error'},error),
+                    result && h('div',{className:'order-card'},
+                        h('div',{className:'order-card-header'},h('span',{className:'order-id-text'},result.qr.id)),
+                        h('div',{className:'order-customer-name'},result.qr.cust||result.qr.customer),
+                        h('div',{className:'order-address-line'},'📍 ',result.qr.addr||result.qr.address),
+                        result.qr.amount && h('div',{style:{fontSize:18,fontWeight:800,color:'var(--orange)',margin:'8px 0'}},Number(result.qr.amount).toLocaleString(),' ج.م'),
+                        result.qr.desc && h('div',{className:'order-desc'},'📦 ',result.qr.desc),
+                        result.qr.notes && h('div',{className:'order-note'},'📝 ',result.qr.notes),
+                        result.qr.phone && h('div',{className:'order-phone'},h('a',{href:'tel:'+result.qr.phone},'📞 ',result.qr.phone)),
+                        result.order && h('div',{style:{marginTop:12,fontSize:12,color:'var(--green)'}},'✅ الأوردر موجود في النظام')
+                    )
                 );
             }
 
