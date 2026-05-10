@@ -2345,9 +2345,10 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     applyTheme(settings.theme);
                 },[settings]);
                 var myOrders=orders.filter(function(o){return o.courierId===user.courierId;});
-                var activeOrders=myOrders.filter(function(o){return o.status==="assigned";});
+                var activeOrders=myOrders.filter(function(o){return o.status==="assigned"||o.status==="picked_up";});
                 var doneOrders=myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";});
                 function markDelivered(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="delivered";return c;});}); }
+                function markPickedUp(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="picked_up";return c;});}); }
                 function markReturn(id,reason) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="returned";c.returnReason=reason;return c;});}); }
                 var totalToCollect=activeOrders.reduce(function(s,o){return s+o.amount;},0);
                 var totalCollected=myOrders.filter(function(o){return o.status==="delivered";}).reduce(function(s,o){return s+o.amount;},0);
@@ -2378,7 +2379,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     h('div',{className:'courier-header'},
                         h('div',{style:{display:'flex',alignItems:'center',gap:10}},
                             h('div',{style:{textAlign:'right'}},h('div',{style:{fontSize:13,fontWeight:700}},user.name),h('div',{style:{fontSize:11,color:'var(--text-muted)'}},'🏍️ ',(courier&&courier.area)||'')),
-                            h('button',{className:'btn btn-ghost btn-sm',onClick:function(){setHamburgerView(function(v){return v==="route"?"map":v==="settings"?"route":v==="map"?null:"route";});}},'☰'),
+                            h('button',{className:'btn btn-ghost btn-sm',title:'القائمة',onClick:function(){setHamburgerView(function(v){return v?null:"route";});}},'☰'),
                             h('button',{className:'btn btn-ghost btn-sm',onClick:onLogout},'🚪 خروج')
                         ),
                         h('div',{className:'courier-logo'},'FLASH ',h('span',null,'GO')),
@@ -2388,7 +2389,9 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         h('div',{className:'summary-divider'}),
                         h('div',{className:'summary-item'},h('span',{className:'summary-label'},'تم تحصيله'),h('span',{className:'summary-value green'},totalCollected.toLocaleString(),' ج')),
                         h('div',{className:'summary-divider'}),
-                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'أوردرات نشطة'),h('span',{className:'summary-value blue'},activeOrders.length))
+                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'أوردرات نشطة'),h('span',{className:'summary-value blue'},activeOrders.length)),
+                        h('div',{className:'summary-divider'}),
+                        h('div',{className:'summary-item'},h('span',{className:'summary-label'},'تم الاستلام'),h('span',{className:'summary-value',style:{fontWeight:700,fontSize:15,color:'#9c27b0'}},myOrders.filter(function(o){return o.status==="picked_up";}).length))
                     ),
                     screen==="map"?h(CourierMapView,{orders:myOrders}):
                     screen==="scan"?h(ScanQR,{orders:orders}):
@@ -2396,6 +2399,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         h('div',{className:'order-card',style:{marginBottom:14}},
                             h('div',{style:{fontSize:14,fontWeight:800,marginBottom:12}},'📊 التقارير'),
                             h('div',{className:'info-row'},h('span',{className:'info-label'},'تم التسليم'),h('span',{className:'info-value',style:{fontWeight:700,color:'var(--green)',fontSize:18}},deliveredCount,' طلب')),
+                            h('div',{className:'info-row'},h('span',{className:'info-label'},'تحت التوصيل'),h('span',{className:'info-value',style:{fontWeight:700,color:'#9c27b0',fontSize:18}},myOrders.filter(function(o){return o.status==="picked_up";}).length,' طلب')),
                             h('div',{className:'info-row'},h('span',{className:'info-label'},'المتبقي'),h('span',{className:'info-value',style:{fontWeight:700,color:'var(--orange)',fontSize:18}},remainingCount,' طلب')),
                             h('div',{className:'info-row'},h('span',{className:'info-label'},'المتبقي كاش'),h('span',{className:'info-value',style:{fontWeight:700,color:'var(--blue)',fontSize:18}},remainingCash,' طلب')),
                         ),
@@ -2405,6 +2409,14 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             h('div',{className:'info-row'},h('span',{className:'info-label'},'تم الزيارة'),h('span',{className:'info-value',style:{fontWeight:700,color:'var(--green)',fontSize:18}},deliveredStops.length,' محطة')),
                             h('div',{className:'info-row'},h('span',{className:'info-label'},'المتبقية'),h('span',{className:'info-value',style:{fontWeight:700,color:'var(--red)',fontSize:18}},remainingStops.length,' محطة')),
                             h('div',{className:'info-row'},h('span',{className:'info-label',style:{fontSize:12}},'⚠ بعض العملاء لديهم أكثر من شحنة'),h('span',{className:'info-value',style:{fontSize:11,color:'var(--text-muted)'}},null)),
+                        ),
+                        h('div',{className:'order-card'},
+                            h('div',{style:{fontSize:14,fontWeight:800,marginBottom:12}},'👤 قائمة العملاء'),
+                            remainingOrdersArr.length===0?h('div',{className:'empty',style:{padding:0}},'لا يوجد عملاء متبقيين'):
+                            remainingOrdersArr.map(function(o){return h('div',{key:o.id,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid var(--border)',fontSize:13}},
+                                h('div',null,h('div',{style:{fontWeight:700}},o.customer),h('div',{style:{color:'var(--text-muted)',fontSize:11}},o.address)),
+                                h('div',{style:{textAlign:'left'}},h('div',{style:{fontWeight:700,color:'var(--orange)'}},o.amount.toLocaleString(),' ج'),h('a',{href:'tel:'+o.phone,style:{fontSize:11,color:'var(--primary)'}},'📞 ',o.phone))
+                            );})
                         )
                     ):
                     screen==="active"?h('div',{className:'courier-body courier-active-layout'},
@@ -2423,9 +2435,10 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                 ),
                                 h('button',{className:'nav-address-btn btn-block',onClick:function(){openAddressInGPS(o.address,o.lat,o.lng);}},'📍 GPS - افتح في جوجل مابس'),
                                 o.status==="returned"&&h('div',{className:'return-reason-tag'},'↩️ ',o.returnReason),
-                                o.status==="assigned"&&h('div',{className:'order-actions-row'},
-                                    h('button',{className:'btn btn-success',onClick:function(){markDelivered(o.id);}},'✅ تم التسليم'),
-                                    h('button',{className:'btn btn-danger',onClick:function(){setReturnOrder(o);}},'↩️ مرتجع')
+                                (o.status==="assigned"||o.status==="picked_up")&&h('div',{className:'order-actions-row'},
+                                    o.status==="assigned"&&h('button',{className:'btn btn-primary',onClick:function(){markPickedUp(o.id);}},'📦 استلام'),
+                                    o.status==="picked_up"&&h('button',{className:'btn btn-success',onClick:function(){markDelivered(o.id);}},'✅ تم التسليم'),
+                                    (o.status==="assigned"||o.status==="picked_up")&&h('button',{className:'btn btn-danger',onClick:function(){setReturnOrder(o);}},'↩️ مرتجع')
                                 )
                             );})
                         )
@@ -2543,7 +2556,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             setOrders(INITIAL_ORDERS);
                         }
                         done();
-                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); });
+                    }).catch(function() { setOrders(INITIAL_ORDERS); done(); });
 
                     fbGet("flashgo/couriers").then(function(val) {
                         if (val && Object.keys(val).length > 0) {
@@ -2556,7 +2569,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             setCouriers(MOCK_COURIERS);
                         }
                         done();
-                    }).catch(function() { setFbError("فشل الاتصال بقاعدة البيانات"); done(); });
+                    }).catch(function() { setCouriers(MOCK_COURIERS); done(); });
                 }, []);
 
                 // Poll for remote changes
