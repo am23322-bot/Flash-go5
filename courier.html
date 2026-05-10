@@ -2300,7 +2300,6 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     try {
                         var m = L.map(mapRef.current, {zoomControl:true});
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap', maxZoom:19}).addTo(m);
-                        setTimeout(function() { m.invalidateSize(); }, 100);
                         mapInstance.current = m;
                     } catch(e) { console.error("Map init error:", e); }
                     return function() { if (mapInstance.current) { try { mapInstance.current.remove(); } catch(e) {} mapInstance.current = null; } };
@@ -2308,7 +2307,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 useEffect(function() {
                     if (!mapInstance.current || !window.L) return;
                     var m = mapInstance.current;
-                    setTimeout(function() { m.invalidateSize(); }, 50);
+                    setTimeout(function() { m.invalidateSize(); }, 250);
                     if (markersRef.current) markersRef.current.forEach(function(mk) { try { m.removeLayer(mk); } catch(e) {} });
                     var markers = [];
                     var validOrders = orders.filter(function(o){return o.lat && o.lng;});
@@ -2326,8 +2325,8 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         m.fitBounds(group.getBounds().pad(0.1));
                     }
                 }, [orders]);
-                var mapH = props.fullHeight ? 'calc(100vh - 50px)' : 'calc(100vh - 140px)';
-                return h('div',{style:{height:mapH,width:'100%',borderRadius:'var(--radius-lg)',overflow:'hidden',border:'1px solid var(--border)'}},
+                var containerStyle = props.fullHeight ? {flex:1,width:'100%',overflow:'hidden',borderRadius:'var(--radius-lg)'} : {height:'calc(100vh - 140px)',width:'100%',borderRadius:'var(--radius-lg)',overflow:'hidden',border:'1px solid var(--border)'};
+                return h('div',{style:containerStyle},
                     h('div',{ref:mapRef,style:{height:'100%',width:'100%'}})
                 );
             }
@@ -2560,8 +2559,8 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             h('div',{style:{fontSize:17,fontWeight:700,cursor:'pointer',color:'var(--text-secondary)'},onClick:function(){setHamburgerView("settings");}},'⚙️ الإعدادات')
                         )
                     ),
-                    hamburgerView==="map" && h('div',{style:{position:'fixed',inset:0,zIndex:1000,background:'var(--bg)',display:'flex',flexDirection:'column'}},
-                        h('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'10px 16px',background:'var(--bg-secondary)',borderBottom:'1px solid var(--border)'}},
+                    hamburgerView==="map" && h('div',{style:{position:'fixed',inset:0,zIndex:1000,background:'var(--bg)',display:'flex',flexDirection:'column',minHeight:0}},
+                        h('div',{style:{display:'flex',alignItems:'center',gap:10,padding:'10px 16px',background:'var(--bg-secondary)',borderBottom:'1px solid var(--border)',flexShrink:0}},
                             h('button',{className:'btn btn-ghost btn-sm',onClick:function(){setHamburgerView(null);}},'✕'),
                             h('span',{style:{fontSize:14,fontWeight:700}},'🗺️ الخريطة')
                         ),
