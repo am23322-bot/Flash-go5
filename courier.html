@@ -769,6 +769,17 @@ svg.leaflet-image-layer.leaflet-interactive path {
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
         .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-primary); padding: 20px; }
+        .login-screen-courier { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+        .login-screen-courier .login-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        .login-screen-courier .login-logo { color: #fff; }
+        .login-screen-courier .login-logo span { color: #f97316; }
+        .login-screen-courier .login-sub { color: rgba(255,255,255,0.6); }
+        .login-screen-courier .form-label { color: rgba(255,255,255,0.8); }
+        .login-screen-courier .form-input { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #fff; }
+        .login-screen-courier .form-input::placeholder { color: rgba(255,255,255,0.35); }
+        .login-screen-courier .btn-primary { background: linear-gradient(135deg, #f97316, #ea580c); box-shadow: 0 4px 15px rgba(249,115,22,0.3); }
+        .login-screen-courier .btn-primary:hover { box-shadow: 0 6px 20px rgba(249,115,22,0.4); transform: translateY(-2px); }
+        .login-screen-courier .login-divider { background: rgba(255,255,255,0.1); }
         .login-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 44px 36px; width: 100%; max-width: 420px; text-align: center; box-shadow: var(--shadow-xl); }
         .login-logo { font-family: 'Outfit', sans-serif; font-size: 56px; font-weight: 900; letter-spacing: 4px; color: var(--black); line-height: 1; margin-bottom: 6px; text-transform: uppercase; }
         .login-logo span { color: var(--orange); }
@@ -1521,24 +1532,28 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var _a = useState(""), email = _a[0], setEmail = _a[1];
                 var _b = useState(""), password = _b[0], setPassword = _b[1];
                 var _c = useState(""), error = _c[0], setError = _c[1];
+                var isCourier = props.mode==="courier";
                 var handleLogin = function() {
                     var found = (props.users||[]).find(function(u){
-                        if (props.mode==="courier") return u.role==="courier" && u.email===email && u.password===password;
+                        if (isCourier) return u.role==="courier" && u.email===email && u.password===password;
                         return (u.role==="chairman"||u.role==="gm") && u.email===email && u.password===password;
                     });
                     if(found){setError("");props.onLogin(found);}else setError("البريد الإلكتروني أو كلمة المرور غير صحيحة");
                 };
                 var adminUsers = (props.users||[]).filter(function(u){return u.role==="chairman"||u.role==="gm";});
-                return h('div',{className:'login-screen'},
+                var courierUsers = (props.users||[]).filter(function(u){return u.role==="courier";});
+                return h('div',{className:'login-screen' + (isCourier?' login-screen-courier':'')},
                     h('div',{className:'login-card'},
                         h('div',{className:'login-logo'},'FLASH ',h('span',null,'GO')),
-                        h('div',{className:'login-sub'},'نظام إدارة التوصيل الذكي'),
+                        h('div',{className:'login-sub'},isCourier?'🏍️ تطبيق المندوبين':'نظام إدارة التوصيل الذكي'),
                         error && h('div',{className:'alert alert-error'},error),
                         h('div',{className:'form-group'},h('label',{className:'form-label'},'📧 البريد الإلكتروني'),h('input',{className:'form-input',value:email,onChange:function(e){setEmail(e.target.value);},placeholder:'email@example.com',dir:'ltr',style:{textAlign:'left'}})),
                         h('div',{className:'form-group'},h('label',{className:'form-label'},'🔒 كلمة المرور'),h('input',{className:'form-input',type:'password',value:password,onChange:function(e){setPassword(e.target.value);},onKeyDown:function(e){if(e.key==="Enter")handleLogin();},placeholder:'••••••'})),
-                        h('button',{className:'btn btn-primary btn-block btn-lg',onClick:handleLogin},'🚀 دخول'),
+                        h('button',{className:'btn btn-primary btn-block btn-lg',onClick:handleLogin},isCourier?'🏍️ دخول المندوب':'🚀 دخول'),
                         h('div',{className:'login-divider'}),
-                        h('div',{style:{fontSize:11,color:'var(--text-muted)',lineHeight:1.8}},
+                        isCourier?h('div',{style:{fontSize:11,color:'var(--text-muted)',lineHeight:1.8}},
+                            h('div',null,'🏍️ المندوبين: ',courierUsers.map(function(u){return u.email+' / '+u.password;}).join(' | '))
+                        ):h('div',{style:{fontSize:11,color:'var(--text-muted)',lineHeight:1.8}},
                             h('div',null,'👨‍💼 إدارة: ',adminUsers.map(function(u){return u.email+' / '+u.password;}).join(' | '))
                         )
                     )
