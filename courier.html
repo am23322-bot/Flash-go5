@@ -2332,13 +2332,26 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 );
             }
 
+            function playBeep() {
+                try {
+                    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.frequency.value = 880;
+                    osc.type = "sine";
+                    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
+                } catch(e) {}
+            }
+
             function ScanQR(props) {
-                var orders = props.orders;
+                var orders = props.orders, user = props.user, setOrders = props.setOrders, onClaim = props.onClaim;
                 var _a = useState(null), result = _a[0], setResult = _a[1];
                 var _b = useState(null), error = _b[0], setError = _b[1];
                 var _c = useState(0), scanKey = _c[0], setScanKey = _c[1];
                 var scannerRef = useRef(null);
-                var readerRef = useRef(null);
                 function stopAndClean() {
                     if (scannerRef.current) {
                         try { scannerRef.current.stop().catch(function(){}); } catch(e) {}
@@ -2354,20 +2367,28 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     if (!el) return;
                     el.innerHTML = "";
                     var scanner;
-                    try {
-                        scanner = new Html5Qrcode("qr-reader");
-                    } catch(e) { setError("فشل تهيئة القارئ"); return; }
+                    try { scanner = new Html5Qrcode("qr-reader"); } catch(e) { setError("فشل تهيئة القارئ"); return; }
                     scannerRef.current = scanner;
                     scanner.start({facingMode:"environment"}, {fps:10,qrbox:{width:250,height:250}},
                         function(text) {
                             var data = parseQRData(text);
-                            if (data) {
-                                var order = orders.find(function(o){return o.id===data.id;});
-                                setResult({qr:data,order:order,raw:text});
-                                try { scanner.stop().catch(function(){}); } catch(e) {}
-                            } else {
-                                setError("QR data غير صالح");
-                            }
+                            if (!data) { setError("QR data غير صالح"); return; }
+                            var order = orders.find(function(o){return o.id===data.id;});
+                            if (!order) { setError("الأوردر غير موجود في النظام"); try { scanner.stop().catch(function(){}); } catch(e) {} return; }
+                            if (order.courierId && order.courierId !== user.courierId) { setError("هذا الأوردر لمندوب آخر"); try { scanner.stop().catch(function(){}); } catch(e) {} return; }
+                            setOrders(function(prev) {
+                                return prev.map(function(o) {
+                                    if (o.id !== data.id) return o;
+                                    var c = cloneOrder(o);
+                                    c.courierId = user.courierId;
+                                    c.status = "assigned";
+                                    return c;
+                                });
+                            });
+                            if (onClaim) onClaim(data.id);
+                            playBeep();
+                            setResult({qr:data,order:order,raw:text});
+                            try { scanner.stop().catch(function(){}); } catch(e) {}
                         },
                         function(err) { if (err.indexOf("No MultiFormat Readers") >= 0) setError("الكاميرا غير متوفرة"); }
                     ).catch(function(e) { setError("فشل تشغيل الكاميرا: "+e); });
@@ -2385,7 +2406,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         result.qr.desc && h('div',{className:'order-desc'},'📦 ',result.qr.desc),
                         result.qr.notes && h('div',{className:'order-note'},'📝 ',result.qr.notes),
                         result.qr.phone && h('div',{className:'order-phone'},h('a',{href:'tel:'+result.qr.phone},'📞 ',result.qr.phone)),
-                        result.order && h('div',{style:{marginTop:12,fontSize:12,color:'var(--green)'}},'✅ الأوردر موجود في النظام'),
+                        result.order && h('div',{style:{marginTop:12,fontSize:12,color:'var(--green)'}},'✅ تم استلام الأوردر بنجاح'),
                         h('button',{className:'btn btn-primary btn-block',style:{marginTop:12},onClick:rescan},'🔄 مسح QR آخر')
                     )
                 );
@@ -2414,7 +2435,10 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     try{localStorage.setItem('fg_set_'+user.courierId,JSON.stringify(settings));}catch(e){}
                     applyTheme(settings.theme);
                 },[settings]);
-                var myOrders=orders.filter(function(o){return o.courierId===user.courierId;});
+                var _i = useState(function() { try { return JSON.parse(localStorage.getItem('fg_claimed_'+user.courierId)) || []; } catch(e) { return []; } }), claimedOrders = _i[0], setClaimedOrders = _i[1];
+                useEffect(function() { try { localStorage.setItem('fg_claimed_'+user.courierId, JSON.stringify(claimedOrders)); } catch(e) {} }, [claimedOrders]);
+                function handleClaim(orderId) { setClaimedOrders(function(p) { if (p.indexOf(orderId) >= 0) return p; return p.concat([orderId]); }); }
+                var myOrders=orders.filter(function(o){return claimedOrders.indexOf(o.id)>=0;});
                 var activeOrders=myOrders.filter(function(o){return o.status==="assigned"||o.status==="picked_up";});
                 var doneOrders=myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";});
                 function markDelivered(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="delivered";return c;});}); }
@@ -2464,7 +2488,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         h('div',{className:'summary-item'},h('span',{className:'summary-label'},'تم الاستلام'),h('span',{className:'summary-value',style:{fontWeight:700,fontSize:15,color:'#9c27b0'}},myOrders.filter(function(o){return o.status==="picked_up";}).length))
                     ),
                     screen==="map"?h(CourierMapView,{orders:myOrders}):
-                    screen==="scan"?h(ScanQR,{orders:orders}):
+                    screen==="scan"?h(ScanQR,{orders:orders,user:user,setOrders:setOrders,onClaim:handleClaim,claimed:claimedOrders}):
                     screen==="stats"?h('div',{className:'courier-body'},
                         h('div',{className:'order-card',style:{marginBottom:14}},
                             h('div',{style:{fontSize:14,fontWeight:800,marginBottom:12}},'📊 التقارير'),
