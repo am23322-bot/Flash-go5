@@ -2653,6 +2653,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     h('button',{className:'btn btn-primary',onClick:function(){window.location.reload();}},'🔄 إعادة تحميل')
                 );
                 if(!user)return h(LoginScreen,{onLogin:setUser,mode:urlMode,users:users,setUsers:setUsers});
+                if(urlMode==="courier")return h(CourierApp,{user:user,orders:orders,setOrders:setOrders,onLogout:function(){setUser(null);}});
                 return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,tracking:tracking,users:users,setUsers:setUsers,journalEntries:journalEntries,setJournalEntries:setJournalEntries,onLogin:setUser,onLogout:function(){setUser(null);}});
             }
 
