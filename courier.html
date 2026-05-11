@@ -2492,6 +2492,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var myOrders=orders.filter(function(o){return o.courierId===user.courierId || claimedOrders.indexOf(o.id)>=0;});
                 var activeOrders=myOrders.filter(function(o){return o.status==="assigned"||o.status==="picked_up";});
                 var doneOrders=myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";});
+                var routeOrders=myOrders.filter(function(o){return o.status!=="delivered"&&o.status!=="returned";});
                 function markDelivered(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="delivered";return c;});}); }
                 function markPickedUp(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="picked_up";return c;});}); }
                 function markReturn(id,reason) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="returned";c.returnReason=reason;return c;});}); }
@@ -2538,7 +2539,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         h('div',{className:'summary-divider'}),
                         h('div',{className:'summary-item'},h('span',{className:'summary-label'},'تم الاستلام'),h('span',{className:'summary-value',style:{fontWeight:700,fontSize:15,color:'#9c27b0'}},myOrders.filter(function(o){return o.status==="picked_up";}).length))
                     ),
-                    screen==="map"?h(CourierMapView,{orders:myOrders}):
+                    screen==="map"?h(CourierMapView,{orders:routeOrders}):
                     screen==="scan"?h(ScanQR,{orders:orders,user:user,setOrders:setOrders,onClaim:handleClaim,claimed:claimedOrders}):
                     screen==="stats"?h('div',{className:'courier-body'},
                         h('div',{className:'order-card',style:{marginBottom:14}},
@@ -2616,7 +2617,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             h('button',{className:'btn btn-ghost btn-sm',onClick:function(){setHamburgerView(null);}},'✕'),
                             h('span',{style:{fontSize:14,fontWeight:700}},'🗺️ الخريطة')
                         ),
-                        h(CourierMapView,{orders:myOrders,fullHeight:true})
+                        h(CourierMapView,{orders:routeOrders,fullHeight:true})
                     ),
                     hamburgerView==="settings" && h('div',{className:'sidebar-overlay',onClick:function(){setHamburgerView('route');}},
                         h('div',{className:'sidebar-panel',onClick:function(e){e.stopPropagation();},style:{padding:20}},
