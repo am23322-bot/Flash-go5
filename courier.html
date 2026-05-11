@@ -2468,6 +2468,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var _a = useState("active"), screen = _a[0], setScreen = _a[1];
                 var _b = useState(null), returnOrder = _b[0], setReturnOrder = _b[1];
                 var _c = useState(null), hamburgerView = _c[0], setHamburgerView = _c[1];
+                var _j = useState(false), gpsActive = _j[0], setGpsActive = _j[1];
                 var courier = MOCK_COURIERS.find(function(c){return c.id===user.courierId;});
                 function applyTheme(mode){
                     var h=document.documentElement;
@@ -2488,6 +2489,17 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 },[settings]);
                 var _i = useState(function() { try { return JSON.parse(localStorage.getItem('fg_claimed_'+user.courierId)) || []; } catch(e) { return []; } }), claimedOrders = _i[0], setClaimedOrders = _i[1];
                 useEffect(function() { try { localStorage.setItem('fg_claimed_'+user.courierId, JSON.stringify(claimedOrders)); } catch(e) {} }, [claimedOrders]);
+                // GPS tracking - live location sharing
+                useEffect(function() {
+                    if (!user || !user.courierId) return;
+                    if (!navigator.geolocation) return;
+                    var watch = navigator.geolocation.watchPosition(function(pos) {
+                        setGpsActive(true);
+                        var data = {lat:pos.coords.latitude, lng:pos.coords.longitude, updatedAt:new Date().toISOString(), courierId:user.courierId};
+                        fetch(FB_URL + "/flashgo/tracking/c" + user.courierId + ".json", {method:"PUT",body:JSON.stringify(data),headers:{"Content-Type":"application/json"}}).catch(function(){});
+                    }, function() { setGpsActive(false); }, {enableHighAccuracy:true, timeout:5000, maximumAge:10000});
+                    return function() { navigator.geolocation.clearWatch(watch); };
+                }, [user]);
                 function handleClaim(orderId) { setClaimedOrders(function(p) { if (p.indexOf(orderId) >= 0) return p; return p.concat([orderId]); }); }
                 var myOrders=orders.filter(function(o){return o.courierId===user.courierId || claimedOrders.indexOf(o.id)>=0;});
                 var activeOrders=myOrders.filter(function(o){return o.status==="assigned"||o.status==="picked_up";});
@@ -2525,6 +2537,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     h('div',{className:'courier-header'},
                         h('div',{style:{display:'flex',alignItems:'center',gap:10}},
                             h('div',{style:{textAlign:'right'}},h('div',{style:{fontSize:13,fontWeight:700}},user.name),h('div',{style:{fontSize:11,color:'var(--text-muted)'}},'🏍️ ',(courier&&courier.area)||'')),
+                            h('span',{style:{fontSize:10,fontWeight:600,color:gpsActive?'var(--green)':'var(--red)'}},gpsActive?'📍 GPS':'📍 لا GPS'),
                             h('button',{className:'btn btn-ghost btn-sm',title:'القائمة',onClick:function(){setHamburgerView(function(v){return v?null:"route";});}},'☰'),
                             h('button',{className:'btn btn-ghost btn-sm',onClick:onLogout},'🚪 خروج')
                         ),
