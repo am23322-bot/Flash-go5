@@ -2658,29 +2658,47 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     if (couriers.length > 0) localStorage.setItem('fg_couriers', JSON.stringify(couriers));
                 }, [couriers]);
 
-                // Load / seed users from localStorage — always ensure ALL couriers are present
+                // Save users to Firebase with debounce
+                var usersTimer = useRef(null);
                 useEffect(function() {
-                    var stored = localStorage.getItem('fg_users');
-                    var existing = [];
-                    if (stored) {
-                        try { var parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length > 0) { existing = parsed; } } catch(e) {}
-                    }
-                    // Build base: chairman + gm
-                    var merged = existing.length > 0 ? existing : [
-                        {id:"u1", email:"chairman@flashgo.com", password:"admin123", name:"رئيس مجلس الإدارة", role:"chairman"},
-                        {id:"u2", email:"gm@flashgo.com", password:"gm123", name:"المدير العام", role:"gm"},
-                    ];
-                    // Ensure every courier in MOCK_COURIERS has a user entry
-                    MOCK_COURIERS.forEach(function(c) {
-                        var found = merged.find(function(u) {
-                            return u.role === 'courier' && (u.courierId === c.id || u.name === c.name);
+                    if (loading) return;
+                    if (usersTimer.current) clearTimeout(usersTimer.current);
+                    usersTimer.current = setTimeout(function(){ fbPut("flashgo/users", arrToObj(users, 'u')).catch(function(){}); }, 500);
+                    return function(){ if(usersTimer.current) clearTimeout(usersTimer.current); };
+                }, [users]);
+
+                // Load users: try Firebase first, fall back to localStorage
+                var usersLoadDone = useRef(false);
+                useEffect(function() {
+                    if (usersLoadDone.current) return;
+                    function setMerged(arr) {
+                        var merged = arr.slice();
+                        MOCK_COURIERS.forEach(function(c) {
+                            var found = merged.find(function(u) { return u.role === 'courier' && (u.courierId === c.id || u.name === c.name); });
+                            if (!found) merged.push({id:'c'+c.id, email:'courier'+c.id+'@flashgo.com', password:'123456', name:c.name, role:'courier', courierId:c.id});
                         });
-                        if (!found) {
-                            merged.push({id:'c'+c.id, email:'courier'+c.id+'@flashgo.com', password:'123456', name:c.name, role:'courier', courierId:c.id});
-                        }
+                        localStorage.setItem('fg_users', JSON.stringify(merged));
+                        setUsers(merged);
+                        usersLoadDone.current = true;
+                    }
+                    fbGet("flashgo/users").then(function(val) {
+                        if (val && Object.keys(val).length > 0) { setMerged(objToArr(val)); return; }
+                        var stored = localStorage.getItem('fg_users');
+                        var existing = [];
+                        if (stored) { try { var parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length > 0) { existing = parsed; } } catch(e) {} }
+                        setMerged(existing.length > 0 ? existing : [
+                            {id:"u1", email:"chairman@flashgo.com", password:"admin123", name:"رئيس مجلس الإدارة", role:"chairman"},
+                            {id:"u2", email:"gm@flashgo.com", password:"gm123", name:"المدير العام", role:"gm"},
+                        ]);
+                    }).catch(function() {
+                        var stored = localStorage.getItem('fg_users');
+                        var existing = [];
+                        if (stored) { try { var parsed = JSON.parse(stored); if (Array.isArray(parsed) && parsed.length > 0) { existing = parsed; } } catch(e) {} }
+                        setMerged(existing.length > 0 ? existing : [
+                            {id:"u1", email:"chairman@flashgo.com", password:"admin123", name:"رئيس مجلس الإدارة", role:"chairman"},
+                            {id:"u2", email:"gm@flashgo.com", password:"gm123", name:"المدير العام", role:"gm"},
+                        ]);
                     });
-                    localStorage.setItem('fg_users', JSON.stringify(merged));
-                    setUsers(merged);
                 }, []);
                 // Persist users when changed
                 useEffect(function() {
