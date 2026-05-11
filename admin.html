@@ -3261,22 +3261,31 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 useEffect(function() {
                     if (users.length > 0) localStorage.setItem('fg_users', JSON.stringify(users));
                 }, [users]);
-                // Reverse: ensure every courier user has a corresponding courier entry
-                var courierCreateDone = useRef(false);
+                // Sync: after both users + couriers loaded, match them bidirectionally
+                var syncAllDone = useRef(false);
                 useEffect(function() {
-                    if (courierCreateDone.current || users.length === 0) return;
-                    var courierUsers = users.filter(function(u){return u.role==='courier' && u.courierId;});
-                    if (courierUsers.length === 0) return;
-                    var needsUpdate = false;
-                    var updated = couriers.slice();
-                    courierUsers.forEach(function(u) {
-                        var exists = updated.find(function(c){return c.id===u.courierId || c.name===u.name;});
-                        if (!exists) {
-                            needsUpdate = true;
-                            updated.push({id:u.courierId, name:u.name, phone:'', area:'', active:true, code:'', nationalId:'', referrer:'', hireDate:'', pricePerShipment:0, baseSalary:0, vehicleType:'motorcycle', plateNumber:'', notes:''});
+                    if (syncAllDone.current || users.length === 0 || couriers.length === 0) return;
+                    var usersChanged = false, couriersChanged = false;
+                    var fixedUsers = users.map(function(u) {
+                        if (u.role === 'courier' && !u.courierId) {
+                            var match = couriers.find(function(c){return c.name === u.name;});
+                            if (match) { usersChanged = true; return Object.assign({}, u, {courierId: match.id}); }
                         }
+                        return u;
                     });
-                    if (needsUpdate) { courierCreateDone.current = true; setCouriers(updated); }
+                    var fixedCouriers = couriers.slice();
+                    fixedUsers.forEach(function(u) {
+                        if (u.role !== 'courier' || !u.courierId) return;
+                        var exists = fixedCouriers.find(function(c){return c.id===u.courierId || c.name===u.name;});
+                        if (!exists) { couriersChanged = true; fixedCouriers.push({id:u.courierId, name:u.name, phone:'', area:'', active:true, code:'', nationalId:'', referrer:'', hireDate:'', pricePerShipment:0, baseSalary:0, vehicleType:'motorcycle', plateNumber:'', notes:''}); }
+                    });
+                    fixedCouriers.forEach(function(c) {
+                        var exists = fixedUsers.find(function(u){return (u.role==='courier' && u.courierId===c.id) || u.name===c.name;});
+                        if (!exists) { usersChanged = true; fixedUsers.push({id:'c'+c.id, email:'courier'+c.id+'@flashgo.com', password:'123456', name:c.name, role:'courier', courierId:c.id}); }
+                    });
+                    syncAllDone.current = true;
+                    if (usersChanged) setUsers(fixedUsers);
+                    if (couriersChanged) setCouriers(fixedCouriers);
                 }, [users, couriers]);
 
                 // Load journal entries from localStorage
@@ -3433,22 +3442,31 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 useEffect(function() {
                     if (users.length > 0) localStorage.setItem('fg_users', JSON.stringify(users));
                 }, [users]);
-                // Reverse: ensure every courier user has a corresponding courier entry
-                var courierCreateDone = useRef(false);
+                // Sync: after both users + couriers loaded, match them bidirectionally
+                var syncAllDone = useRef(false);
                 useEffect(function() {
-                    if (courierCreateDone.current || users.length === 0) return;
-                    var courierUsers = users.filter(function(u){return u.role==='courier' && u.courierId;});
-                    if (courierUsers.length === 0) return;
-                    var needsUpdate = false;
-                    var updated = couriers.slice();
-                    courierUsers.forEach(function(u) {
-                        var exists = updated.find(function(c){return c.id===u.courierId || c.name===u.name;});
-                        if (!exists) {
-                            needsUpdate = true;
-                            updated.push({id:u.courierId, name:u.name, phone:'', area:'', active:true, code:'', nationalId:'', referrer:'', hireDate:'', pricePerShipment:0, baseSalary:0, vehicleType:'motorcycle', plateNumber:'', notes:''});
+                    if (syncAllDone.current || users.length === 0 || couriers.length === 0) return;
+                    var usersChanged = false, couriersChanged = false;
+                    var fixedUsers = users.map(function(u) {
+                        if (u.role === 'courier' && !u.courierId) {
+                            var match = couriers.find(function(c){return c.name === u.name;});
+                            if (match) { usersChanged = true; return Object.assign({}, u, {courierId: match.id}); }
                         }
+                        return u;
                     });
-                    if (needsUpdate) { courierCreateDone.current = true; setCouriers(updated); }
+                    var fixedCouriers = couriers.slice();
+                    fixedUsers.forEach(function(u) {
+                        if (u.role !== 'courier' || !u.courierId) return;
+                        var exists = fixedCouriers.find(function(c){return c.id===u.courierId || c.name===u.name;});
+                        if (!exists) { couriersChanged = true; fixedCouriers.push({id:u.courierId, name:u.name, phone:'', area:'', active:true, code:'', nationalId:'', referrer:'', hireDate:'', pricePerShipment:0, baseSalary:0, vehicleType:'motorcycle', plateNumber:'', notes:''}); }
+                    });
+                    fixedCouriers.forEach(function(c) {
+                        var exists = fixedUsers.find(function(u){return (u.role==='courier' && u.courierId===c.id) || u.name===c.name;});
+                        if (!exists) { usersChanged = true; fixedUsers.push({id:'c'+c.id, email:'courier'+c.id+'@flashgo.com', password:'123456', name:c.name, role:'courier', courierId:c.id}); }
+                    });
+                    syncAllDone.current = true;
+                    if (usersChanged) setUsers(fixedUsers);
+                    if (couriersChanged) setCouriers(fixedCouriers);
                 }, [users, couriers]);
 
                 if (loading) return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)'}},'⏳ جاري التحميل...');
