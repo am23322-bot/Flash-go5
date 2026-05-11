@@ -729,7 +729,19 @@ svg.leaflet-image-layer.leaflet-interactive path {
         (function() {
             'use strict';
             var FB_URL = "https://flash-go-b7d17-default-rtdb.europe-west1.firebasedatabase.app";
-            function fbGet(path) { return fetch(FB_URL + "/" + path + ".json").then(function(r){return r.json();}); }
+            function fbGet(path) {
+                var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+                var signal = controller ? controller.signal : null;
+                var timedOut = false;
+                var timer = setTimeout(function() { timedOut = true; if (controller) controller.abort(); }, 8000);
+                return fetch(FB_URL + "/" + path + ".json", signal ? {signal:signal} : {}).then(function(r) {
+                    clearTimeout(timer); return r.json();
+                }, function(err) {
+                    clearTimeout(timer);
+                    if (timedOut) throw new Error("Firebase timeout");
+                    throw err;
+                });
+            }
 
             var statusLabel = {pending:"قيد الانتظار",assigned:"تم التعيين",picked_up:"تم الاستلام",in_transit:"في الطريق",delivered:"تم التسليم",returned:"مرتجع"};
             var statusClass = {pending:"badge-pending",assigned:"badge-assigned",picked_up:"badge-picked",in_transit:"badge-transit",delivered:"badge-delivered",returned:"badge-returned"};
