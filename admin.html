@@ -1405,6 +1405,10 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
             const h = React.createElement;
 
+            function Badge(props) {
+                return h('span',{className:'badge ' + statusClass[props.status]},h('span',{className:'dot'}),statusLabel[props.status]);
+            }
+
             // Error Boundary for React render crashes
             var ErrorBoundary = (function() {
                 function EB(props) { React.Component.call(this, props); this.state = { error: null }; }
