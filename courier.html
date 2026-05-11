@@ -2489,7 +2489,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var _i = useState(function() { try { return JSON.parse(localStorage.getItem('fg_claimed_'+user.courierId)) || []; } catch(e) { return []; } }), claimedOrders = _i[0], setClaimedOrders = _i[1];
                 useEffect(function() { try { localStorage.setItem('fg_claimed_'+user.courierId, JSON.stringify(claimedOrders)); } catch(e) {} }, [claimedOrders]);
                 function handleClaim(orderId) { setClaimedOrders(function(p) { if (p.indexOf(orderId) >= 0) return p; return p.concat([orderId]); }); }
-                var myOrders=orders.filter(function(o){return claimedOrders.indexOf(o.id)>=0;});
+                var myOrders=orders.filter(function(o){return o.courierId===user.courierId || claimedOrders.indexOf(o.id)>=0;});
                 var activeOrders=myOrders.filter(function(o){return o.status==="assigned"||o.status==="picked_up";});
                 var doneOrders=myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";});
                 function markDelivered(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="delivered";return c;});}); }
