@@ -1940,6 +1940,263 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 );
             }
 
+            // ── Courier Profits Tab ──────────────────────────────────────
+            function CourierProfitsTab(props) {
+                var orders = props.orders, couriers = props.couriers, setCouriers = props.setCouriers;
+                var _a = useState("monthly"), subTab = _a[0], setSubTab = _a[1];
+                var _b = useState("all"), filterC = _b[0], setFilterC = _b[1];
+                var _c = useState(""), monthFilter = _c[0], setMonthFilter = _c[1];
+                var _d = useState(""), dayFilter = _d[0], setDayFilter = _d[1];
+                var _e = useState(null), editC = _e[0], setEditC = _e[1];
+                var _f = useState(""), editMsg = _f[0], setEditMsg = _f[1];
+                var _g = useState({}), dForm = _g[0], setDForm = _g[1];
+                var _h = useState({}), discForm = _h[0], setDiscForm = _h[1];
+                var _i = useState(""), expMsg = _i[0], setExpMsg = _i[1];
+                var savedDisc = []; try{var _sd=localStorage.getItem('fg_discounts');if(_sd)savedDisc=JSON.parse(_sd);}catch(e){}
+                var savedExp = []; try{var _se=localStorage.getItem('fg_dailyexp');if(_se)savedExp=JSON.parse(_se);}catch(e){}
+                var _j = useState(savedDisc), discounts = _j[0], setDiscounts = _j[1];
+                var _k = useState(savedExp), dailyExp = _k[0], setDailyExp = _k[1];
+                useEffect(function(){localStorage.setItem('fg_discounts',JSON.stringify(discounts));},[discounts]);
+                useEffect(function(){localStorage.setItem('fg_dailyexp',JSON.stringify(dailyExp));},[dailyExp]);
+                function getC(cId) { return couriers.find(function(c){return c.id===cId;}); }
+                function monthKey(d) { return d ? d.slice(0,7) : ''; }
+                var now = new Date(), thisMonth = now.toISOString().slice(0,7);
+                var mf = monthFilter || thisMonth;
+                var monthlyRows = [];
+                var filteredCouriers = couriers;
+                if (filterC !== "all") filteredCouriers = [getC(filterC)].filter(Boolean);
+                filteredCouriers.forEach(function(c){
+                    var cOrders = orders.filter(function(o){return o.courierId===c.id;});
+                    var days = {}; cOrders.forEach(function(o){if(o.date)days[o.date]=true;});
+                    var monthOrders = cOrders.filter(function(o){return o.date && o.date.slice(0,7)===mf;});
+                    var total = monthOrders.length;
+                    var delivered = monthOrders.filter(function(o){return o.status==="delivered";}).length;
+                    var returned = monthOrders.filter(function(o){return o.status==="returned";}).length;
+                    if (total===0) return;
+                    var monthDisc = discounts.filter(function(d){return d.courierId===c.id && d.month===mf;});
+                    var discSum = monthDisc.reduce(function(s,d){return s+(parseFloat(d.amount)||0);},0);
+                    var bs = parseFloat(c.baseSalary)||0;
+                    var psp = parseFloat(c.pricePerShipment)||0;
+                    var gross = delivered * psp;
+                    var due = gross - discSum + bs;
+                    monthlyRows.push({courier:c,workingDays:Object.keys(days).length,total:total,delivered:delivered,returned:returned,pricePerShipment:psp,gross:gross,discounts:discSum,baseSalary:bs,due:due,monthDiscs:monthDisc});
+                });
+                monthlyRows.sort(function(a,b){return b.due-a.due;});
+                var dailyRows = [];
+                filteredCouriers.forEach(function(c){
+                    var cOrders = orders.filter(function(o){return o.courierId===c.id;});
+                    var dayGroups = {};
+                    cOrders.forEach(function(o){
+                        if (!o.date) return;
+                        if (dayFilter && o.date !== dayFilter) return;
+                        if (!dayGroups[o.date]) dayGroups[o.date]={date:o.date,courier:c,total:0,delivered:0,returned:0};
+                        dayGroups[o.date].total++;
+                        if (o.status==="delivered") dayGroups[o.date].delivered++;
+                        if (o.status==="returned") dayGroups[o.date].returned++;
+                    });
+                    Object.keys(dayGroups).sort().forEach(function(d){
+                        var dg = dayGroups[d];
+                        var exp = dailyExp.filter(function(e){return e.date===d && e.courierId===c.id;});
+                        var expSum = exp.reduce(function(s,e){return s+(parseFloat(e.amount)||0);},0);
+                        dailyRows.push({date:d,courier:c,total:dg.total,delivered:dg.delivered,returned:dg.returned,pricePerShipment:parseFloat(c.pricePerShipment)||0,expenses:expSum,expItems:exp});
+                    });
+                });
+                dailyRows.sort(function(a,b){return b.date.localeCompare(a.date);});
+                function addDiscount() {
+                    if (!discForm.courierId || !discForm.amount) return;
+                    setDiscounts(function(p){return p.concat([{id:Date.now(),courierId:discForm.courierId,month:discForm.month||thisMonth,amount:parseFloat(discForm.amount)||0,reason:discForm.reason||''}]);});
+                    setDiscForm({}); setExpMsg('✅ تم إضافة الخصم');
+                    setTimeout(function(){setExpMsg('');},2000);
+                }
+                function addExpense() {
+                    if (!dForm.courierId || !dForm.date || !dForm.amount) return;
+                    setDailyExp(function(p){return p.concat([{id:Date.now(),courierId:dForm.courierId,date:dForm.date,amount:parseFloat(dForm.amount)||0,note:dForm.note||''}]);});
+                    setDForm({}); setExpMsg('✅ تم إضافة المصروف');
+                    setTimeout(function(){setExpMsg('');},2000);
+                }
+                function deleteDisc(id){setDiscounts(function(p){return p.filter(function(d){return d.id!==id;});});}
+                function deleteExp(id){setDailyExp(function(p){return p.filter(function(e){return e.id!==id;});});}
+                function saveCourierEdit(){
+                    if (!editC) return;
+                    var cid = editC.id;
+                    setCouriers(function(prev){return prev.map(function(c){if(c.id!==cid)return c;return Object.assign({},c,{name:editC.name,phone:editC.phone,area:editC.area,code:editC.code,nationalId:editC.nationalId,referrer:editC.referrer,hireDate:editC.hireDate,pricePerShipment:editC.pricePerShipment,baseSalary:editC.baseSalary,vehicleType:editC.vehicleType,plateNumber:editC.plateNumber,active:editC.active,notes:editC.notes});});});
+                    setEditMsg('✅ تم حفظ بيانات المندوب');
+                    setEditC(null);
+                    setTimeout(function(){setEditMsg('');},2000);
+                }
+                return h('div',null,
+                    h('div',{className:'sec-title',style:{marginBottom:14}},'📊 أرباح المناديب'),
+                    h('div',{className:'cp-tabs'},
+                        h('button',{className:'cp-tab'+(subTab==='monthly'?' active':''),onClick:function(){setSubTab('monthly');}},'📆 الحساب الشهري'),
+                        h('button',{className:'cp-tab'+(subTab==='daily'?' active':''),onClick:function(){setSubTab('daily');}},'📋 السجل اليومي'),
+                        h('button',{className:'cp-tab'+(subTab==='data'?' active':''),onClick:function(){setSubTab('data');}},'👤 بيانات المناديب')
+                    ),
+                    subTab==='monthly' && h('div',null,
+                        h('div',{className:'cp-filter-bar'},
+                            h('label',{style:{fontSize:13,fontWeight:600}},'المندوب:'),
+                            h('select',{className:'form-select',value:filterC,onChange:function(e){setFilterC(e.target.value);}},
+                                h('option',{value:'all'},'الكل'),
+                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},(c.code||'')+' - '+c.name);})
+                            ),
+                            h('label',{style:{fontSize:13,fontWeight:600}},'الشهر:'),
+                            h('input',{type:'month',className:'form-input',style:{width:'auto',maxWidth:160},value:monthFilter,onChange:function(e){setMonthFilter(e.target.value);}})
+                        ),
+                        monthlyRows.length===0?h('div',{style:{padding:20,textAlign:'center',color:'var(--text-muted)'}},'لا توجد بيانات للشهر المحدد'):
+                        h('div',{className:'table-wrap'},
+                            h('table',{className:'cp-table'},
+                                h('thead',null,h('tr',null,
+                                    h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'أيام العمل'),h('th',null,'إجمالي الشحنات'),h('th',null,'تم التسليم'),h('th',null,'مرتجع'),
+                                    h('th',null,'سعر الشحنة'),h('th',null,'الإجمالي'),h('th',null,'الخصم'),h('th',null,'الراتب'),h('th',null,'المستحق')
+                                )),
+                                h('tbody',null,monthlyRows.map(function(r){
+                                    return h('tr',{key:r.courier.id},
+                                        h('td',{style:{fontSize:11,fontWeight:600,color:'var(--text-muted)'}},r.courier.code||''),
+                                        h('td',{style:{fontWeight:600}},'🏍️ '+r.courier.name),
+                                        h('td',null,r.workingDays),
+                                        h('td',null,r.total),
+                                        h('td',{style:{color:'var(--green)',fontWeight:600}},r.delivered),
+                                        h('td',{style:{color:'var(--red)',fontWeight:600}},r.returned),
+                                        h('td',null,r.pricePerShipment+' ج'),
+                                        h('td',{style:{fontWeight:600}},r.gross.toLocaleString()+' ج'),
+                                        h('td',{style:{color:'var(--red)'}},r.discounts>0?r.discounts.toLocaleString()+' ج':'—'),
+                                        h('td',null,r.baseSalary>0?r.baseSalary.toLocaleString()+' ج':'—'),
+                                        h('td',{className:'cp-due'},r.due.toLocaleString()+' ج')
+                                    );
+                                }))
+                            )
+                        ),
+                        h('div',{style:{marginTop:16}},
+                            h('div',{style:{fontSize:14,fontWeight:700,marginBottom:10}},'➕ إضافة خصم / غرامة'),
+                            expMsg && h('div',{className:'alert alert-success',style:{marginBottom:8}},expMsg),
+                            h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',alignItems:'end'}},
+                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
+                                    h('select',{className:'form-select',value:dForm.courierId||discForm.courierId||'',onChange:function(e){
+                                        var v=e.target.value;setDiscForm(function(f){return Object.assign({},f,{courierId:v,month:monthFilter||thisMonth});});
+                                    }},h('option',{value:''},'المندوب'),
+                                    couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name);}))
+                                ),
+                                h('div',{className:'form-group',style:{flex:1,minWidth:100}},
+                                    h('input',{className:'form-input',type:'number',placeholder:'المبلغ',value:discForm.amount||'',onChange:function(e){setDiscForm(function(f){return Object.assign({},f,{amount:e.target.value});});}})
+                                ),
+                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
+                                    h('input',{className:'form-input',placeholder:'السبب',value:discForm.reason||'',onChange:function(e){setDiscForm(function(f){return Object.assign({},f,{reason:e.target.value});});}})
+                                ),
+                                h('button',{className:'btn btn-sm btn-primary',style:{padding:'8px 16px'},onClick:addDiscount},'💾 حفظ الخصم')
+                            )
+                        )
+                    ),
+                    subTab==='daily' && h('div',null,
+                        h('div',{className:'cp-filter-bar'},
+                            h('label',{style:{fontSize:13,fontWeight:600}},'المندوب:'),
+                            h('select',{className:'form-select',value:filterC,onChange:function(e){setFilterC(e.target.value);}},
+                                h('option',{value:'all'},'الكل'),
+                                couriers.map(function(c){return h('option',{key:c.id,value:c.id},(c.code||'')+' - '+c.name);})
+                            ),
+                            h('label',{style:{fontSize:13,fontWeight:600}},'التاريخ:'),
+                            h('input',{type:'date',className:'form-input',style:{width:'auto',maxWidth:150},value:dayFilter,onChange:function(e){setDayFilter(e.target.value);}})
+                        ),
+                        dailyRows.length===0?h('div',{style:{padding:20,textAlign:'center',color:'var(--text-muted)'}},'لا توجد بيانات'):
+                        h('div',{className:'table-wrap'},
+                            h('table',{className:'cp-table'},
+                                h('thead',null,h('tr',null,
+                                    h('th',null,'التاريخ'),h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'الشحنات'),h('th',null,'تم التسليم'),h('th',null,'مرتجع'),h('th',null,'سعر الشحنة'),h('th',null,'مصاريف'),h('th',null,'صافي اليوم')
+                                )),
+                                h('tbody',null,dailyRows.map(function(r){
+                                    var net = (r.delivered*r.pricePerShipment)-r.expenses;
+                                    return h('tr',{key:r.date+r.courier.id},
+                                        h('td',{style:{fontWeight:600}},r.date),
+                                        h('td',{style:{fontSize:11,color:'var(--text-muted)'}},r.courier.code||''),
+                                        h('td',null,r.courier.name),
+                                        h('td',null,r.total),
+                                        h('td',{style:{color:'var(--green)',fontWeight:600}},r.delivered),
+                                        h('td',{style:{color:'var(--red)',fontWeight:600}},r.returned),
+                                        h('td',null,r.pricePerShipment+' ج'),
+                                        h('td',{style:{color:'var(--orange)'}},r.expenses>0?r.expenses.toLocaleString()+' ج':'—'),
+                                        h('td',{className:'cp-due'},net.toLocaleString()+' ج')
+                                    );
+                                }))
+                            )
+                        ),
+                        h('div',{style:{marginTop:16}},
+                            h('div',{style:{fontSize:14,fontWeight:700,marginBottom:10}},'➕ إضافة مصروفات يومية'),
+                            expMsg && h('div',{className:'alert alert-success',style:{marginBottom:8}},expMsg),
+                            h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',alignItems:'end'}},
+                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
+                                    h('select',{className:'form-select',value:dForm.courierId||'',onChange:function(e){setDForm(function(f){return Object.assign({},f,{courierId:e.target.value});});}},
+                                    h('option',{value:''},'المندوب'),
+                                    couriers.map(function(c){return h('option',{key:c.id,value:c.id},c.name);}))
+                                ),
+                                h('div',{className:'form-group',style:{flex:1,minWidth:110}},
+                                    h('input',{type:'date',className:'form-input',value:dForm.date||dayFilter||'',onChange:function(e){setDForm(function(f){return Object.assign({},f,{date:e.target.value});});}})
+                                ),
+                                h('div',{className:'form-group',style:{flex:1,minWidth:100}},
+                                    h('input',{className:'form-input',type:'number',placeholder:'المبلغ',value:dForm.amount||'',onChange:function(e){setDForm(function(f){return Object.assign({},f,{amount:e.target.value});});}})
+                                ),
+                                h('div',{className:'form-group',style:{flex:1,minWidth:120}},
+                                    h('input',{className:'form-input',placeholder:'السبب',value:dForm.note||'',onChange:function(e){setDForm(function(f){return Object.assign({},f,{note:e.target.value});});}})
+                                ),
+                                h('button',{className:'btn btn-sm btn-primary',style:{padding:'8px 16px'},onClick:addExpense},'💾 حفظ المصروف')
+                            )
+                        )
+                    ),
+                    subTab==='data' && h('div',null,
+                        editC ? h('div',null,
+                            h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:16}},
+                                h('button',{className:'btn btn-ghost btn-sm',style:{fontSize:13,fontWeight:700},onClick:function(){setEditC(null);}},'← رجوع'),
+                                h('span',{style:{fontSize:16,fontWeight:800}},'✏️ تعديل بيانات المندوب')
+                            ),
+                            editMsg && h('div',{className:'alert alert-success',style:{marginBottom:10}},editMsg),
+                            h('div',{className:'table-wrap',style:{padding:20}},
+                                h('div',{className:'cp-edit-form'},
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🏷️ كود المندوب'),h('input',{className:'form-input',value:editC.code||'',onChange:function(e){setEditC(Object.assign({},editC,{code:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'👤 الاسم'),h('input',{className:'form-input',value:editC.name||'',onChange:function(e){setEditC(Object.assign({},editC,{name:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📞 الهاتف'),h('input',{className:'form-input',dir:'ltr',value:editC.phone||'',onChange:function(e){setEditC(Object.assign({},editC,{phone:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📍 المنطقة'),h('input',{className:'form-input',value:editC.area||'',onChange:function(e){setEditC(Object.assign({},editC,{area:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🆔 الرقم القومي'),h('input',{className:'form-input',dir:'ltr',value:editC.nationalId||'',onChange:function(e){setEditC(Object.assign({},editC,{nationalId:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🤝 المُرَشِّح'),h('input',{className:'form-input',value:editC.referrer||'',onChange:function(e){setEditC(Object.assign({},editC,{referrer:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'📅 تاريخ التعيين'),h('input',{type:'date',className:'form-input',value:editC.hireDate||'',onChange:function(e){setEditC(Object.assign({},editC,{hireDate:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'💰 الراتب الأساسي'),h('input',{type:'number',className:'form-input',value:editC.baseSalary||0,onChange:function(e){setEditC(Object.assign({},editC,{baseSalary:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'💵 سعر الشحنة'),h('input',{type:'number',className:'form-input',value:editC.pricePerShipment||0,onChange:function(e){setEditC(Object.assign({},editC,{pricePerShipment:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🚗 وسيلة النقل'),h('select',{className:'form-select',value:editC.vehicleType||'motorcycle',onChange:function(e){setEditC(Object.assign({},editC,{vehicleType:e.target.value}));}},h('option',{value:'motorcycle'},'موتوسيكل'),h('option',{value:'car'},'عربية'),h('option',{value:'bicycle'},'عجلة'))),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'🔖 رقم اللوحة'),h('input',{className:'form-input',dir:'ltr',value:editC.plateNumber||'',onChange:function(e){setEditC(Object.assign({},editC,{plateNumber:e.target.value}));}})),
+                                    h('div',{className:'form-group'},h('label',{className:'form-label'},'⚡ الحالة'),h('select',{className:'form-select',value:editC.active?'true':'false',onChange:function(e){setEditC(Object.assign({},editC,{active:e.target.value==='true'}));}},h('option',{value:'true'},'نشط'),h('option',{value:'false'},'غير نشط'))),
+                                    h('div',{className:'form-group full-width'},h('label',{className:'form-label'},'📝 ملاحظات'),h('input',{className:'form-input',value:editC.notes||'',onChange:function(e){setEditC(Object.assign({},editC,{notes:e.target.value}));}})),
+                                ),
+                                h('div',{style:{display:'flex',gap:8,marginTop:12}},
+                                    h('button',{className:'btn btn-primary',style:{flex:1,justifyContent:'center',padding:'12px 0'},onClick:saveCourierEdit},'💾 حفظ البيانات'),
+                                    h('button',{className:'btn btn-ghost',style:{padding:'12px 24px'},onClick:function(){setEditC(null);}},'✕ إلغاء')
+                                )
+                            )
+                        ) : h('div',null,
+                            h('div',{className:'cp-filter-bar'},
+                                h('label',{style:{fontSize:13,fontWeight:600}},'بحث:'),
+                                h('input',{className:'form-input',style:{maxWidth:250},placeholder:'ابحث بالاسم أو الكود',value:filterC==='all'?'':filterC==='active'?'':filterC,onChange:function(e){
+                                    var q=e.target.value;if(!q)setFilterC('all');else setFilterC(q);
+                                }})
+                            ),
+                            h('div',{className:'table-wrap'},
+                                h('table',{className:'cp-table'},
+                                    h('thead',null,h('tr',null,
+                                        h('th',null,'الكود'),h('th',null,'الاسم'),h('th',null,'المنطقة'),h('th',null,'الراتب'),h('th',null,'سعر الشحنة'),h('th',null,'الحالة'),h('th',null,'إجراء')
+                                    )),
+                                    h('tbody',null,couriers.map(function(c){
+                                        return h('tr',{key:c.id},
+                                            h('td',{style:{fontSize:11,color:'var(--text-muted)',fontWeight:600}},c.code||''),
+                                            h('td',{style:{fontWeight:600}},'🏍️ '+c.name),
+                                            h('td',null,c.area),
+                                            h('td',null,(parseFloat(c.baseSalary)||0).toLocaleString()+' ج'),
+                                            h('td',null,(parseFloat(c.pricePerShipment)||0).toLocaleString()+' ج'),
+                                            h('td',null,h('span',{className:'badge '+(c.active?'badge-delivered':'badge-returned')},c.active?'نشط':'غير نشط')),
+                                            h('td',null,h('button',{className:'btn btn-sm btn-outline',style:{fontSize:11,padding:'4px 8px'},onClick:function(){setEditC(Object.assign({},c));}},'✏️ تعديل'))
+                                        );
+                                    }))
+                                )
+                            )
+                        )
+                    )
+                );
+            }
+
             function AdminPanel(props) {
                 var user = props.user, orders = props.orders, setOrders = props.setOrders, couriers = props.couriers, setCouriers = props.setCouriers, tracking = props.tracking, onLogout = props.onLogout, users = props.users || [], setUsers = props.setUsers, journalEntries = props.journalEntries || [], setJournalEntries = props.setJournalEntries;
                 var _a = useState("dashboard"), tab = _a[0], setTab = _a[1];
