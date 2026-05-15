@@ -2409,7 +2409,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     setImportMsg("جاري قراءة الملف...");
                     var reader = new FileReader();
                     reader.onload = function(ev) {
-                        var text = ev.target.result;
+                        var text = ev.target.result.replace(/^\uFEFF/, "");
                         var lines = text.split("\n").map(function(l){return l.trim();}).filter(function(l){return l;});
                         if (lines.length < 2) { setImportMsg("❌ الملف فارغ أو لا يحتوي على بيانات"); return; }
                         var headers = lines[0].split(",").map(function(h){return h.trim().toLowerCase();});
