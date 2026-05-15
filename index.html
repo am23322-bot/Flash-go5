@@ -2413,9 +2413,13 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         var lines = text.split("\n").map(function(l){return l.trim();}).filter(function(l){return l;});
                         if (lines.length < 2) { setImportMsg("❌ الملف فارغ أو لا يحتوي على بيانات"); return; }
                         var headers = lines[0].split(",").map(function(h){return h.trim().toLowerCase();});
-                        var cIdx = headers.indexOf("customer"), pIdx = headers.indexOf("phone"), aIdx = headers.indexOf("address");
-                        var arIdx = headers.indexOf("area"), dIdx = headers.indexOf("description"), nIdx = headers.indexOf("notes");
-                        if (cIdx === -1 || pIdx === -1 || aIdx === -1) { setImportMsg("❌ الأعمدة المطلوبة: customer, phone, address"); return; }
+                        var cIdx = Math.max(headers.indexOf("customer"), headers.indexOf("اسم العميل"), headers.indexOf("العميل"));
+                        var pIdx = Math.max(headers.indexOf("phone"), headers.indexOf("رقم الهاتف"), headers.indexOf("التليفون"), headers.indexOf("الهاتف"));
+                        var aIdx = Math.max(headers.indexOf("address"), headers.indexOf("العنوان"));
+                        var arIdx = Math.max(headers.indexOf("area"), headers.indexOf("المنطقة"));
+                        var dIdx = Math.max(headers.indexOf("description"), headers.indexOf("وصف"), headers.indexOf("الوصف"), headers.indexOf("وصف الشحنة"));
+                        var nIdx = Math.max(headers.indexOf("notes"), headers.indexOf("ملاحظات"));
+                        if (cIdx === -1 || pIdx === -1 || aIdx === -1) { setImportMsg("❌ الأعمدة المطلوبة: customer / اسم العميل, phone / رقم الهاتف, address / العنوان"); return; }
                         var imported = [];
                         for (var i = 1; i < lines.length; i++) {
                             var cols = lines[i].split(",").map(function(c){return c.trim();});
