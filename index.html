@@ -2524,25 +2524,6 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     setOrders([newOrder].concat(orders));
                     setPickerAddr(null);
                 }
-                if (pickerAddr) {
-                    return h('div',{className:'overlay',onClick:function(e){if(e.target===e.currentTarget)setPickerAddr(null);}},
-                        h('div',{className:'modal',style:{maxHeight:'80vh',overflow:'auto'}},
-                            h('div',{className:'modal-title'},'📍 تأكيد إنشاء أوردر من العنوان'),
-                            h('div',{style:{background:'var(--bg-secondary)',padding:16,borderRadius:'var(--radius-lg)',marginBottom:16}},
-                                h('div',{style:{fontWeight:700,fontSize:15,marginBottom:4}},pickerAddr.customer),
-                                h('div',{style:{fontSize:13,color:'var(--text-secondary)',marginBottom:2}},'📞 ',pickerAddr.phone),
-                                h('div',{style:{fontSize:13,color:'var(--text-secondary)',marginBottom:2}},'📍 ',pickerAddr.address),
-                                pickerAddr.area && h('div',{style:{fontSize:12,color:'var(--text-muted)',marginBottom:2}},'منطقة: ',pickerAddr.area),
-                                pickerAddr.lat && pickerAddr.lng && h('div',{style:{fontSize:12,color:'var(--text-muted)',marginBottom:2}},'📍 ',pickerAddr.lat.toFixed(6),', ',pickerAddr.lng.toFixed(6)),
-                                pickerAddr.notes && h('div',{style:{fontSize:12,color:'var(--text-muted)',marginTop:4}},'📝 ',pickerAddr.notes)
-                            ),
-                            h('div',{className:'modal-actions'},
-                                h('button',{className:'btn btn-ghost',onClick:function(){setPickerAddr(null);}},'إلغاء'),
-                                h('button',{className:'btn btn-primary',onClick:function(){useAddress(pickerAddr);}},'✅ إنشاء أوردر')
-                            )
-                        )
-                    );
-                }
                 useEffect(function() {
                     if (!manualAddr || !manualMapRef.current) return;
                     var m = L.map(manualMapRef.current, {zoomControl:true});
@@ -2574,6 +2555,23 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     ),
                     importMsg && h('div',{className:'alert ' + (importMsg.indexOf('✅')!==-1?'alert-success':'alert-error'),style:{marginBottom:12}},importMsg),
                     geoMsg && h('div',{className:'alert ' + (geoMsg.indexOf('✅')!==-1?'alert-success':geoMsg.indexOf('⚠️')!==-1?'alert-warning':'alert-error'),style:{marginBottom:12}},geoMsg),
+                    pickerAddr && h('div',{className:'overlay',onClick:function(e){if(e.target===e.currentTarget)setPickerAddr(null);}},
+                        h('div',{className:'modal',style:{maxHeight:'80vh',overflow:'auto'}},
+                            h('div',{className:'modal-title'},'📍 تأكيد إنشاء أوردر من العنوان'),
+                            h('div',{style:{background:'var(--bg-secondary)',padding:16,borderRadius:'var(--radius-lg)',marginBottom:16}},
+                                h('div',{style:{fontWeight:700,fontSize:15,marginBottom:4}},pickerAddr.customer),
+                                h('div',{style:{fontSize:13,color:'var(--text-secondary)',marginBottom:2}},'📞 ',pickerAddr.phone),
+                                h('div',{style:{fontSize:13,color:'var(--text-secondary)',marginBottom:2}},'📍 ',pickerAddr.address),
+                                pickerAddr.area && h('div',{style:{fontSize:12,color:'var(--text-muted)',marginBottom:2}},'منطقة: ',pickerAddr.area),
+                                pickerAddr.lat && pickerAddr.lng && h('div',{style:{fontSize:12,color:'var(--text-muted)',marginBottom:2}},'📍 ',pickerAddr.lat.toFixed(6),', ',pickerAddr.lng.toFixed(6)),
+                                pickerAddr.notes && h('div',{style:{fontSize:12,color:'var(--text-muted)',marginTop:4}},'📝 ',pickerAddr.notes)
+                            ),
+                            h('div',{className:'modal-actions'},
+                                h('button',{className:'btn btn-ghost',onClick:function(){setPickerAddr(null);}},'إلغاء'),
+                                h('button',{className:'btn btn-primary',onClick:function(){useAddress(pickerAddr);}},'✅ إنشاء أوردر')
+                            )
+                        )
+                    ),
                     addresses.length === 0 ? h('div',{style:{textAlign:'center',padding:'40px 20px',color:'var(--text-muted)'}},
                         h('div',{style:{fontSize:40,marginBottom:12}},'📍'),
                         h('div',{style:{fontWeight:700,fontSize:16,marginBottom:4}},'لا توجد عناوين'),
