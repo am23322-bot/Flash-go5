@@ -2403,6 +2403,8 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var _b = useState(""), importMsg = _b[0], setImportMsg = _b[1];
                 var _c = useState(""), geoMsg = _c[0], setGeoMsg = _c[1];
                 var _d = useState(false), geoRunning = _d[0], setGeoRunning = _d[1];
+                var _e = useState(null), manualAddr = _e[0], setManualAddr = _e[1];
+                var manualMapRef = useRef(null);
                 function handleCSV(e) {
                     var file = e.target.files[0];
                     if (!file) return;
@@ -2443,27 +2445,44 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 function deleteAddr(id) {
                     setAddresses(addresses.filter(function(a){return a.id !== id;}));
                 }
+                function tryGeocode(addr) {
+                    return new Promise(function(resolve) {
+                        var parts = [];
+                        var clean = addr.address.replace(/[-–—,;/\\]/g, " ").replace(/\s+/g, " ").trim();
+                        if (clean) parts.push(clean);
+                        if (addr.area) parts.push(addr.area);
+                        parts.push("مصر");
+                        var q1 = encodeURIComponent(parts.join(", "));
+                        var fallback = addr.area ? encodeURIComponent(addr.area + ", مصر") : null;
+                        function attempt(q) {
+                            fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + q + "&limit=3", {headers:{"User-Agent":"FlashGo/1.0"}})
+                            .then(function(r){return r.json();})
+                            .then(function(data) {
+                                if (data && data.length > 0) { resolve({lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon)}); }
+                                else if (fallback) { var f = fallback; fallback = null; attempt(f); }
+                                else { resolve(null); }
+                            }).catch(function(){ resolve(null); });
+                        }
+                        attempt(q1);
+                    });
+                }
                 function geocodeOne(addr) {
                     if (geoRunning) return;
                     if (!addr.address) { setGeoMsg("⚠️ العنوان فارغ"); return; }
                     setGeoRunning(true);
                     setGeoMsg("جاري الترميز الجغرافي لـ " + addr.customer + "...");
-                    var q = encodeURIComponent(addr.address + (addr.area ? ", " + addr.area : "") + ", مصر");
-                    fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + q + "&limit=1", {headers:{"User-Agent":"FlashGo/1.0"}})
-                    .then(function(r){return r.json();})
-                    .then(function(data) {
-                        if (data && data.length > 0) {
+                    tryGeocode(addr).then(function(result) {
+                        if (result) {
                             setAddresses(addresses.map(function(a){
                                 if (a.id !== addr.id) return a;
-                                var o = {}; for (var k in a) o[k] = a[k]; o.lat = parseFloat(data[0].lat); o.lng = parseFloat(data[0].lon); return o;
+                                var o = {}; for (var k in a) o[k] = a[k]; o.lat = result.lat; o.lng = result.lng; return o;
                             }));
                             setGeoMsg("✅ تم ترميز " + addr.customer);
                         } else {
-                            setGeoMsg("⚠️ لم يتم العثور على موقع لـ " + addr.customer);
+                            setGeoMsg("⚠️ لم يتم العثور على موقع لـ " + addr.customer + " — اضبط يدويًا باستخدام 🗺️");
                         }
                         setGeoRunning(false);
-                    })
-                    .catch(function() { setGeoMsg("❌ فشل الترميز الجغرافي"); setGeoRunning(false); });
+                    });
                 }
                 function geocodeAll() {
                     if (geoRunning) return;
@@ -2475,22 +2494,21 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         if (idx >= todo.length) { setGeoMsg("✅ تم ترميز جميع العناوين"); setGeoRunning(false); return; }
                         var addr = todo[idx];
                         setGeoMsg("جاري الترميز (" + (idx+1) + "/" + todo.length + "): " + addr.customer);
-                        var q = encodeURIComponent(addr.address + (addr.area ? ", " + addr.area : "") + ", مصر");
-                        fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + q + "&limit=1", {headers:{"User-Agent":"FlashGo/1.0"}})
-                        .then(function(r){return r.json();})
-                        .then(function(data) {
-                            if (data && data.length > 0) {
+                        tryGeocode(addr).then(function(result) {
+                            if (result) {
                                 setAddresses(function(prev){return prev.map(function(a){
                                     if (a.id !== addr.id) return a;
-                                    var o = {}; for (var k in a) o[k] = a[k]; o.lat = parseFloat(data[0].lat); o.lng = parseFloat(data[0].lon); return o;
+                                    var o = {}; for (var k in a) o[k] = a[k]; o.lat = result.lat; o.lng = result.lng; return o;
                                 });});
                             }
                             idx++;
                             setTimeout(next, 1100);
-                        })
-                        .catch(function() { idx++; setTimeout(next, 1100); });
+                        });
                     }
                     next();
+                }
+                function openManualMap(addr) {
+                    setManualAddr(addr);
                 }
                 function useAddress(addr) {
                     var existing = orders.find(function(o){return o.address === addr.address && o.customer === addr.customer;});
@@ -2525,6 +2543,27 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         )
                     );
                 }
+                useEffect(function() {
+                    if (!manualAddr || !manualMapRef.current) return;
+                    var m = L.map(manualMapRef.current, {zoomControl:true});
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap', maxZoom:19}).addTo(m);
+                    m.setView([29.95, 31.25], 10);
+                    if (manualAddr.lat && manualAddr.lng) {
+                        m.setView([manualAddr.lat, manualAddr.lng], 16);
+                        L.marker([manualAddr.lat, manualAddr.lng], {draggable:true}).addTo(m);
+                    }
+                    m.on("click", function(e) {
+                        var lat = e.latlng.lat.toFixed(6), lng = e.latlng.lng.toFixed(6);
+                        m.eachLayer(function(l){if(l instanceof L.Marker)m.removeLayer(l);});
+                        L.marker([lat, lng], {draggable:true}).addTo(m);
+                        setAddresses(function(prev){return prev.map(function(a){
+                            if (a.id !== manualAddr.id) return a;
+                            var o = {}; for (var k in a) o[k] = a[k]; o.lat = parseFloat(lat); o.lng = parseFloat(lng); return o;
+                        });});
+                        setGeoMsg("✅ تم ضبط موقع " + manualAddr.customer + " يدويًا");
+                    });
+                    return function() { m.remove(); };
+                }, [manualAddr]);
                 return h('div',null,
                     h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:8}},
                         h('div',{style:{fontSize:18,fontWeight:800}},'📍 عناوين العملاء'),
@@ -2540,6 +2579,14 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         h('div',{style:{fontWeight:700,fontSize:16,marginBottom:4}},'لا توجد عناوين'),
                         h('div',{style:{fontSize:13}},'استخدم زر "استيراد CSV" لإضافة عناوين العملاء')
                     ) : h('div',{className:'table-wrap'},
+                        manualAddr && h('div',{className:'overlay',onClick:function(e){if(e.target===e.currentTarget)setManualAddr(null);}},
+                            h('div',{className:'modal',style:{maxHeight:'80vh',overflow:'auto'}},
+                                h('div',{className:'modal-title'},'🗺️ ضبط موقع ',manualAddr.customer),
+                                h('div',{style:{fontSize:13,color:'var(--text-secondary)',marginBottom:12}},'اضغط على الخريطة لتحديد موقع ',manualAddr.customer),
+                                h('div',{ref:manualMapRef,style:{height:350,borderRadius:'var(--radius-sm)',marginBottom:12,border:'2px solid var(--orange)',zIndex:1,position:'relative'}}),
+                                h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:function(){setManualAddr(null);}},'تم'))
+                            )
+                        ),
                         h('table',{className:'table'},
                             h('thead',null,h('tr',null,
                                 h('th',null,'العميل'),h('th',null,'الهاتف'),h('th',null,'العنوان'),h('th',null,'المنطقة'),h('th',null,'الموقع'),h('th',null,'إجراءات')
@@ -2551,8 +2598,8 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                     h('td',{style:{fontSize:13,maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},a.address),
                                     h('td',{style:{fontSize:13}},a.area || '-'),
                                     h('td',{style:{fontSize:12}},
-                                        a.lat && a.lng ? h('span',{style:{color:'var(--green)'}},'✅ ' + a.lat.toFixed(4) + ', ' + a.lng.toFixed(4))
-                                        : h('button',{className:'btn btn-ghost btn-xs',disabled:geoRunning,onClick:function(){geocodeOne(a);}},'🌍 ترميز')
+                                        a.lat && a.lng ? h('span',{style:{color:'var(--green)',cursor:'pointer'},onClick:function(){openManualMap(a);}},'✅ ' + a.lat.toFixed(4) + ', ' + a.lng.toFixed(4))
+                                        : h('div',{style:{display:'flex',gap:4}},h('button',{className:'btn btn-ghost btn-xs',disabled:geoRunning,onClick:function(){geocodeOne(a);}},'🌍 ترميز'),h('button',{className:'btn btn-ghost btn-xs',onClick:function(){openManualMap(a);}},'🗺️'))
                                     ),
                                     h('td',null,
                                         h('div',{style:{display:'flex',gap:4}},
