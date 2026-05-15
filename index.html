@@ -908,6 +908,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
         .alert { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px; border: 1px solid; font-weight: 600; }
         .alert-success { background: var(--green-glow); border-color: var(--green); color: var(--green); }
         .alert-error { background: var(--red-glow); border-color: var(--red); color: var(--red); }
+        .alert-warning { background: var(--orange-glow-strong); border-color: var(--orange); color: var(--orange); }
         .empty { text-align: center; padding: 56px 20px; color: var(--text-muted); font-size: 15px; }
         .empty-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.6; }
         .progress-bar-wrap { flex: 1; background: var(--bg-input); border-radius: 6px; height: 8px; overflow: hidden; }
@@ -1592,10 +1593,17 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
             }
 
             function AddOrderModal(props) {
+                var addresses = props.addresses || [];
                 var _a = useState({customer:"",phone:"",address:"",area:AREAS[0],description:"",amount:"",notes:"",location:"",deliveryWindow:DELIVERY_WINDOWS[0]}), form = _a[0], setForm = _a[1];
                 var _b = useState(false), showMap = _b[0], setShowMap = _b[1];
+                var _c = useState(false), showPicker = _c[0], setShowPicker = _c[1];
                 var mapRef = useRef(null), markerRef = useRef(null);
                 function set(k,v) { setForm(function(f){var o={};for(var x in f)o[x]=f[x];o[k]=v;return o;}); }
+                function pickAddress(a) {
+                    set("customer", a.customer); set("phone", a.phone); set("address", a.address); set("area", a.area || AREAS[0]); set("description", a.description || ""); set("notes", a.notes || "");
+                    if (a.lat && a.lng) set("location", a.lat.toFixed(6) + ", " + a.lng.toFixed(6));
+                    setShowPicker(false);
+                }
                 function handleSave() {
                     if(!form.customer||!form.phone||!form.address||!form.amount)return;
                     var loc = parseLocationInput(form.location);
@@ -1638,6 +1646,15 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 return h('div',{className:'overlay',onClick:function(e){if(e.target===e.currentTarget)props.onClose();}},
                     h('div',{className:'modal'},
                         h('div',{className:'modal-title'},'📦 إضافة أوردر جديد'),
+                        addresses.length > 0 && h('div',{style:{marginBottom:12}},h('button',{className:'btn btn-sm btn-ghost',onClick:function(){setShowPicker(true);},style:{fontSize:12}},'📍 اختيار من العناوين المحفوظة')),
+                        showPicker && h('div',{style:{background:'var(--bg-secondary)',borderRadius:'var(--radius-lg)',padding:12,marginBottom:12,maxHeight:220,overflow:'auto'}},
+                            addresses.map(function(a){
+                                return h('div',{key:a.id,style:{padding:'8px 12px',borderRadius:'var(--radius-sm)',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--bg-input)',marginBottom:4},onClick:function(){pickAddress(a);}},
+                                    h('div',null,h('div',{style:{fontWeight:600,fontSize:13}},a.customer),h('div',{style:{fontSize:11,color:'var(--text-muted)',maxWidth:250,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},a.phone,' — ',a.address)),
+                                    h('span',{style:{fontSize:11,color:'var(--orange)'}},'اختيار →')
+                                );
+                            })
+                        ),
                         [["customer","اسم العميل","text"],["phone","رقم التليفون","tel"],["address","العنوان بالتفصيل","text"],["amount","قيمة التحصيل (جنيه)","number"]].map(function(_a){
                             var k=_a[0],l=_a[1],t=_a[2];
                             return h('div',{className:'form-group',key:k},h('label',{className:'form-label'},l),h('input',{className:'form-input',type:t,value:form[k],onChange:function(e){set(k,e.target.value);}}));
@@ -1660,6 +1677,8 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     )
                 );
             }
+            
+
 
             function AssignModal(props) {
                 var _a = useState(props.order.courierId), selected = _a[0], setSelected = _a[1];
@@ -1803,7 +1822,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
             }
 
             function OrdersTab(props) {
-                var orders = props.orders, couriers = props.couriers, setOrders = props.setOrders;
+                var orders = props.orders, couriers = props.couriers, setOrders = props.setOrders, addresses = props.addresses;
                 var _a = useState(""), search = _a[0], setSearch = _a[1];
                 var _b = useState("all"), filterStatus = _b[0], setFilterStatus = _b[1];
                 var _c = useState("all"), filterArea = _c[0], setFilterArea = _c[1];
@@ -1820,7 +1839,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var addOrder=function(o){setOrders(function(p){return [o].concat(p);});};
                 var assignCourier=function(oid,cid){setOrders(function(p){return p.map(function(o){if(o.id!==oid)return o;var c=cloneOrder(o);c.courierId=cid;c.status="assigned";return c;});});};
                 return h('div',null,
-                    showAdd&&h(AddOrderModal,{onClose:function(){setShowAdd(false);},onSave:addOrder}),
+                    showAdd&&h(AddOrderModal,{onClose:function(){setShowAdd(false);},onSave:addOrder,addresses:addresses}),
                     assignOrder&&h(AssignModal,{order:assignOrder,couriers:couriers,onClose:function(){setAssignOrder(null);},onAssign:assignCourier}),
                     qrOrder&&h(QRModal,{order:qrOrder,onClose:function(){setQrOrder(null);}}),
                     h('div',{className:'sec-header'},
@@ -2181,7 +2200,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
             }
 
             function AdminPanel(props) {
-                var user = props.user, orders = props.orders, setOrders = props.setOrders, couriers = props.couriers, setCouriers = props.setCouriers, tracking = props.tracking, onLogout = props.onLogout, users = props.users || [], setUsers = props.setUsers, journalEntries = props.journalEntries || [], setJournalEntries = props.setJournalEntries;
+                var user = props.user, orders = props.orders, setOrders = props.setOrders, couriers = props.couriers, setCouriers = props.setCouriers, tracking = props.tracking, onLogout = props.onLogout, users = props.users || [], setUsers = props.setUsers, journalEntries = props.journalEntries || [], setJournalEntries = props.setJournalEntries, addresses = props.addresses || [], setAddresses = props.setAddresses;
                 var _a = useState("dashboard"), tab = _a[0], setTab = _a[1];
                 var _b = useState(""), syncMsg = _b[0], setSyncMsg = _b[1];
                 // Profile edit state
@@ -2198,7 +2217,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var _l = useState(null), editUser = _l[0], setEditUser = _l[1];
                 var _m = useState(false), menuOpen = _m[0], setMenuOpen = _m[1];
                 var tabs=[{id:"dashboard",label:"📊 الرئيسية"},{id:"orders",label:"📦 الأوردرات"},{id:"couriers",label:"🏍️ المناديب"},{id:"map",label:"🗺️ الخريطة"}];
-                if (user.role === "chairman") { tabs.push({id:"users",label:"👥 إدارة المستخدمين"}); tabs.push({id:"accounting",label:"📒 المحاسبة"}); tabs.push({id:"profits",label:"📊 أرباح المناديب"}); }
+                if (user.role === "chairman") { tabs.push({id:"addresses",label:"📍 عناوين العملاء"}); tabs.push({id:"users",label:"👥 إدارة المستخدمين"}); tabs.push({id:"accounting",label:"📒 المحاسبة"}); tabs.push({id:"profits",label:"📊 أرباح المناديب"}); }
                 function forceSync() {
                     setSyncMsg("جاري المزامنة...");
                     var o = {}; orders.forEach(function(v){o[v.id]=v;});
@@ -2251,7 +2270,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     ),
                     h('div',{className:'main'},
                         tab==="dashboard"&&h(DashboardTab,{orders:orders,couriers:couriers}),
-                        tab==="orders"&&h(OrdersTab,{orders:orders,couriers:couriers,setOrders:setOrders}),
+                        tab==="orders"&&h(OrdersTab,{orders:orders,couriers:couriers,setOrders:setOrders,addresses:addresses}),
                         tab==="couriers"&&h(CouriersTab,{couriers:couriers,setCouriers:setCouriers,orders:orders}),
                         tab==="map"&&h('div',null,
                             h('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:14}},
@@ -2371,7 +2390,175 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             )
                         ),
                         tab==="accounting" && user.role==="chairman" && h(AccountingTab,{journalEntries:journalEntries,setJournalEntries:setJournalEntries,orders:orders,couriers:couriers}),
-                        tab==="profits" && user.role==="chairman" && h(CourierProfitsTab,{orders:orders,couriers:couriers,setCouriers:setCouriers,users:users,setUsers:setUsers})
+                        tab==="profits" && user.role==="chairman" && h(CourierProfitsTab,{orders:orders,couriers:couriers,setCouriers:setCouriers,users:users,setUsers:setUsers}),
+                        tab==="addresses" && user.role==="chairman" && h(AddressLibraryTab,{addresses:addresses,setAddresses:setAddresses,orders:orders,setOrders:setOrders})
+                    )
+                );
+            }
+
+            // ── Address Library Tab ─────────────────────────────────────
+            function AddressLibraryTab(props) {
+                var addresses = props.addresses, setAddresses = props.setAddresses, orders = props.orders, setOrders = props.setOrders;
+                var _a = useState(null), pickerAddr = _a[0], setPickerAddr = _a[1];
+                var _b = useState(""), importMsg = _b[0], setImportMsg = _b[1];
+                var _c = useState(""), geoMsg = _c[0], setGeoMsg = _c[1];
+                var _d = useState(false), geoRunning = _d[0], setGeoRunning = _d[1];
+                function handleCSV(e) {
+                    var file = e.target.files[0];
+                    if (!file) return;
+                    setImportMsg("جاري قراءة الملف...");
+                    var reader = new FileReader();
+                    reader.onload = function(ev) {
+                        var text = ev.target.result;
+                        var lines = text.split("\n").map(function(l){return l.trim();}).filter(function(l){return l;});
+                        if (lines.length < 2) { setImportMsg("❌ الملف فارغ أو لا يحتوي على بيانات"); return; }
+                        var headers = lines[0].split(",").map(function(h){return h.trim().toLowerCase();});
+                        var cIdx = headers.indexOf("customer"), pIdx = headers.indexOf("phone"), aIdx = headers.indexOf("address");
+                        var arIdx = headers.indexOf("area"), dIdx = headers.indexOf("description"), nIdx = headers.indexOf("notes");
+                        if (cIdx === -1 || pIdx === -1 || aIdx === -1) { setImportMsg("❌ الأعمدة المطلوبة: customer, phone, address"); return; }
+                        var imported = [];
+                        for (var i = 1; i < lines.length; i++) {
+                            var cols = lines[i].split(",").map(function(c){return c.trim();});
+                            imported.push({
+                                id:"addr_" + Date.now() + "_" + i,
+                                customer: cols[cIdx] || "",
+                                phone: cols[pIdx] || "",
+                                address: cols[aIdx] || "",
+                                area: arIdx !== -1 ? cols[arIdx] || "" : "",
+                                description: dIdx !== -1 ? cols[dIdx] || "" : "",
+                                notes: nIdx !== -1 ? cols[nIdx] || "" : "",
+                                lat: null, lng: null
+                            });
+                        }
+                        setAddresses(addresses.concat(imported));
+                        setImportMsg("✅ تم استيراد " + imported.length + " عنوان");
+                    };
+                    reader.readAsText(file);
+                    e.target.value = "";
+                }
+                function deleteAddr(id) {
+                    setAddresses(addresses.filter(function(a){return a.id !== id;}));
+                }
+                function geocodeOne(addr) {
+                    if (geoRunning) return;
+                    if (!addr.address) { setGeoMsg("⚠️ العنوان فارغ"); return; }
+                    setGeoRunning(true);
+                    setGeoMsg("جاري الترميز الجغرافي لـ " + addr.customer + "...");
+                    var q = encodeURIComponent(addr.address + (addr.area ? ", " + addr.area : "") + ", مصر");
+                    fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + q + "&limit=1", {headers:{"User-Agent":"FlashGo/1.0"}})
+                    .then(function(r){return r.json();})
+                    .then(function(data) {
+                        if (data && data.length > 0) {
+                            setAddresses(addresses.map(function(a){
+                                if (a.id !== addr.id) return a;
+                                var o = {}; for (var k in a) o[k] = a[k]; o.lat = parseFloat(data[0].lat); o.lng = parseFloat(data[0].lon); return o;
+                            }));
+                            setGeoMsg("✅ تم ترميز " + addr.customer);
+                        } else {
+                            setGeoMsg("⚠️ لم يتم العثور على موقع لـ " + addr.customer);
+                        }
+                        setGeoRunning(false);
+                    })
+                    .catch(function() { setGeoMsg("❌ فشل الترميز الجغرافي"); setGeoRunning(false); });
+                }
+                function geocodeAll() {
+                    if (geoRunning) return;
+                    var todo = addresses.filter(function(a){return !a.lat || !a.lng;});
+                    if (todo.length === 0) { setGeoMsg("✅ جميع العناوين مرمزة"); return; }
+                    var idx = 0;
+                    setGeoRunning(true);
+                    function next() {
+                        if (idx >= todo.length) { setGeoMsg("✅ تم ترميز جميع العناوين"); setGeoRunning(false); return; }
+                        var addr = todo[idx];
+                        setGeoMsg("جاري الترميز (" + (idx+1) + "/" + todo.length + "): " + addr.customer);
+                        var q = encodeURIComponent(addr.address + (addr.area ? ", " + addr.area : "") + ", مصر");
+                        fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + q + "&limit=1", {headers:{"User-Agent":"FlashGo/1.0"}})
+                        .then(function(r){return r.json();})
+                        .then(function(data) {
+                            if (data && data.length > 0) {
+                                setAddresses(function(prev){return prev.map(function(a){
+                                    if (a.id !== addr.id) return a;
+                                    var o = {}; for (var k in a) o[k] = a[k]; o.lat = parseFloat(data[0].lat); o.lng = parseFloat(data[0].lon); return o;
+                                });});
+                            }
+                            idx++;
+                            setTimeout(next, 1100);
+                        })
+                        .catch(function() { idx++; setTimeout(next, 1100); });
+                    }
+                    next();
+                }
+                function useAddress(addr) {
+                    var existing = orders.find(function(o){return o.address === addr.address && o.customer === addr.customer;});
+                    if (existing) { setPickerAddr(null); alert("⚠️ يوجد أوردر مسبق لهذا العميل: " + existing.id); return; }
+                    var newOrder = {
+                        id:'FG-' + (1000+Math.floor(Math.random()*9000)),
+                        customer:addr.customer, phone:addr.phone, address:addr.address, area:addr.area || AREAS[0],
+                        description:addr.description || "", amount:0,
+                        courierId:null, status:"pending", date:new Date().toISOString().slice(0,10),
+                        notes:addr.notes || "", lat:addr.lat, lng:addr.lng,
+                        deliveryWindow:DELIVERY_WINDOWS[0]
+                    };
+                    setOrders([newOrder].concat(orders));
+                    setPickerAddr(null);
+                }
+                if (pickerAddr) {
+                    return h('div',{className:'overlay',onClick:function(e){if(e.target===e.currentTarget)setPickerAddr(null);}},
+                        h('div',{className:'modal',style:{maxHeight:'80vh',overflow:'auto'}},
+                            h('div',{className:'modal-title'},'📍 تأكيد إنشاء أوردر من العنوان'),
+                            h('div',{style:{background:'var(--bg-secondary)',padding:16,borderRadius:'var(--radius-lg)',marginBottom:16}},
+                                h('div',{style:{fontWeight:700,fontSize:15,marginBottom:4}},pickerAddr.customer),
+                                h('div',{style:{fontSize:13,color:'var(--text-secondary)',marginBottom:2}},'📞 ',pickerAddr.phone),
+                                h('div',{style:{fontSize:13,color:'var(--text-secondary)',marginBottom:2}},'📍 ',pickerAddr.address),
+                                pickerAddr.area && h('div',{style:{fontSize:12,color:'var(--text-muted)',marginBottom:2}},'منطقة: ',pickerAddr.area),
+                                pickerAddr.lat && pickerAddr.lng && h('div',{style:{fontSize:12,color:'var(--text-muted)',marginBottom:2}},'📍 ',pickerAddr.lat.toFixed(6),', ',pickerAddr.lng.toFixed(6)),
+                                pickerAddr.notes && h('div',{style:{fontSize:12,color:'var(--text-muted)',marginTop:4}},'📝 ',pickerAddr.notes)
+                            ),
+                            h('div',{className:'modal-actions'},
+                                h('button',{className:'btn btn-ghost',onClick:function(){setPickerAddr(null);}},'إلغاء'),
+                                h('button',{className:'btn btn-primary',onClick:function(){useAddress(pickerAddr);}},'✅ إنشاء أوردر')
+                            )
+                        )
+                    );
+                }
+                return h('div',null,
+                    h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:8}},
+                        h('div',{style:{fontSize:18,fontWeight:800}},'📍 عناوين العملاء'),
+                        h('div',{style:{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}},
+                            h('label',{className:'btn btn-primary',style:{cursor:'pointer',fontSize:13,display:'inline-flex',alignItems:'center',gap:4}},h('span',null,'📥 استيراد CSV'),h('input',{type:'file',accept:'.csv',style:{display:'none'},onChange:handleCSV})),
+                            h('button',{className:'btn btn-ghost btn-sm',disabled:geoRunning,onClick:geocodeAll,style:{fontSize:13}},'🌍 ترميز الكل')
+                        )
+                    ),
+                    importMsg && h('div',{className:'alert ' + (importMsg.indexOf('✅')!==-1?'alert-success':'alert-error'),style:{marginBottom:12}},importMsg),
+                    geoMsg && h('div',{className:'alert ' + (geoMsg.indexOf('✅')!==-1?'alert-success':geoMsg.indexOf('⚠️')!==-1?'alert-warning':'alert-error'),style:{marginBottom:12}},geoMsg),
+                    addresses.length === 0 ? h('div',{style:{textAlign:'center',padding:'40px 20px',color:'var(--text-muted)'}},
+                        h('div',{style:{fontSize:40,marginBottom:12}},'📍'),
+                        h('div',{style:{fontWeight:700,fontSize:16,marginBottom:4}},'لا توجد عناوين'),
+                        h('div',{style:{fontSize:13}},'استخدم زر "استيراد CSV" لإضافة عناوين العملاء')
+                    ) : h('div',{className:'table-wrap'},
+                        h('table',{className:'table'},
+                            h('thead',null,h('tr',null,
+                                h('th',null,'العميل'),h('th',null,'الهاتف'),h('th',null,'العنوان'),h('th',null,'المنطقة'),h('th',null,'الموقع'),h('th',null,'إجراءات')
+                            )),
+                            h('tbody',null,addresses.map(function(a){
+                                return h('tr',{key:a.id},
+                                    h('td',{style:{fontWeight:600}},a.customer),
+                                    h('td',{style:{fontSize:13}},a.phone),
+                                    h('td',{style:{fontSize:13,maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},a.address),
+                                    h('td',{style:{fontSize:13}},a.area || '-'),
+                                    h('td',{style:{fontSize:12}},
+                                        a.lat && a.lng ? h('span',{style:{color:'var(--green)'}},'✅ ' + a.lat.toFixed(4) + ', ' + a.lng.toFixed(4))
+                                        : h('button',{className:'btn btn-ghost btn-xs',disabled:geoRunning,onClick:function(){geocodeOne(a);}},'🌍 ترميز')
+                                    ),
+                                    h('td',null,
+                                        h('div',{style:{display:'flex',gap:4}},
+                                            h('button',{className:'btn btn-ghost btn-xs',onClick:function(){setPickerAddr(a);},style:{fontSize:12}},'📦 أوردر'),
+                                            h('button',{className:'btn btn-ghost btn-xs',onClick:function(){deleteAddr(a.id);},style:{fontSize:12,color:'var(--red)'}},'🗑️')
+                                        )
+                                    )
+                                );
+                            }))
+                        )
                     )
                 );
             }
@@ -2815,6 +3002,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var _g = useState([]), users = _g[0], setUsers = _g[1];
                 var _h = useState([]), journalEntries = _h[0], setJournalEntries = _h[1];
                 var _i = useState(false), journalLoaded = _i[0], setJournalLoaded = _i[1];
+                var _j = useState([]), addresses = _j[0], setAddresses = _j[1];
                 var pollOrders = useRef(""); // last known Firebase snapshot (for polling)
                 var pollCouriers = useRef("");
 
@@ -2915,6 +3103,15 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     if (couriers.length > 0) localStorage.setItem('fg_couriers', JSON.stringify(couriers));
                 }, [couriers]);
 
+                // Save addresses to Firebase with debounce
+                var addressesTimer = useRef(null);
+                useEffect(function() {
+                    if (loading) return;
+                    if (addressesTimer.current) clearTimeout(addressesTimer.current);
+                    addressesTimer.current = setTimeout(function(){ fbPut("flashgo/addresses", arrToObj(addresses, 'a')).catch(function(){}); }, 500);
+                    return function(){ if(addressesTimer.current) clearTimeout(addressesTimer.current); };
+                }, [addresses]);
+
                 // Save users to Firebase with debounce
                 var usersTimer = useRef(null);
                 useEffect(function() {
@@ -2961,6 +3158,16 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 useEffect(function() {
                     if (users.length > 0) localStorage.setItem('fg_users', JSON.stringify(users));
                 }, [users]);
+
+                // Load addresses from Firebase
+                var addressesLoadDone = useRef(false);
+                useEffect(function() {
+                    if (addressesLoadDone.current) return;
+                    fbGet("flashgo/addresses").then(function(val) {
+                        if (val && Object.keys(val).length > 0) { setAddresses(objToArr(val)); }
+                        addressesLoadDone.current = true;
+                    }).catch(function() { addressesLoadDone.current = true; });
+                }, []);
 
                 // Sync: after both users + couriers loaded, match them bidirectionally
                 var syncAllDone = useRef(false);
@@ -3049,7 +3256,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     h('button',{className:'btn btn-primary',onClick:function(){window.location.reload();}},'🔄 إعادة تحميل')
                 );
                 if(!user)return h(LoginScreen,{onLogin:setUser,mode:urlMode,users:users,setUsers:setUsers});
-                return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,tracking:tracking,users:users,setUsers:setUsers,journalEntries:journalEntries,setJournalEntries:setJournalEntries,onLogin:setUser,onLogout:function(){setUser(null);}});
+                return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,addresses:addresses,setAddresses:setAddresses,tracking:tracking,users:users,setUsers:setUsers,journalEntries:journalEntries,setJournalEntries:setJournalEntries,onLogin:setUser,onLogout:function(){setUser(null);}});
             }
 
             createRoot(document.getElementById('root')).render(h(ErrorBoundary, null, h(App)));
