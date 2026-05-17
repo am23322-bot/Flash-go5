@@ -1386,22 +1386,13 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 };
             }
 
-            const MOCK_COURIERS = [
-                {id:1,name:"أحمد محمد",phone:"01001234567",area:"المعادي",active:true,code:"C001",nationalId:"",referrer:"",hireDate:"",pricePerShipment:15,baseSalary:0,vehicleType:"motorcycle",plateNumber:"",notes:""},
-
-                {id:3,name:"كريم سامي",phone:"01223456789",area:"الزيتون",active:false,code:"C003",nationalId:"",referrer:"",hireDate:"",pricePerShipment:15,baseSalary:0,vehicleType:"motorcycle",plateNumber:"",notes:""},
-                {id:4,name:"عمر خالد",phone:"01534567890",area:"شبرا",active:true,code:"C004",nationalId:"",referrer:"",hireDate:"",pricePerShipment:15,baseSalary:0,vehicleType:"motorcycle",plateNumber:"",notes:""},
-            ];
+            const MOCK_COURIERS = [];
             function makeOrder(id,customer,phone,address,area,desc,amount,courierId,status,date,notes,returnReason,lat,lng,deliveryWindow) {
                 return {id:id, customer:customer, phone:phone, address:address, area:area, description:desc, amount:amount, courierId:courierId, status:status, date:date, notes:notes||"", returnReason:returnReason||"", lat:lat||null, lng:lng||null, deliveryWindow:deliveryWindow||""};
             }
             var _d = new Date().toISOString().slice(0,10);
             const INITIAL_ORDERS = [
-                makeOrder("FG-1001","سارة حسن","01001111111","15 شارع النيل، المعادي","المعادي","طرد صغير - ملابس",350,1,"assigned",_d,"الاستلام بعد 5م - جرس الباب لا يعمل","",29.958,31.250,"3-6 مساءً"),
-                makeOrder("FG-1002","محمد فريد","01002222222","22 شارع مكرم عبيد، مدينة نصر","مدينة نصر","طرد متوسط - إلكترونيات",1200,2,"delivered",_d,"","",30.056,31.324,"9-12 صباحاً"),
                 makeOrder("FG-1003","نورا إبراهيم","01003333333","8 شارع الهرم، الجيزة","الهرم","طرد صغير - كتب",180,null,"pending",_d,"توصيل للمكتب - الدور الرابع","",29.987,31.213,""),
-                makeOrder("FG-1004","يوسف طارق","01004444444","5 شارع ترعة الزمر، الزيتون","الزيتون","طرد كبير - أدوات منزلية",650,3,"returned",_d,"","العميل رفض الاستلام",30.106,31.305,"12-3 مساءً"),
-                makeOrder("FG-1005","دينا رمضان","01005555555","3 شارع الجلاء، شبرا","شبرا","طرد صغير - عطور",420,4,"assigned",_d,"الاتصال قبل الوصول بـ 10 دقائق","",30.113,31.241,"6-9 مساءً"),
                 makeOrder("FG-1006","هاني سعد","01006666666","11 شارع مصطفى النحاس، مدينة نصر","مدينة نصر","طرد متوسط - أحذية",780,null,"pending",_d,"","",30.059,31.330,"9-12 صباحاً"),
             ];
 
@@ -1412,8 +1403,8 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
             // Sequential ID generators
             function nextOrderId() { try { var n = parseInt(localStorage.getItem('fg_next_order') || '1006'); n++; localStorage.setItem('fg_next_order', n.toString()); return 'FG-' + n; } catch(e) { return 'FG-' + (1000+Math.floor(Math.random()*9000)); } }
-            function nextCourierCode() { try { var n = parseInt(localStorage.getItem('fg_next_courier_code') || '4'); n++; localStorage.setItem('fg_next_courier_code', n.toString()); return 'C' + String(n).padStart(3,'0'); } catch(e) { return 'C' + Date.now(); } }
-            function nextCourierId() { try { var n = parseInt(localStorage.getItem('fg_next_courier_id') || '4'); n++; localStorage.setItem('fg_next_courier_id', n.toString()); return n; } catch(e) { return Date.now(); } }
+            function nextCourierCode() { try { var n = parseInt(localStorage.getItem('fg_next_courier_code') || '0'); n++; localStorage.setItem('fg_next_courier_code', n.toString()); return 'C' + String(n).padStart(3,'0'); } catch(e) { return 'C' + Date.now(); } }
+            function nextCourierId() { try { var n = parseInt(localStorage.getItem('fg_next_courier_id') || '0'); n++; localStorage.setItem('fg_next_courier_id', n.toString()); return n; } catch(e) { return Date.now(); } }
 
             function Badge(props) {
                 return h('span',{className:'badge ' + statusClass[props.status]},h('span',{className:'dot'}),statusLabel[props.status]);
