@@ -2422,10 +2422,18 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         var arIdx = Math.max(headers.indexOf("area"), headers.indexOf("المنطقة"));
                         var dIdx = Math.max(headers.indexOf("description"), headers.indexOf("وصف"), headers.indexOf("الوصف"), headers.indexOf("وصف الشحنة"));
                         var nIdx = Math.max(headers.indexOf("notes"), headers.indexOf("ملاحظات"));
+                        var locIdx = Math.max(headers.indexOf("location"), headers.indexOf("احداثيات"), headers.indexOf("coordinates"), headers.indexOf("gps"), headers.indexOf("موقع"));
+                        var latIdx = Math.max(headers.indexOf("lat"), headers.indexOf("latitude"), headers.indexOf("خط العرض"));
+                        var lngIdx = Math.max(headers.indexOf("lng"), headers.indexOf("long"), headers.indexOf("longitude"), headers.indexOf("خط الطول"));
                         if (cIdx === -1 || pIdx === -1 || aIdx === -1) { setImportMsg("❌ الأعمدة المطلوبة: customer / اسم العميل, phone / رقم الهاتف, address / العنوان"); return; }
+                        function parseCoord(v) { if (!v) return null; v = v.replace(",", ".").trim(); var n = parseFloat(v); return isNaN(n) ? null : n; }
+                        function parseLocation(v) { if (!v) return {lat:null,lng:null}; var parts = v.split(","); if (parts.length < 2) { parts = v.split(" "); } var nums = parts.filter(function(p){return p.trim();}); if (nums.length >= 2) { var lat = parseCoord(nums[0].replace(/[^0-9.,-]/g,"")); var lng = parseCoord(nums[1].replace(/[^0-9.,-]/g,"")); return {lat:lat, lng:lng}; } return {lat:null,lng:null}; }
                         var imported = [];
                         for (var i = 1; i < lines.length; i++) {
                             var cols = lines[i].split(",").map(function(c){return c.trim();});
+                            var lat = null, lng = null;
+                            if (locIdx !== -1) { var p = parseLocation(cols[locIdx]); lat = p.lat; lng = p.lng; }
+                            else if (latIdx !== -1 && lngIdx !== -1) { lat = parseCoord(cols[latIdx]); lng = parseCoord(cols[lngIdx]); }
                             imported.push({
                                 id:"addr_" + Date.now() + "_" + i,
                                 customer: cols[cIdx] || "",
@@ -2434,7 +2442,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                 area: arIdx !== -1 ? cols[arIdx] || "" : "",
                                 description: dIdx !== -1 ? cols[dIdx] || "" : "",
                                 notes: nIdx !== -1 ? cols[nIdx] || "" : "",
-                                lat: null, lng: null
+                                lat: lat, lng: lng
                             });
                         }
                         setAddresses(addresses.concat(imported));
