@@ -1410,6 +1410,11 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
             const h = React.createElement;
 
+            // Sequential ID generators
+            function nextOrderId() { try { var n = parseInt(localStorage.getItem('fg_next_order') || '1006'); n++; localStorage.setItem('fg_next_order', n.toString()); return 'FG-' + n; } catch(e) { return 'FG-' + (1000+Math.floor(Math.random()*9000)); } }
+            function nextCourierCode() { try { var n = parseInt(localStorage.getItem('fg_next_courier_code') || '4'); n++; localStorage.setItem('fg_next_courier_code', n.toString()); return 'C' + String(n).padStart(3,'0'); } catch(e) { return 'C' + Date.now(); } }
+            function nextCourierId() { try { var n = parseInt(localStorage.getItem('fg_next_courier_id') || '4'); n++; localStorage.setItem('fg_next_courier_id', n.toString()); return n; } catch(e) { return Date.now(); } }
+
             function Badge(props) {
                 return h('span',{className:'badge ' + statusClass[props.status]},h('span',{className:'dot'}),statusLabel[props.status]);
             }
@@ -1609,7 +1614,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     if(!form.customer||!form.phone||!form.address||!form.amount)return;
                     var loc = parseLocationInput(form.location);
                     props.onSave({
-                        id:'FG-' + (1000+Math.floor(Math.random()*9000)),
+                        id:nextOrderId(),
                         customer:form.customer,phone:form.phone,address:form.address,area:form.area,
                         description:form.description,amount:Number(form.amount),
                         courierId:null,status:"pending",date:new Date().toISOString().slice(0,10),
@@ -2378,9 +2383,11 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                         var newId = 'u' + (Date.now());
                                         var newUser = {id:newId, email:newEmail, password:newPassU, name:newName, role:newRole};
                                         if (newRole==='courier') {
-                                            var cId = 'c'+Date.now();
+                                            var cId = 'c' + nextCourierId();
+                                            var cCode = nextCourierCode();
                                             newUser.courierId = cId;
-                                            setCouriers(function(p){return p.concat([{id:cId,name:newName,phone:'',area:'',code:'',nationalId:'',referrer:'',hireDate:'',pricePerShipment:0,baseSalary:0,vehicleType:'motorcycle',plateNumber:'',active:true,notes:''}]);});
+                                            newUser.code = cCode;
+                                            setCouriers(function(p){return p.concat([{id:cId,name:newName,phone:'',area:'',code:cCode,nationalId:'',referrer:'',hireDate:'',pricePerShipment:0,baseSalary:0,vehicleType:'motorcycle',plateNumber:'',active:true,notes:''}]);});
                                         }
                                         setUsers(users.concat([newUser]));
                                         setUserMsg('✅ تم إضافة المستخدم بنجاح');
@@ -2524,7 +2531,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     var existing = orders.find(function(o){return o.address === addr.address && o.customer === addr.customer;});
                     if (existing) { setPickerAddr(null); alert("⚠️ يوجد أوردر مسبق لهذا العميل: " + existing.id); return; }
                     var newOrder = {
-                        id:'FG-' + (1000+Math.floor(Math.random()*9000)),
+                        id:nextOrderId(),
                         customer:addr.customer, phone:addr.phone, address:addr.address, area:addr.area || AREAS[0],
                         description:addr.description || "", amount:0,
                         courierId:null, status:"pending", date:new Date().toISOString().slice(0,10),
