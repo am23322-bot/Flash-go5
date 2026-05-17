@@ -913,6 +913,38 @@ svg.leaflet-image-layer.leaflet-interactive path {
         .empty-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.6; }
         .progress-bar-wrap { flex: 1; background: var(--bg-input); border-radius: 6px; height: 8px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: var(--green); border-radius: 6px; transition: width 0.5s ease; }
+
+        /* ── Spinner ── */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { width: 20px; height: 20px; border: 3px solid var(--border); border-top-color: var(--black); border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
+        .spinner-lg { width: 40px; height: 40px; border-width: 4px; }
+
+        /* ── Toast ── */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast { pointer-events: auto; padding: 14px 20px; border-radius: var(--radius-lg); background: var(--bg-card); border: 1px solid var(--border); box-shadow: var(--shadow-xl); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; animation: toastIn 0.3s ease; max-width: 360px; }
+        .toast-success { border-color: var(--green); color: var(--green); }
+        .toast-error { border-color: var(--red); color: var(--red); }
+        .toast-info { border-color: var(--blue); color: var(--blue); }
+        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        .toast.removing { animation: toastOut 0.3s ease forwards; }
+
+        /* ── Ripple ── */
+        .ripple { position: relative; overflow: hidden; }
+        .ripple::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0.3); border-radius: inherit; transform: scale(0); opacity: 0; }
+        .ripple:active::after { transform: scale(2); opacity: 1; transition: transform 0.4s, opacity 0.4s; }
+
+        /* ── Pulse badge ── */
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(26,26,26,0.3); } 50% { box-shadow: 0 0 0 6px rgba(26,26,26,0); } 100% { box-shadow: 0 0 0 0 rgba(26,26,26,0); } }
+        .badge-pulse { animation: pulse 1.5s ease 3; }
+
+        /* ── Tab content fade ── */
+        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-content { animation: fadeSlideIn 0.25s ease; }
+
+        /* ── Sync progress ── */
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .sync-bar { height: 3px; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: linear-gradient(90deg, var(--orange), var(--black), var(--orange)); background-size: 200% 100%; animation: shimmer 1.5s linear infinite; }
         .progress-percent { font-size: 12px; color: var(--text-muted); min-width: 38px; text-align: left; font-weight: 700; }
         .qr-wrap { display: flex; justify-content: center; padding: 20px 0; }
         .qr-wrap img { border-radius: 12px; border: 2px solid var(--border); }
@@ -1401,6 +1433,12 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
             const h = React.createElement;
 
+            // Animated counter
+            function AnimatedNumber(props) { var _a=useState(props.n||0),v=_a[0],setV=_a[1]; useEffect(function(){ var start=0, target=props.n||0, dur=props.dur||600, t0, raf; function step(t){ if(!t0)t0=t; var p=Math.min((t-t0)/dur,1); setV(Math.round(start+(target-start)*p*p*(3-2*p))); if(p<1)raf=requestAnimationFrame(step); } raf=requestAnimationFrame(step); return function(){cancelAnimationFrame(raf);}; },[props.n]); return h('span',null,props.prefix||'',v.toLocaleString(),props.suffix||''); }
+
+            // Toast system (standalone, no React state needed)
+            function showToast(msg, type) { type = type || 'info'; var c = document.querySelector('.toast-container'); if (!c) { c = document.createElement('div'); c.className = 'toast-container'; document.body.appendChild(c); } var t = document.createElement('div'); t.className = 'toast toast-' + type; t.innerHTML = msg; c.appendChild(t); setTimeout(function(){ t.classList.add('removing'); setTimeout(function(){ if (t.parentNode) t.parentNode.removeChild(t); if (c.children.length === 0 && c.parentNode) c.parentNode.removeChild(c); }, 300); }, 3000); }
+
             // Sequential ID generators
             function nextOrderId() { try { var n = parseInt(localStorage.getItem('fg_next_order') || '1006'); n++; localStorage.setItem('fg_next_order', n.toString()); return 'FG-' + n; } catch(e) { return 'FG-' + (1000+Math.floor(Math.random()*9000)); } }
             function nextCourierCode() { try { var n = parseInt(localStorage.getItem('fg_next_courier_code') || '0'); n++; localStorage.setItem('fg_next_courier_code', n.toString()); return 'C' + String(n).padStart(3,'0'); } catch(e) { return 'C' + Date.now(); } }
@@ -1421,7 +1459,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         h('div',{style:{fontSize:48,marginBottom:16}},'⚠️'),
                         h('div',{style:{fontSize:18,fontWeight:700,color:'#c62828',marginBottom:8}},'حدث خطأ في عرض التطبيق'),
                         h('div',{style:{fontSize:13,color:'#999085',marginBottom:20,maxWidth:400}},this.state.error),
-                        h('button',{className:'btn btn-primary',onClick:function(){window.location.reload()}},'🔄 إعادة تحميل')
+                        h('button',{className:'btn btn-primary ripple',onClick:function(){window.location.reload()}},'🔄 إعادة تحميل')
                     );
                     return this.props.children;
                 };
@@ -1555,7 +1593,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             h('button',{className:'btn btn-sm btn-primary',onClick:function(){window.open(getMapUrl(order.address,order.lat,order.lng),'_blank');}},'📍 فتح في مابس')
                         ),
                         h('div',{className:'modal-actions',style:{justifyContent:'center'}},
-                            h('button',{className:'btn btn-primary',onClick:function(){window.print();}},'🖨️ طباعة QR'),
+                            h('button',{className:'btn btn-primary ripple',onClick:function(){window.print();}},'🖨️ طباعة QR'),
                             h('button',{className:'btn btn-ghost',onClick:props.onClose},'إغلاق')
                         )
                     )
@@ -1670,7 +1708,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             h('div',{className:'loc-hint'},'اضغط 🗺️ عشان تختار من الخريطة — اسحب الماركر للضبط'),
                             showMap && h('div',{ref:mapRef,style:{height:280,borderRadius:'var(--radius-sm)',marginTop:8,border:'2px solid var(--orange)',zIndex:1,position:'relative'}})
                         ),
-                        h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary',onClick:handleSave},'✅ حفظ الأوردر'))
+                        h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary ripple',onClick:handleSave},'✅ حفظ الأوردر'))
                     )
                 );
             }
@@ -1691,7 +1729,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                 h('div',null,h('div',{style:{fontWeight:700,fontSize:14}},c.name),h('div',{style:{fontSize:11,color:'var(--orange)',fontFamily:'monospace',fontWeight:600,marginBottom:2}},c.code||'—'),h('div',{style:{fontSize:11,color:'var(--text-muted)'}},c.area,' · ',c.phone))
                             );})
                         ),
-                        h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary',disabled:!selected,onClick:function(){props.onAssign(props.order.id,selected);props.onClose();}},'تأكيد التعيين'))
+                        h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary ripple',disabled:!selected,onClick:function(){props.onAssign(props.order.id,selected);props.onClose();}},'تأكيد التعيين'))
                     )
                 );
             }
@@ -1707,7 +1745,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             return h('div',{className:'form-group',key:k},h('label',{className:'form-label'},l),h('input',{className:'form-input',value:form[k],onChange:function(e){set(k,e.target.value);}}));
                         }),
                         h('div',{className:'form-group'},h('label',{className:'form-label'},'المنطقة'),h('select',{className:'form-select',value:form.area,onChange:function(e){set("area",e.target.value);}},AREAS.map(function(a){return h('option',{key:a},a);}))),
-                        h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary',onClick:function(){if(!form.name||!form.phone)return;props.onSave({id:Date.now(),name:form.name,phone:form.phone,area:form.area,active:true});props.onClose();}},'حفظ المندوب'))
+                        h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary ripple',onClick:function(){if(!form.name||!form.phone)return;props.onSave({id:Date.now(),name:form.name,phone:form.phone,area:form.area,active:true});props.onClose();}},'حفظ المندوب'))
                     )
                 );
             }
@@ -1749,15 +1787,15 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 return h('div',null,
                     h('div',{className:'sec-title',style:{marginBottom:18}},'📊 لوحة التحكم'),
                     h('div',{className:'stats'},
-                        h('div',{className:'stat-card'},h('div',{className:'stat-icon'},'📦'),h('div',{className:'stat-num'},total),h('div',{className:'stat-label'},'إجمالي الأوردرات')),
-                        h('div',{className:'stat-card green'},h('div',{className:'stat-icon'},'✅'),h('div',{className:'stat-num',style:{color:'var(--green)'}},delivered),h('div',{className:'stat-label'},'تم التسليم بنجاح')),
-                        h('div',{className:'stat-card warn'},h('div',{className:'stat-icon'},'🏍️'),h('div',{className:'stat-num',style:{color:'var(--amber)'}},pending),h('div',{className:'stat-label'},'قيد التوصيل')),
-                        h('div',{className:'stat-card blue'},h('div',{className:'stat-icon'},'↩️'),h('div',{className:'stat-num',style:{color:'var(--red)'}},returned),h('div',{className:'stat-label'},'مرتجعات'))
+                        h('div',{className:'stat-card'},h('div',{className:'stat-icon'},'📦'),h('div',{className:'stat-num'},h(AnimatedNumber,{n:total})),h('div',{className:'stat-label'},'إجمالي الأوردرات')),
+                        h('div',{className:'stat-card green'},h('div',{className:'stat-icon'},'✅'),h('div',{className:'stat-num',style:{color:'var(--green)'}},h(AnimatedNumber,{n:delivered})),h('div',{className:'stat-label'},'تم التسليم بنجاح')),
+                        h('div',{className:'stat-card warn'},h('div',{className:'stat-icon'},'🏍️'),h('div',{className:'stat-num',style:{color:'var(--amber)'}},h(AnimatedNumber,{n:pending})),h('div',{className:'stat-label'},'قيد التوصيل')),
+                        h('div',{className:'stat-card blue'},h('div',{className:'stat-icon'},'↩️'),h('div',{className:'stat-num',style:{color:'var(--red)'}},h(AnimatedNumber,{n:returned})),h('div',{className:'stat-label'},'مرتجعات'))
                     ),
                     // Revenue stats
                     h('div',{className:'stats',style:{gridTemplateColumns:'repeat(2,1fr)'}},
-                        h('div',{className:'stat-card'},h('div',{className:'stat-icon'},'💰'),h('div',{className:'stat-num',style:{fontSize:24}},totalExpected.toLocaleString(),' ج'),h('div',{className:'stat-label'},'متوقع تحصيله')),
-                        h('div',{className:'stat-card green'},h('div',{className:'stat-icon'},'✅'),h('div',{className:'stat-num',style:{fontSize:24,color:'var(--green)'}},totalCollected.toLocaleString(),' ج'),h('div',{className:'stat-label'},'تم تحصيله')),
+                        h('div',{className:'stat-card'},h('div',{className:'stat-icon'},'💰'),h('div',{className:'stat-num',style:{fontSize:24}},h(AnimatedNumber,{n:totalExpected}),' ج'),h('div',{className:'stat-label'},'متوقع تحصيله')),
+                        h('div',{className:'stat-card green'},h('div',{className:'stat-icon'},'✅'),h('div',{className:'stat-num',style:{fontSize:24,color:'var(--green)'}},h(AnimatedNumber,{n:totalCollected}),' ج'),h('div',{className:'stat-label'},'تم تحصيله')),
                     ),
                     // Today's stats
                     todayOrders.length>0 && h('div',{style:{marginBottom:20}},
@@ -2162,7 +2200,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                     h('div',{className:'form-group full-width'},h('label',{className:'form-label'},'📝 ملاحظات'),h('input',{className:'form-input',value:editC.notes||'',onChange:function(e){setEditC(Object.assign({},editC,{notes:e.target.value}));}})),
                                 ),
                                 h('div',{style:{display:'flex',gap:8,marginTop:12}},
-                                    h('button',{className:'btn btn-primary',style:{flex:1,justifyContent:'center',padding:'12px 0'},onClick:saveCourierEdit},'💾 حفظ البيانات'),
+                                    h('button',{className:'btn btn-primary ripple',style:{flex:1,justifyContent:'center',padding:'12px 0'},onClick:saveCourierEdit},'💾 حفظ البيانات'),
                                     h('button',{className:'btn btn-ghost',style:{padding:'12px 24px'},onClick:function(){setEditC(null);}},'✕ إلغاء')
                                 )
                             )
@@ -2261,11 +2299,13 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                 h('button',{className:'btn btn-ghost btn-sm',onClick:function(){setMenuOpen(false);}},'✕')
                             ),
                             tabs.map(function(t){
-                                return h('div',{key:t.id,className:'sidebar-item' + (tab===t.id?' active':''),onClick:function(){setTab(t.id);setMenuOpen(false);}},t.label);
+                                return h('div',{key:t.id,className:'ripple sidebar-item' + (tab===t.id?' active':''),onClick:function(){setTab(t.id);setMenuOpen(false);}},t.label);
                             })
                         )
                     ),
+                    syncMsg && h('div',{className:'sync-bar'}),
                     h('div',{className:'main'},
+                        h('div',{key:tab,className:'tab-content'},
                         tab==="dashboard"&&h(DashboardTab,{orders:orders,couriers:couriers}),
                         tab==="orders"&&h(OrdersTab,{orders:orders,couriers:couriers,setOrders:setOrders,addresses:addresses}),
                         tab==="couriers"&&h(CouriersTab,{couriers:couriers,setCouriers:setCouriers,orders:orders}),
@@ -2312,7 +2352,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                     h('div',{className:'form-group'},h('label',{className:'form-label'},'🔒 كلمة المرور (اتركه فارغاً إذا لم ترد التغيير)'),h('input',{className:'form-input',value:newPassU,onChange:function(e){setNewPassU(e.target.value);},placeholder:'اتركه فارغاً إذا لم ترد التغيير'})),
                                     h('div',{className:'form-group'},h('label',{className:'form-label'},'🎭 الدور'),h('select',{className:'form-select',value:newRole,onChange:function(e){setNewRole(e.target.value);}},h('option',{value:'courier'},'مندوب'),h('option',{value:'gm'},'مدير عام'),h('option',{value:'chairman'},'رئيس'))),
                                     h('div',{style:{display:'flex',gap:8,marginTop:8}},
-                                        h('button',{className:'btn btn-primary',style:{flex:1,justifyContent:'center',padding:'12px 0'},onClick:function(){
+                                        h('button',{className:'btn btn-primary ripple',style:{flex:1,justifyContent:'center',padding:'12px 0'},onClick:function(){
                                             if (!newEmail||!newName) { setUserMsg('❌ البريد الإلكتروني والاسم مطلوبان'); return; }
                                             var dup = users.find(function(u){return u.email===newEmail && u.id!==editUser.id;});
                                             if (dup) { setUserMsg('❌ البريد الإلكتروني موجود مسبقاً'); return; }
@@ -2391,6 +2431,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         tab==="accounting" && user.role==="chairman" && h(AccountingTab,{journalEntries:journalEntries,setJournalEntries:setJournalEntries,orders:orders,couriers:couriers}),
                         tab==="profits" && user.role==="chairman" && h(CourierProfitsTab,{orders:orders,couriers:couriers,setCouriers:setCouriers,users:users,setUsers:setUsers}),
                         tab==="addresses" && user.role==="chairman" && h(AddressLibraryTab,{addresses:addresses,setAddresses:setAddresses,orders:orders,setOrders:setOrders})
+                    )
                     )
                 );
             }
@@ -2520,7 +2561,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 }
                 function useAddress(addr) {
                     var existing = orders.find(function(o){return o.address === addr.address && o.customer === addr.customer;});
-                    if (existing) { setPickerAddr(null); alert("⚠️ يوجد أوردر مسبق لهذا العميل: " + existing.id); return; }
+                    if (existing) { setPickerAddr(null); showToast("⚠️ يوجد أوردر مسبق لهذا العميل: " + existing.id, 'error'); return; }
                     var newOrder = {
                         id:nextOrderId(),
                         customer:addr.customer, phone:addr.phone, address:addr.address, area:addr.area || AREAS[0],
@@ -2557,7 +2598,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:8}},
                         h('div',{style:{fontSize:18,fontWeight:800}},'📍 عناوين العملاء'),
                         h('div',{style:{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}},
-                            h('label',{className:'btn btn-primary',style:{cursor:'pointer',fontSize:13,display:'inline-flex',alignItems:'center',gap:4}},h('span',null,'📥 استيراد CSV'),h('input',{type:'file',accept:'.csv',style:{display:'none'},onChange:handleCSV})),
+                            h('label',{className:'btn btn-primary ripple',style:{cursor:'pointer',fontSize:13,display:'inline-flex',alignItems:'center',gap:4}},h('span',null,'📥 استيراد CSV'),h('input',{type:'file',accept:'.csv',style:{display:'none'},onChange:handleCSV})),
                             h('button',{className:'btn btn-ghost btn-sm',disabled:geoRunning,onClick:geocodeAll,style:{fontSize:13}},'🌍 ترميز الكل')
                         )
                     ),
@@ -2576,7 +2617,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             ),
                             h('div',{className:'modal-actions'},
                                 h('button',{className:'btn btn-ghost',onClick:function(){setPickerAddr(null);}},'إلغاء'),
-                                h('button',{className:'btn btn-primary',onClick:function(){useAddress(pickerAddr);}},'✅ إنشاء أوردر')
+                                h('button',{className:'btn btn-primary ripple',onClick:function(){useAddress(pickerAddr);}},'✅ إنشاء أوردر')
                             )
                         )
                     ),
@@ -3305,12 +3346,12 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     }
                 }, [orders, loading, journalLoaded]);
 
-                if (loading) return h('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)'}},'⏳ جاري التحميل...');
+                if (loading) return h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',fontSize:20,color:'var(--text-muted)',gap:16}},h('div',{className:'spinner spinner-lg'}),'جاري التحميل...');
                 if (fbError) return h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'100vh',fontFamily:'Cairo',padding:20,textAlign:'center'}},
                     h('div',{style:{fontSize:48,marginBottom:16}},'⚠️'),
                     h('div',{style:{fontSize:18,fontWeight:700,color:'var(--red)',marginBottom:8}},fbError),
                     h('div',{style:{fontSize:13,color:'var(--text-muted)',marginBottom:20,maxWidth:400}},'تأكد من اتصالك بالإنترنت وأن الموقع يعمل على HTTPS ثم أعد تحميل الصفحة'),
-                    h('button',{className:'btn btn-primary',onClick:function(){window.location.reload();}},'🔄 إعادة تحميل')
+                    h('button',{className:'btn btn-primary ripple',onClick:function(){window.location.reload();}},'🔄 إعادة تحميل')
                 );
                 if(!user)return h(LoginScreen,{onLogin:setUser,mode:urlMode,users:users,setUsers:setUsers});
                 return h(AdminPanel,{user:user,orders:orders,setOrders:setOrders,couriers:couriers,setCouriers:setCouriers,addresses:addresses,setAddresses:setAddresses,tracking:tracking,users:users,setUsers:setUsers,journalEntries:journalEntries,setJournalEntries:setJournalEntries,onLogin:setUser,onLogout:function(){setUser(null);}});
