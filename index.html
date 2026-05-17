@@ -2428,9 +2428,10 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         if (cIdx === -1 || pIdx === -1 || aIdx === -1) { setImportMsg("❌ الأعمدة المطلوبة: customer / اسم العميل, phone / رقم الهاتف, address / العنوان"); return; }
                         function parseCoord(v) { if (!v) return null; v = v.replace(",", ".").trim(); var n = parseFloat(v); return isNaN(n) ? null : n; }
                         function parseLocation(v) { if (!v) return {lat:null,lng:null}; var parts = v.split(","); if (parts.length < 2) { parts = v.split(" "); } var nums = parts.filter(function(p){return p.trim();}); if (nums.length >= 2) { var lat = parseCoord(nums[0].replace(/[^0-9.,-]/g,"")); var lng = parseCoord(nums[1].replace(/[^0-9.,-]/g,"")); return {lat:lat, lng:lng}; } return {lat:null,lng:null}; }
+                        function parseCSVLine(line) { var result = [], current = "", inQuotes = false; for (var ci = 0; ci < line.length; ci++) { var ch = line[ci]; if (ch === '"') { inQuotes = !inQuotes; } else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = ""; } else { current += ch; } } result.push(current.trim()); return result; }
                         var imported = [];
                         for (var i = 1; i < lines.length; i++) {
-                            var cols = lines[i].split(",").map(function(c){return c.trim();});
+                            var cols = parseCSVLine(lines[i]);
                             var lat = null, lng = null;
                             if (locIdx !== -1) { var p = parseLocation(cols[locIdx]); lat = p.lat; lng = p.lng; }
                             else if (latIdx !== -1 && lngIdx !== -1) { lat = parseCoord(cols[latIdx]); lng = parseCoord(cols[lngIdx]); }
