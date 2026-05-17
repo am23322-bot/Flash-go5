@@ -1688,7 +1688,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             active.length===0?h('div',{style:{color:'var(--text-muted)',padding:20,textAlign:'center'}},'لا يوجد مناديب نشطين'):
                             active.map(function(c){return h('div',{key:c.id,className:'reason-item ' + (selected===c.id?"selected":""),onClick:function(){setSelected(c.id);}},
                                 h('div',{className:'radio ' + (selected===c.id?"checked":"")}),
-                                h('div',null,h('div',{style:{fontWeight:700,fontSize:14}},c.name),h('div',{style:{fontSize:11,color:'var(--text-muted)'}},c.area,' · ',c.phone))
+                                h('div',null,h('div',{style:{fontWeight:700,fontSize:14}},c.name),h('div',{style:{fontSize:11,color:'var(--orange)',fontFamily:'monospace',fontWeight:600,marginBottom:2}},c.code||'—'),h('div',{style:{fontSize:11,color:'var(--text-muted)'}},c.area,' · ',c.phone))
                             );})
                         ),
                         h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إلغاء'),h('button',{className:'btn btn-primary',disabled:!selected,onClick:function(){props.onAssign(props.order.id,selected);props.onClose();}},'تأكيد التعيين'))
@@ -1857,7 +1857,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             h('thead',null,h('tr',null,h('th',null,'رقم الأوردر'),h('th',null,'العميل'),h('th',null,'المنطقة'),h('th',null,'الموعد'),h('th',null,'الشحنة'),h('th',null,'القيمة'),h('th',null,'ملاحظات'),h('th',null,'المندوب'),h('th',null,'الحالة'),h('th',null,'QR'),h('th',null,'إجراء'))),
                             h('tbody',null,filtered.length===0?h('tr',null,h('td',{colSpan:11},h('div',{className:'empty'},h('div',{className:'empty-icon'},'📦'),'لا توجد أوردرات'))):
                             filtered.map(function(o){return h('tr',{key:o.id},
-                                h('td',{className:'td-id'},o.id),
+                                h('td',{className:'td-id',style:{fontWeight:700,fontSize:12,color:'var(--orange)',fontFamily:'monospace'}},o.id),
                                 h('td',null,h('div',{className:'td-customer'},o.customer),h('div',{className:'td-sub'},o.phone)),
                                 h('td',{className:'td-sub'},o.area),
                                 h('td',{style:{fontSize:11,color:'var(--blue)',fontWeight:600}},o.deliveryWindow||h('span',{style:{color:'var(--text-muted)',fontWeight:400}},'—')),
@@ -1886,7 +1886,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         var mo=orders.filter(function(o){return o.courierId===c.id;});
                         return h('div',{className:'courier-card',key:c.id},
                             h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}},
-                                h('div',null,h('div',{className:'courier-name'},c.name),h('div',{className:'courier-info'},'📞 ',c.phone),h('div',{className:'courier-info'},'📍 ',c.area)),
+                                h('div',null,h('div',{className:'courier-name'},c.name),h('div',{style:{fontSize:11,color:'var(--orange)',fontWeight:700,fontFamily:'monospace',marginBottom:2}},c.code||'—'),h('div',{className:'courier-info'},'📞 ',c.phone),h('div',{className:'courier-info'},'📍 ',c.area)),
                                 h('span',{className:'badge ' + (c.active?"badge-delivered":"badge-returned")},h('span',{className:'dot'}),c.active?'نشط':'غير نشط')
                             ),
                             h('div',{className:'courier-stats'},
