@@ -1032,7 +1032,28 @@ svg.leaflet-image-layer.leaflet-interactive path {
         .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 15px; font-weight: 700; color: var(--text-primary); transition: var(--transition); }
         .sidebar-item:hover { background: var(--bg-secondary); }
         .sidebar-item.active { background: var(--orange-glow-strong); color: var(--orange); }
+        /* ── Chart ── */
+        .chart-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 28px; }
+        /* ── Bulk bar ── */
+        .bulk-bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--orange-glow-strong); border: 1px solid var(--orange); border-radius: var(--radius-sm); margin-bottom: 12px; font-size: 13px; font-weight: 600; }
+        .bulk-bar .btn { flex-shrink: 0; }
+        /* ── Customer history ── */
+        .ch-item { padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 13px; cursor: pointer; transition: var(--transition); }
+        .ch-item:hover { border-color: var(--orange); }
+        .ch-customer { cursor: pointer; color: var(--blue); font-weight: 600; text-decoration: underline dotted; }
+        .ch-customer:hover { color: var(--orange); }
+        /* ── Timeline ── */
+        .tl { position: relative; padding-right: 20px; }
+        .tl::before { content: ''; position: absolute; right: 6px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+        .tl-item { position: relative; padding: 6px 0 6px 6px; font-size: 12px; color: var(--text-muted); }
+        .tl-item::before { content: ''; position: absolute; right: -14px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); border: 2px solid var(--bg-card); }
+        .tl-item strong { color: var(--text-primary); }
+        /* ── Mini map ── */
+        .mini-map { height: 200px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); margin-bottom: 28px; }
+        /* ── Keyboard hint ── */
+        .kbd { display: inline-block; padding: 2px 6px; font-size: 10px; font-family: monospace; background: var(--bg-input); border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div id="root"></div>
@@ -1414,13 +1435,15 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     id: o.id, customer: o.customer, phone: o.phone, address: o.address, area: o.area,
                     description: o.description, amount: o.amount, courierId: o.courierId, status: o.status,
                     date: o.date, notes: o.notes || "", returnReason: o.returnReason || "",
-                    lat: o.lat || null, lng: o.lng || null, deliveryWindow: o.deliveryWindow || ""
+                    lat: o.lat || null, lng: o.lng || null, deliveryWindow: o.deliveryWindow || "",
+                    history: (o.history||[]).slice()
                 };
             }
+            function addHistory(o,status,by){ if(!o.history)o.history=[]; o.history.push({status:status,date:new Date().toISOString(),by:by||'system'}); }
 
             const MOCK_COURIERS = [];
             function makeOrder(id,customer,phone,address,area,desc,amount,courierId,status,date,notes,returnReason,lat,lng,deliveryWindow) {
-                return {id:id, customer:customer, phone:phone, address:address, area:area, description:desc, amount:amount, courierId:courierId, status:status, date:date, notes:notes||"", returnReason:returnReason||"", lat:lat||null, lng:lng||null, deliveryWindow:deliveryWindow||""};
+                var o={id:id, customer:customer, phone:phone, address:address, area:area, description:desc, amount:amount, courierId:courierId, status:status, date:date, notes:notes||"", returnReason:returnReason||"", lat:lat||null, lng:lng||null, deliveryWindow:deliveryWindow||""}; o.history=[{status:status,date:new Date().toISOString(),by:'system'}]; return o;
             }
             var _d = new Date().toISOString().slice(0,10);
             const INITIAL_ORDERS = [
@@ -1438,6 +1461,47 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
             // Toast system (standalone, no React state needed)
             function showToast(msg, type) { type = type || 'info'; var c = document.querySelector('.toast-container'); if (!c) { c = document.createElement('div'); c.className = 'toast-container'; document.body.appendChild(c); } var t = document.createElement('div'); t.className = 'toast toast-' + type; t.innerHTML = msg; c.appendChild(t); setTimeout(function(){ t.classList.add('removing'); setTimeout(function(){ if (t.parentNode) t.parentNode.removeChild(t); if (c.children.length === 0 && c.parentNode) c.parentNode.removeChild(c); }, 300); }, 3000); }
+
+            // Timeline modal component
+            function TimelineModal(props) {
+                var o = props.order;
+                var labels = {pending:'معلق',assigned:'تم التعيين',picked_up:'تم الاستلام',in_transit:'في الطريق',delivered:'تم التسليم',returned:'مرتجع'};
+                return h('div',{className:'overlay',onClick:props.onClose},
+                    h('div',{className:'modal',style:{maxWidth:'400px'},onClick:function(e){e.stopPropagation();}},
+                        h('div',{className:'modal-title',style:{fontSize:16}},'📜 تاريخ الأوردر ',h('span',{style:{color:'var(--orange)',fontFamily:'monospace',fontSize:13}},o.id)),
+                        h('div',{className:'tl'},
+                            (o.history||[]).map(function(hh,i){return h('div',{key:i,className:'tl-item'},h('strong',null,labels[hh.status]||hh.status),' — ',new Date(hh.date).toLocaleString('ar-EG'),h('span',{style:{display:'block',fontSize:10,color:'var(--text-muted)'}},hh.by==='admin'?'مدير النظام':'المندوب'));})
+                        ),
+                        h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إغلاق'))
+                    )
+                );
+            }
+
+            // Customer History modal
+            function CustomerHistoryModal(props) {
+                var orders = props.orders;
+                return h('div',{className:'overlay',onClick:props.onClose},
+                    h('div',{className:'modal',style:{maxWidth:'500px',maxHeight:'80vh',overflowY:'auto'},onClick:function(e){e.stopPropagation();}},
+                        h('div',{className:'modal-title',style:{fontSize:16}},'📋 تاريخ عميل: ',h('span',{style:{color:'var(--blue)'}},props.customer)),
+                        orders.length===0 && h('div',{className:'empty'},'لا توجد أوردرات سابقة لهذا العميل'),
+                        orders.map(function(o,i){return h('div',{key:i,className:'ch-item'},
+                            h('div',null,
+                                h('span',{style:{color:'var(--orange)',fontWeight:700,fontFamily:'monospace',fontSize:12}},o.id),
+                                ' — ',o.phone,
+                                h('div',{style:{fontSize:11,color:'var(--text-muted)',marginTop:2}},o.area,' • ',new Date(o.date).toLocaleDateString('ar-EG'))
+                            ),
+                            h(Badge,{status:o.status})
+                        );}),
+                        h('div',{className:'modal-actions'},h('button',{className:'btn btn-ghost',onClick:props.onClose},'إغلاق'))
+                    )
+                );
+            }
+
+            // Export to PDF (simple print-based)
+            function exportPDF(title,tableHtml) { var w=window.open('','_blank'); w.document.write('<html dir=rtl><head><meta charset=UTF-8><title>'+title+'</title><style>body{font-family:Cairo,sans-serif;padding:20px}table{width:100%;border-collapse:collapse}th,td{padding:8px 12px;border:1px solid #ddd;text-align:center;font-size:12px}th{background:#f5f0eb;font-weight:700}h1{font-size:18px;text-align:center;margin-bottom:20px}</style></head><body><h1>'+title+'</h1>'+tableHtml+'</body></html>'); w.document.close(); setTimeout(function(){w.print();},500); }
+
+            // Notification sound
+            function playBeep() { try { var c=new (window.AudioContext||window.webkitAudioContext)(); var o=c.createOscillator(); o.type='sine'; o.frequency.value=800; var g=c.createGain(); g.gain.value=0.1; o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+0.15); } catch(e){} }
 
             // Sequential ID generators
             function nextOrderId() { try { var n = parseInt(localStorage.getItem('fg_next_order') || '1006'); n++; localStorage.setItem('fg_next_order', n.toString()); return 'FG-' + n; } catch(e) { return 'FG-' + (1000+Math.floor(Math.random()*9000)); } }
@@ -1784,6 +1848,25 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 });
                 var today = new Date().toISOString().slice(0,10);
                 var todayOrders=orders.filter(function(o){return o.date===today;});
+                var _ch = useRef(null), _mm = useRef(null);
+                useEffect(function(){
+                    if (!_ch.current || !window.Chart) return;
+                    if (_ch.current._chart) { _ch.current._chart.destroy(); }
+                    var days=[], now=new Date();
+                    for(var i=13;i>=0;i--){var d=new Date(now);d.setDate(d.getDate()-i);var ds=d.toISOString().slice(0,10);days.push({label:d.toLocaleDateString('ar-EG',{month:'short',day:'numeric'}),date:ds,delivered:orders.filter(function(o){return o.date===ds&&o.status==='delivered';}).length,total:orders.filter(function(o){return o.date===ds;}).length});}
+                    _ch.current._chart = new Chart(_ch.current.getContext('2d'),{type:'line',data:{labels:days.map(function(d){return d.label;}),datasets:[{label:'الإجمالي',data:days.map(function(d){return d.total;}),borderColor:'#e8890c',backgroundColor:'rgba(232,137,12,0.1)',fill:true,tension:0.3,pointRadius:3,borderWidth:2},{label:'تم التسليم',data:days.map(function(d){return d.delivered;}),borderColor:'#2e7d32',backgroundColor:'rgba(46,125,50,0.1)',fill:true,tension:0.3,pointRadius:3,borderWidth:2}],},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{family:'Cairo',size:11},usePointStyle:true}},tooltip:{bodyFont:{family:'Cairo'}}},scales:{x:{grid:{display:false},ticks:{font:{family:'Cairo',size:10}}},y:{beginAtZero:true,ticks:{font:{family:'Cairo',size:10}}}}}});
+                },[orders]);
+                useEffect(function(){
+                    if (!_mm.current || !window.L) return;
+                    if (_mm.current._map) { _mm.current._map.remove(); }
+                    var active=orders.filter(function(o){return (o.status==='pending'||o.status==='assigned'||o.status==='picked_up'||o.status==='in_transit')&&o.lat&&o.lng;});
+                    if(active.length===0) return;
+                    var m = L.map(_mm.current,{zoomControl:false,attributionControl:false}).setView([active[0].lat,active[0].lng],11);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(m);
+                    active.forEach(function(o){L.marker([o.lat,o.lng]).addTo(m).bindPopup('<b>'+o.id+'</b><br>'+o.customer+'<br>📍 '+o.area);});
+                    _mm.current._map = m;
+                    setTimeout(function(){m.invalidateSize();},300);
+                },[orders]);
                 return h('div',null,
                     h('div',{className:'sec-title',style:{marginBottom:18}},'📊 لوحة التحكم'),
                     h('div',{className:'stats'},
@@ -1797,6 +1880,10 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                         h('div',{className:'stat-card'},h('div',{className:'stat-icon'},'💰'),h('div',{className:'stat-num',style:{fontSize:24}},h(AnimatedNumber,{n:totalExpected}),' ج'),h('div',{className:'stat-label'},'متوقع تحصيله')),
                         h('div',{className:'stat-card green'},h('div',{className:'stat-icon'},'✅'),h('div',{className:'stat-num',style:{fontSize:24,color:'var(--green)'}},h(AnimatedNumber,{n:totalCollected}),' ج'),h('div',{className:'stat-label'},'تم تحصيله')),
                     ),
+                    // Trend Chart
+                    h('div',{className:'chart-wrap'},h('canvas',{ref:_ch,style:{width:'100%',height:'220px'}})),
+                    // Mini Map
+                    h('div',{className:'mini-map',ref:_mm}),
                     // Today's stats
                     todayOrders.length>0 && h('div',{style:{marginBottom:20}},
                         h('div',{className:'sec-title',style:{marginBottom:10}},'📅 إحصائيات اليوم (',today,')'),
@@ -1862,41 +1949,61 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var _b = useState("all"), filterStatus = _b[0], setFilterStatus = _b[1];
                 var _c = useState("all"), filterArea = _c[0], setFilterArea = _c[1];
                 var _d = useState("all"), filterWindow = _d[0], setFilterWindow = _d[1];
+                var _h1 = useState(""), filterDateFrom = _h1[0], setFilterDateFrom = _h1[1];
+                var _h2 = useState(""), filterDateTo = _h2[0], setFilterDateTo = _h2[1];
                 var _e = useState(false), showAdd = _e[0], setShowAdd = _e[1];
                 var _f = useState(null), assignOrder = _f[0], setAssignOrder = _f[1];
                 var _g = useState(null), qrOrder = _g[0], setQrOrder = _g[1];
+                var _sel = useState({}), selected = _sel[0], setSelected = _sel[1];
+                var _hist = useState(null), histOrder = _hist[0], setHistOrder = _hist[1];
+                var _cust = useState(null), custData = _cust[0], setCustData = _cust[1];
                 var cm={};couriers.forEach(function(c){cm[c.id]=c.name;});
                 var filtered=orders.filter(function(o){
-                    var ms=!search||o.customer.indexOf(search)!==-1||o.id.indexOf(search)!==-1||o.phone.indexOf(search)!==-1;
+                    var ms=!search||o.customer.indexOf(search)!==-1||o.id.indexOf(search)!==-1||o.phone.indexOf(search)!==-1||o.address.indexOf(search)!==-1;
                     var fw=filterWindow==="all"||(o.deliveryWindow||"")===filterWindow;
-                    return ms&&(filterStatus==="all"||o.status===filterStatus)&&(filterArea==="all"||o.area===filterArea)&&fw;
+                    var fd=(!filterDateFrom||o.date>=filterDateFrom)&&(!filterDateTo||o.date<=filterDateTo);
+                    return ms&&(filterStatus==="all"||o.status===filterStatus)&&(filterArea==="all"||o.area===filterArea)&&fw&&fd;
                 });
+                var selCount=Object.keys(selected).filter(function(k){return selected[k];}).length;
+                function toggleSel(id) { setSelected(function(p){var o={};for(var k in p)o[k]=p[k];o[id]=!o[id];return o;}); }
+                function toggleAll() { if(selCount===filtered.length) { setSelected({}); } else { var o={};filtered.forEach(function(f){o[f.id]=true;});setSelected(o); } }
+                function bulkDeliver() { var ids=Object.keys(selected).filter(function(k){return selected[k];}); if(ids.length===0)return; setOrders(function(p){return p.map(function(o){if(ids.indexOf(o.id)===-1)return o;var c=cloneOrder(o);c.status='delivered';addHistory(c,'delivered','admin');return c;});}); setSelected({}); showToast('✅ تم تسليم '+ids.length+' أوردر', 'success'); }
                 var addOrder=function(o){setOrders(function(p){return [o].concat(p);});};
-                var assignCourier=function(oid,cid){setOrders(function(p){return p.map(function(o){if(o.id!==oid)return o;var c=cloneOrder(o);c.courierId=cid;c.status="assigned";return c;});});};
+                var assignCourier=function(oid,cid){setOrders(function(p){return p.map(function(o){if(o.id!==oid)return o;var c=cloneOrder(o);c.courierId=cid;c.status="assigned";addHistory(c,'assigned','admin');return c;});});};
                 return h('div',null,
                     showAdd&&h(AddOrderModal,{onClose:function(){setShowAdd(false);},onSave:addOrder,addresses:addresses}),
                     assignOrder&&h(AssignModal,{order:assignOrder,couriers:couriers,onClose:function(){setAssignOrder(null);},onAssign:assignCourier}),
                     qrOrder&&h(QRModal,{order:qrOrder,onClose:function(){setQrOrder(null);}}),
+                    histOrder&&h(TimelineModal,{order:histOrder,onClose:function(){setHistOrder(null);}}),
+                    custData&&h(CustomerHistoryModal,{customer:custData.name,orders:custData.orders,onClose:function(){setCustData(null);}}),
                     h('div',{className:'sec-header'},
                         h('span',{className:'sec-title'},'📦 الأوردرات (',filtered.length,')'),
                         h('div',{style:{display:'flex',gap:8}},
-                            h('button',{className:'btn btn-ghost btn-sm',onClick:function(){downloadCSV(orders,couriers);}},'📊 تقرير CSV'),
+                            h('button',{className:'btn btn-ghost btn-sm',onClick:function(){downloadCSV(orders,couriers);}},'📊 CSV'),
+                            h('button',{className:'btn btn-ghost btn-sm',onClick:function(){var tbl='<table><tr><th>رقم</th><th>العميل</th><th>المنطقة</th><th>القيمة</th><th>الحالة</th></tr>'+filtered.map(function(o){return '<tr><td>'+o.id+'</td><td>'+o.customer+'</td><td>'+o.area+'</td><td>'+o.amount+'</td><td>'+(statusLabel[o.status]||o.status)+'</td></tr>';}).join('')+'</table>';exportPDF('تقرير الأوردرات',tbl);}},'🖨️ PDF'),
                             h('button',{className:'btn btn-primary btn-sm',onClick:function(){setShowAdd(true);}},'+ أوردر جديد')
                         )
                     ),
+                    // Bulk bar
+                    selCount>0 && h('div',{className:'bulk-bar'},h('span',null,'✅ تم تحديد ',selCount,' أوردر'),h('button',{className:'btn btn-sm btn-success',onClick:bulkDeliver},'تسليم الكل'),h('button',{className:'btn btn-sm btn-ghost',onClick:function(){setSelected({});}},'إلغاء')),
                     h('div',{className:'filter-bar'},
                         h('input',{className:'filter-input',placeholder:'🔍 ابحث باسم العميل أو رقم الأوردر...',value:search,onChange:function(e){setSearch(e.target.value);}}),
+                        h('input',{type:'date',className:'filter-select',value:filterDateFrom,onChange:function(e){setFilterDateFrom(e.target.value);},style:{maxWidth:160}}),
+                        h('input',{type:'date',className:'filter-select',value:filterDateTo,onChange:function(e){setFilterDateTo(e.target.value);},style:{maxWidth:160}}),
                         h('select',{className:'filter-select',value:filterStatus,onChange:function(e){setFilterStatus(e.target.value);}},h('option',{value:'all'},'كل الحالات'),Object.entries(statusLabel).map(function(_a){var k=_a[0],v=_a[1];return h('option',{key:k,value:k},v);})),
                         h('select',{className:'filter-select',value:filterArea,onChange:function(e){setFilterArea(e.target.value);}},h('option',{value:'all'},'كل المناطق'),AREAS.map(function(a){return h('option',{key:a},a);})),
                         h('select',{className:'filter-select',value:filterWindow,onChange:function(e){setFilterWindow(e.target.value);}},h('option',{value:'all'},'كل المواعيد'),DELIVERY_WINDOWS.map(function(w){return h('option',{key:w},w);}))
                     ),
                     h('div',{className:'table-wrap'},
                         h('table',null,
-                            h('thead',null,h('tr',null,h('th',null,'رقم الأوردر'),h('th',null,'العميل'),h('th',null,'المنطقة'),h('th',null,'الموعد'),h('th',null,'الشحنة'),h('th',null,'القيمة'),h('th',null,'ملاحظات'),h('th',null,'المندوب'),h('th',null,'الحالة'),h('th',null,'QR'),h('th',null,'إجراء'))),
-                            h('tbody',null,filtered.length===0?h('tr',null,h('td',{colSpan:11},h('div',{className:'empty'},h('div',{className:'empty-icon'},'📦'),'لا توجد أوردرات'))):
+                            h('thead',null,h('tr',null,
+                                h('th',{style:{width:30}},h('input',{type:'checkbox',checked:selCount>0&&selCount===filtered.length,onChange:toggleAll})),
+                                h('th',null,'رقم الأوردر'),h('th',null,'العميل'),h('th',null,'المنطقة'),h('th',null,'الموعد'),h('th',null,'الشحنة'),h('th',null,'القيمة'),h('th',null,'ملاحظات'),h('th',null,'المندوب'),h('th',null,'الحالة'),h('th',null,'QR'),h('th',null,'سجل'),h('th',null,'إجراء'))),
+                            h('tbody',null,filtered.length===0?h('tr',null,h('td',{colSpan:14},h('div',{className:'empty'},h('div',{className:'empty-icon'},'📦'),'لا توجد أوردرات'))):
                             filtered.map(function(o){return h('tr',{key:o.id},
+                                h('td',null,h('input',{type:'checkbox',checked:!!selected[o.id],onChange:function(){toggleSel(o.id);}})),
                                 h('td',{className:'td-id',style:{fontWeight:700,fontSize:12,color:'var(--orange)',fontFamily:'monospace'}},o.id),
-                                h('td',null,h('div',{className:'td-customer'},o.customer),h('div',{className:'td-sub'},o.phone)),
+                                h('td',null,h('div',{className:'td-customer ch-customer',onClick:function(){setCustData({name:o.customer,orders:orders.filter(function(x){return x.customer===o.customer;})});}},o.customer),h('div',{className:'td-sub'},o.phone)),
                                 h('td',{className:'td-sub'},o.area),
                                 h('td',{style:{fontSize:11,color:'var(--blue)',fontWeight:600}},o.deliveryWindow||h('span',{style:{color:'var(--text-muted)',fontWeight:400}},'—')),
                                 h('td',{style:{fontSize:12}},o.description),
@@ -1905,6 +2012,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                                 h('td',{className:'td-sub'},o.courierId?cm[o.courierId]:h('span',{style:{color:'var(--text-muted)'}},'غير معين')),
                                 h('td',null,h(Badge,{status:o.status})),
                                 h('td',null,h('button',{className:'btn btn-sm btn-ghost',style:{fontSize:16},onClick:function(){setQrOrder(o);}},'📱')),
+                                h('td',null,h('button',{className:'btn btn-sm btn-ghost',style:{fontSize:14},onClick:function(){setHistOrder(o);}},'📜')),
                                 h('td',null,
                                     (o.status==="pending"||o.status==="assigned"||o.status==="picked_up"||o.status==="in_transit")&&h('button',{className:'btn btn-outline-orange btn-sm',onClick:function(){setAssignOrder(o);}},'تعيين'),
                                     o.status==="returned"&&h('span',{className:'td-sub'},o.returnReason)
@@ -2062,7 +2170,10 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     setTimeout(function(){setEditMsg('');},2000);
                 }
                 return h('div',null,
-                    h('div',{className:'sec-title',style:{marginBottom:14}},'📊 أرباح المناديب'),
+                    h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
+                        h('div',{className:'sec-title'},'📊 أرباح المناديب'),
+                        h('button',{className:'btn btn-ghost btn-sm',onClick:function(){if(typeof exportPDF!=='function')return; var rows=[]; var allC=couriers.slice(); allC.forEach(function(cc){var mo=orders.filter(function(o){return o.courierId===cc.id;}); var del=mo.filter(function(o){return o.status==='delivered';}); var col=del.reduce(function(s,o){return s+o.amount;},0); var disc=(discounts||[]).filter(function(d){return d.courierId===cc.id;}).reduce(function(s,d){return s+(d.amount||0);},0); rows.push({name:cc.name,orders:mo.length,delivered:del.length,collected:col,discounts:disc,due:col-disc});}); var tbl='<table><tr><th>المندوب</th><th>الطلبات</th><th>تم التسليم</th><th>المتحصل</th><th>الخصومات</th><th>المستحق</th></tr>'+rows.map(function(r){return '<tr><td>'+(r.name||'')+'</td><td>'+(r.orders||0)+'</td><td>'+(r.delivered||0)+'</td><td>'+(r.collected||0)+'</td><td>'+(r.discounts||0)+'</td><td>'+(r.due||0)+'</td></tr>';}).join('')+'</table>';exportPDF('تقرير أرباح المناديب',tbl);}},'🖨️ PDF'),
+                    ),
                     h('div',{className:'cp-tabs'},
                         h('button',{className:'cp-tab'+(subTab==='monthly'?' active':''),onClick:function(){setSubTab('monthly');}},'📆 الحساب الشهري'),
                         h('button',{className:'cp-tab'+(subTab==='daily'?' active':''),onClick:function(){setSubTab('daily');}},'📋 السجل اليومي'),
@@ -2280,6 +2391,15 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     setProfileMsg("✅ تم تحديث الملف الشخصي");
                     setOldPass(""); setNewPass(""); setEditName("");
                 }
+                // Keyboard shortcuts
+                useEffect(function(){
+                    function handler(e){
+                        if(e.key==='Escape') { var ov=document.querySelector('.overlay'); if(ov) ov.click(); }
+                        if(e.key==='n'&&(e.ctrlKey||e.metaKey)) { e.preventDefault(); setTab('orders'); setTimeout(function(){var btn=document.querySelector('[class*="sec-header"] .btn-primary'); if(btn)btn.click();},100); }
+                    }
+                    window.addEventListener('keydown',handler);
+                    return function(){window.removeEventListener('keydown',handler);};
+                },[]);
                 return h('div',{style:{display:'flex',flexDirection:'column',minHeight:'100vh'}},
                     h('nav',{className:'nav'},
                         h('div',{style:{display:'flex',alignItems:'center',gap:8}},
@@ -2732,7 +2852,10 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                     setJournalEntries(function(prev){return prev.filter(function(e){return e.id!==id;});});
                 }
                 return h('div',null,
-                    h('div',{className:'sec-title',style:{marginBottom:18}},'📒 دفتر الأستاذ (محاسبة ثلاثية)'),
+                    h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}},
+                        h('div',{className:'sec-title'},'📒 دفتر الأستاذ (محاسبة ثلاثية)'),
+                        h('button',{className:'btn btn-ghost btn-sm',onClick:function(){if(typeof exportPDF!=='function')return; var entries=filteredEntries||journalEntries; var tbl='<table><tr><th>التاريخ</th><th>البيان</th><th>مدين</th><th>دائن</th></tr>'+entries.map(function(e){return '<tr><td>'+(e.date||'')+'</td><td>'+(e.description||'')+'</td><td>'+(e.debit||0).toLocaleString()+'</td><td>'+(e.credit||0).toLocaleString()+'</td></tr>';}).join('')+'</table>';exportPDF('تقرير المحاسبة',tbl);}},'🖨️ PDF'),
+                    ),
                     // Summary cards
                     h('div',{className:'acc-summary'},
                         h('div',{className:'acc-card'},h('div',{className:'acc-card-label'},'💰 إجمالي الخزينة'),h('div',{className:'acc-card-value'},totalCash.toLocaleString(),' ج')),
@@ -2926,8 +3049,8 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                 var myOrders=orders.filter(function(o){return o.courierId===user.courierId;});
                 var activeOrders=myOrders.filter(function(o){return o.status==="assigned";});
                 var doneOrders=myOrders.filter(function(o){return o.status==="delivered"||o.status==="returned";});
-                function markDelivered(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="delivered";return c;});}); }
-                function markReturn(id,reason) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="returned";c.returnReason=reason;return c;});}); }
+                function markDelivered(id) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="delivered";addHistory(c,'delivered','courier');return c;});}); }
+                function markReturn(id,reason) { setOrders(function(p){return p.map(function(o){if(o.id!==id)return o;var c=cloneOrder(o);c.status="returned";c.returnReason=reason;addHistory(c,'returned','courier');return c;});}); }
                 var totalToCollect=activeOrders.reduce(function(s,o){return s+o.amount;},0);
                 var totalCollected=myOrders.filter(function(o){return o.status==="delivered";}).reduce(function(s,o){return s+o.amount;},0);
                 var displayOrders=screen==="active"?activeOrders:doneOrders;
@@ -3147,6 +3270,7 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
                 // Poll for remote changes
                 useEffect(function() {
+                    var prevCount = orders.length;
                     var timer = setInterval(function() {
                         fbGet("flashgo/orders").then(function(val) {
                             if (!val) return;
@@ -3154,6 +3278,9 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
                             if (s !== pollOrders.current) {
                                 pollOrders.current = s;
                                 setOrders(objToArr(val));
+                                var arr = objToArr(val);
+                                if (arr.length > prevCount) { try { playBeep(); } catch(e){} }
+                                prevCount = arr.length;
                             }
                         }).catch(function(){});
                         fbGet("flashgo/couriers").then(function(val) {
